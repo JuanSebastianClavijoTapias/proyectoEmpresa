@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Tarea - Planificador{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
+            <li class="breadcrumb-item active">Editar Tarea</li>
+        </ol>
+    </nav>
+    <h1><i class="bi bi-pencil"></i> Editar Tarea - {{ tarea.placa }}</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Información del Cliente -->
+            <h5 class="text-primary mb-3"><i class="bi bi-person"></i> Información del Cliente</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Cliente *</label>
+                        {{ form.nombre_cliente }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono de Contacto *</label>
+                        {{ form.telefono_cliente }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Placa del Vehículo *</label>
+                        {{ form.placa }}
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Detalles del Trabajo -->
+            <h5 class="text-primary mb-3"><i class="bi bi-tools"></i> Detalles del Trabajo</h5>
+            <div class="mb-3">
+                <label class="form-label">Descripción del Trabajo *</label>
+                {{ form.descripcion_trabajo }}
+            </div>
+            
+            <hr>
+            
+            <!-- Fechas y Estado -->
+            <h5 class="text-primary mb-3"><i class="bi bi-calendar"></i> Fechas y Estado</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Ingreso *</label>
+                        {{ form.fecha_ingreso }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Fecha de Entrega *</label>
+                        {{ form.fecha_entrega }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        {{ form.estado }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">Prioridad</label>
+                        {{ form.prioridad }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Observaciones -->
+            <div class="mb-3">
+                <label class="form-label">Observaciones</label>
+                {{ form.observaciones }}
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-2"></i> Actualizar Tarea
+                </button>
+                <a href="{% url 'tareas:lista' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-2"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

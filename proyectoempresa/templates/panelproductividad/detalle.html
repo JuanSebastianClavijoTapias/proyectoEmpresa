@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle - Productividad{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'productividad:lista' %}">Productividad</a></li>
+            <li class="breadcrumb-item active">Detalle</li>
+        </ol>
+    </nav>
+    <h1><i class="bi bi-eye"></i> Detalle del Registro</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="text-primary"><i class="bi bi-info-circle"></i> Información General</h5>
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="40%">Fecha:</th>
+                        <td>{{ registro.fecha|date:"d/m/Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Trabajador:</th>
+                        <td><strong>{{ registro.trabajador.nombre }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Horario:</th>
+                        <td>{{ registro.hora_inicio|time:"H:i" }} - {{ registro.hora_finalizacion|time:"H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Duración:</th>
+                        <td><span class="badge bg-primary">{{ registro.duracion }}</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h5 class="text-primary"><i class="bi bi-bar-chart"></i> Resumen</h5>
+                <div class="bg-light p-3 rounded text-center">
+                    <h2 class="text-success mb-0">{{ registro.total_items }}</h2>
+                    <small class="text-muted">Total Items Procesados</small>
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <h5 class="text-primary"><i class="bi bi-list-check"></i> Procesos Realizados</h5>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.cortado }}</h4>
+                        <small><i class="bi bi-scissors"></i> Cortado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.marcado_piezas }}</h4>
+                        <small><i class="bi bi-pencil"></i> Marcado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.costura }}</h4>
+                        <small><i class="bi bi-needle"></i> Costura</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.armado }}</h4>
+                        <small><i class="bi bi-tools"></i> Armado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.instalacion }}</h4>
+                        <small><i class="bi bi-wrench"></i> Instalación</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.sillas_realizadas }}</h4>
+                        <small><i class="bi bi-lamp"></i> Sillas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.tapizado_puertas }}</h4>
+                        <small><i class="bi bi-door-open"></i> Puertas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h4>{{ registro.tapizado_techo }}</h4>
+                        <small><i class="bi bi-cloud"></i> Techo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if registro.observaciones %}
+        <hr>
+        <h6><strong>Observaciones:</strong></h6>
+        <div class="bg-light p-3 rounded">{{ registro.observaciones|linebreaks }}</div>
+        {% endif %}
+        
+        <hr>
+        
+        <div class="d-flex gap-2">
+            <a href="{% url 'productividad:editar' registro.pk %}" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i> Editar
+            </a>
+            <a href="{% url 'productividad:eliminar' registro.pk %}" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i> Eliminar
+            </a>
+            <a href="{% url 'productividad:lista' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

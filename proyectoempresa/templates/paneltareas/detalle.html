@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle Tarea - {{ tarea.placa }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
+            <li class="breadcrumb-item active">{{ tarea.placa }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1><i class="bi bi-clipboard-data"></i> Detalle de Tarea</h1>
+        <div>
+            <span class="badge badge-estado badge-{{ tarea.estado }} me-2" style="font-size: 1rem;">
+                {{ tarea.get_estado_display }}
+            </span>
+            <span class="badge badge-prioridad-{{ tarea.prioridad }}" style="font-size: 1rem;">
+                {{ tarea.get_prioridad_display }}
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if tarea.dias_restantes < 0 and tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    <strong>¡Atención!</strong> Esta tarea está vencida por {{ tarea.dias_restantes|slice:"1:" }} día(s).
+</div>
+{% elif tarea.dias_restantes == 0 and tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+<div class="alert alert-warning">
+    <i class="bi bi-clock me-2"></i>
+    <strong>¡Importante!</strong> La entrega de esta tarea es HOY.
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle text-primary"></i> Información General
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Cliente</h6>
+                        <p class="mb-1"><strong>{{ tarea.nombre_cliente }}</strong></p>
+                        <p class="text-muted"><i class="bi bi-telephone"></i> {{ tarea.telefono_cliente }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Vehículo</h6>
+                        <p class="mb-1"><strong>Placa: {{ tarea.placa }}</strong></p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="text-muted">Descripción del Trabajo</h6>
+                <div class="bg-light p-3 rounded mb-3">{{ tarea.descripcion_trabajo|linebreaks }}</div>
+                
+                {% if tarea.observaciones %}
+                <hr>
+                <h6 class="text-muted">Observaciones</h6>
+                <div class="bg-light p-3 rounded">{{ tarea.observaciones|linebreaks }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Fechas -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-calendar text-primary"></i> Fechas
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ingreso:</span>
+                    <strong>{{ tarea.fecha_ingreso|date:"d/m/Y" }}</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Entrega:</span>
+                    <strong>{{ tarea.fecha_entrega|date:"d/m/Y" }}</strong>
+                </div>
+                {% if tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Días restantes:</span>
+                    {% if tarea.dias_restantes < 0 %}
+                        <span class="text-danger"><strong>Vencido</strong></span>
+                    {% elif tarea.dias_restantes == 0 %}
+                        <span class="text-warning"><strong>Hoy</strong></span>
+                    {% else %}
+                        <strong>{{ tarea.dias_restantes }} días</strong>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Acciones Rápidas -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning text-warning"></i> Acciones
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'tareas:editar' tarea.pk %}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i> Editar Tarea
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-success w-100 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-arrow-repeat me-2"></i> Cambiar Estado
+                        </button>
+                        <ul class="dropdown-menu w-100">
+                            <li><a class="dropdown-item" href="{% url 'tareas:cambiar_estado' tarea.pk 'pendiente' %}"><i class="bi bi-hourglass"></i> Pendiente</a></li>
+                            <li><a class="dropdown-item" href="{% url 'tareas:cambiar_estado' tarea.pk 'en_proceso' %}"><i class="bi bi-gear"></i> En Proceso</a></li>
+                            <li><a class="dropdown-item" href="{% url 'tareas:cambiar_estado' tarea.pk 'completado' %}"><i class="bi bi-check-circle"></i> Completado</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'tareas:cambiar_estado' tarea.pk 'cancelado' %}"><i class="bi bi-x-circle"></i> Cancelado</a></li>
+                        </ul>
+                    </div>
+                    <a href="{% url 'tareas:eliminar' tarea.pk %}" class="btn btn-outline-danger">
+                        <i class="bi bi-trash me-2"></i> Eliminar
+                    </a>
+                    <a href="{% url 'tareas:lista' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

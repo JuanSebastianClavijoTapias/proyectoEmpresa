@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Trabajadores - Tapicería{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h1><i class="bi bi-person-badge"></i> Trabajadores</h1>
+        <p class="text-muted">Gestión y estadísticas de productividad por trabajador</p>
+    </div>
+    <a href="{% url 'productividad:crear_trabajador' %}" class="btn btn-primary">
+        <i class="bi bi-person-plus me-2"></i> Nuevo Trabajador
+    </a>
+</div>
+
+<!-- Lista de trabajadores -->
+<div class="row">
+    {% for trabajador in trabajadores %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 {% if not trabajador.activo %}border-secondary{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>
+                    <i class="bi bi-person-circle me-2"></i>
+                    <strong>{{ trabajador.nombre }}</strong>
+                </span>
+                {% if trabajador.activo %}
+                    <span class="badge bg-success">Activo</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactivo</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h6 class="text-muted mb-3">Producción de Hoy</h6>
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <h5 class="mb-0">{{ trabajador.stats_hoy.cortado|default:0 }}</h5>
+                            <small class="text-muted">Cortado</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <h5 class="mb-0">{{ trabajador.stats_hoy.costura|default:0 }}</h5>
+                            <small class="text-muted">Costura</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light rounded p-2">
+                            <h5 class="mb-0">{{ trabajador.stats_hoy.sillas|default:0 }}</h5>
+                            <small class="text-muted">Sillas</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="text-muted mb-2">Este Mes</h6>
+                <div class="d-flex justify-content-between text-sm">
+                    <span>Cortado total: <strong>{{ trabajador.total_cortado_mes }}</strong></span>
+                    <span>Sillas total: <strong>{{ trabajador.total_sillas_mes }}</strong></span>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <div class="d-flex gap-2">
+                    <a href="{% url 'productividad:detalle_trabajador' trabajador.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                        <i class="bi bi-bar-chart"></i> Ver Estadísticas
+                    </a>
+                    <a href="{% url 'productividad:editar_trabajador' trabajador.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-people" style="font-size: 4rem; color: #ccc;"></i>
+                <h4 class="mt-3">No hay trabajadores registrados</h4>
+                <p class="text-muted">Comienza agregando tu primer trabajador</p>
+                <a href="{% url 'productividad:crear_trabajador' %}" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-2"></i> Agregar Trabajador
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
