@@ -73,3 +73,19 @@ class TareaPlanificada(models.Model):
             return 0
         delta = self.fecha_entrega - date.today()
         return delta.days
+
+
+class ImagenTarea(models.Model):
+    """Modelo para almacenar imágenes del progreso de las tareas"""
+    tarea = models.ForeignKey(TareaPlanificada, on_delete=models.CASCADE, related_name='imagenes', verbose_name='Tarea')
+    imagen = models.ImageField(upload_to='tareas/imagenes/%Y/%m/', verbose_name='Imagen')
+    descripcion = models.CharField(max_length=200, blank=True, verbose_name='Descripción')
+    fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Subida')
+    
+    class Meta:
+        verbose_name = 'Imagen de Tarea'
+        verbose_name_plural = 'Imágenes de Tareas'
+        ordering = ['-fecha_subida']
+    
+    def __str__(self):
+        return f"Imagen de {self.tarea.placa} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"

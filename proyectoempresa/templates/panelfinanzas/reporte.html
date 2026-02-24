@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Reporte Financiero - Tapicería{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-graph-up me-2"></i>Reporte Financiero</h1>
+        <p class="text-muted mb-0">
+            Período: {{ fecha_desde|date:"d/m/Y" }} - {{ fecha_hasta|date:"d/m/Y" }}
+        </p>
+    </div>
+    <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left me-1"></i>Volver a Productos
+    </a>
+</div>
+
+<!-- Filtro de fechas -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Fecha Desde</label>
+                <input type="date" name="fecha_desde" value="{{ fecha_desde|date:'Y-m-d' }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" value="{{ fecha_hasta|date:'Y-m-d' }}" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel me-1"></i>Actualizar Reporte
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen General -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card proceso">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Productos</h6>
+                    <h3>{{ total_productos }}</h3>
+                    <small>{{ total_cantidad }} unidades</small>
+                </div>
+                <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card pendientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Costos</h6>
+                    <h3>${{ total_costos|floatformat:0 }}</h3>
+                    <small>Inversión</small>
+                </div>
+                <i class="bi bi-cart" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Ventas</h6>
+                    <h3>${{ total_ventas|floatformat:0 }}</h3>
+                    <small>Ingresos</small>
+                </div>
+                <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card completadas">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Ganancia Neta</h6>
+                    <h3>${{ total_ganancias|floatformat:0 }}</h3>
+                    <small>{{ porcentaje_ganancia|floatformat:1 }}% margen</small>
+                </div>
+                <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Productos por Categoría -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-pie-chart me-2"></i>Ganancia por Categoría
+            </div>
+            <div class="card-body p-0">
+                {% if por_categoria %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th class="text-center">Productos</th>
+                                <th class="text-end">Ganancia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in por_categoria %}
+                            <tr>
+                                <td>{{ cat.categoria__nombre|default:"Sin categoría" }}</td>
+                                <td class="text-center">{{ cat.cantidad }}</td>
+                                <td class="text-end text-success fw-bold">${{ cat.total_ganancia|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mb-0 mt-2">No hay datos para mostrar</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Productos más Rentables -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-trophy me-2"></i>Top 5 Productos Más Rentables
+            </div>
+            <div class="card-body p-0">
+                {% if top_productos %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th class="text-end">Ganancia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for producto in top_productos %}
+                            <tr>
+                                <td>
+                                    {% if forloop.counter == 1 %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-trophy"></i></span>
+                                    {% else %}
+                                    {{ forloop.counter }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'finanzas:detalle' producto.pk %}" class="text-decoration-none">
+                                        {{ producto.nombre }}
+                                    </a>
+                                    <br><small class="text-muted">{{ producto.fecha|date:"d/m/Y" }}</small>
+                                </td>
+                                <td class="text-end text-success fw-bold">${{ producto.ganancia_total|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mb-0 mt-2">No hay datos para mostrar</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen Detallado -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-calculator me-2"></i>Resumen Financiero Detallado
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="border rounded p-3 text-center">
+                    <h6 class="text-muted mb-2">Total Invertido (Costos)</h6>
+                    <h3 class="text-danger">${{ total_costos|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 text-center">
+                    <h6 class="text-muted mb-2">Total Vendido (Ingresos)</h6>
+                    <h3 class="text-primary">${{ total_ventas|floatformat:2 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border rounded p-3 text-center bg-success bg-opacity-10">
+                    <h6 class="text-muted mb-2">Ganancia Neta</h6>
+                    <h3 class="text-success">${{ total_ganancias|floatformat:2 }}</h3>
+                    <small class="text-muted">Margen: {{ porcentaje_ganancia|floatformat:1 }}%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import TareaPlanificada, Cliente
+from .models import TareaPlanificada, Cliente, ImagenTarea
 
 
 class TareaPlanificadaForm(forms.ModelForm):
@@ -32,4 +32,23 @@ class ClienteForm(forms.ModelForm):
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre completo'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'}),
+        }
+
+
+class ImagenTareaForm(forms.ModelForm):
+    """Formulario para subir imágenes a las tareas"""
+    class Meta:
+        model = ImagenTarea
+        fields = ['imagen', 'descripcion']
+        widgets = {
+            'imagen': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',  # Permite seleccionar solo imágenes
+                'capture': 'environment',  # Habilita cámara en móviles
+            }),
+            'descripcion': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción de la imagen (opcional)',
+                'maxlength': '200'
+            }),
         }

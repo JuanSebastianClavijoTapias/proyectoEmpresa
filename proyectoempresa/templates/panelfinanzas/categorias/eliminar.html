@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar {{ categoria.nombre }} - Finanzas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-trash me-2 text-danger"></i>Eliminar Categoría</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+            </div>
+            <div class="card-body text-center">
+                <i class="bi bi-tag text-danger" style="font-size: 4rem;"></i>
+                <h4 class="mt-3">{{ categoria.nombre }}</h4>
+                {% if categoria.descripcion %}
+                <p class="text-muted">{{ categoria.descripcion }}</p>
+                {% endif %}
+                
+                <div class="alert alert-warning mt-4">
+                    <strong>¿Estás seguro de eliminar esta categoría?</strong>
+                    <p class="mb-0 mt-2">Los productos asociados quedarán sin categoría.</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'finanzas:lista_categorias' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-1"></i>Sí, Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

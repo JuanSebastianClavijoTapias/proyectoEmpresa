@@ -12,6 +12,7 @@ urlpatterns = [
     path('<int:pk>/editar/', views.editar_tarea, name='editar'),
     path('<int:pk>/eliminar/', views.eliminar_tarea, name='eliminar'),
     path('<int:pk>/estado/<str:estado>/', views.cambiar_estado_tarea, name='cambiar_estado'),
+    path('<int:pk>/imagen/<int:imagen_pk>/eliminar/', views.eliminar_imagen, name='eliminar_imagen'),
     
     # Clientes
     path('clientes/', views.lista_clientes, name='lista_clientes'),

@@ -149,7 +149,7 @@
     <!-- Sidebar -->
     <nav class="sidebar d-none d-md-block">
         <div class="sidebar-brand">
-            <i class="bi bi-car-front-fill"></i> Tapicería
+            <i class="bi bi-car-front-fill"></i> Tapicería Cuir
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -161,6 +161,7 @@
                 <a class="nav-link {% if 'productividad' in request.path and 'trabajadores' not in request.path %}active{% endif %}" href="{% url 'productividad:lista' %}">
                     <i class="bi bi-graph-up"></i> Productividad
                 </a>
+
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'trabajadores' in request.path %}active{% endif %}" href="{% url 'productividad:lista_trabajadores' %}">
@@ -182,10 +183,55 @@
                     <i class="bi bi-people"></i> Clientes
                 </a>
             </li>
+            
+            {% if user.is_authenticated %}
+                {% if user.is_superuser or user.perfil.es_jefe %}
+                <li class="nav-item mt-3">
+                    <small class="text-white-50 px-3">FINANZAS</small>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'finanzas' in request.path and 'reporte' not in request.path and 'categorias' not in request.path %}active{% endif %}" href="{% url 'finanzas:lista' %}">
+                        <i class="bi bi-box-seam"></i> Productos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'reporte' in request.path %}active{% endif %}" href="{% url 'finanzas:reporte' %}">
+                        <i class="bi bi-graph-up"></i> Reporte Financiero
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'finanzas:lista_categorias' %}">
+                        <i class="bi bi-tags"></i> Categorías
+                    </a>
+                </li>
+                {% endif %}
+            {% endif %}
+            
             <li class="nav-item mt-4">
                 <a class="nav-link" href="{% url 'admin:index' %}">
                     <i class="bi bi-gear"></i> Administración
                 </a>
+            </li>
+            
+            <!-- Login/Logout -->
+            <li class="nav-item mt-2">
+                {% if user.is_authenticated %}
+                <div class="px-3 py-2 text-white-50 small">
+                    <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+                    {% if user.perfil %}
+                    <span class="badge bg-{% if user.perfil.es_jefe %}warning{% else %}secondary{% endif %} ms-1">
+                        {{ user.perfil.get_rol_display }}
+                    </span>
+                    {% endif %}
+                </div>
+                <a class="nav-link text-danger" href="{% url 'finanzas:logout' %}">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </a>
+                {% else %}
+                <a class="nav-link" href="{% url 'finanzas:login' %}">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+                {% endif %}
             </li>
         </ul>
     </nav>
@@ -206,6 +252,19 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'productividad:lista_trabajadores' %}"><i class="bi bi-person-badge"></i> Trabajadores</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}"><i class="bi bi-clipboard-check"></i> Planificador</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista_clientes' %}"><i class="bi bi-people"></i> Clientes</a></li>
+                    {% if user.is_authenticated %}
+                        {% if user.is_superuser or user.perfil.es_jefe %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:lista' %}"><i class="bi bi-box-seam"></i> Productos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:reporte' %}"><i class="bi bi-graph-up-arrow"></i> Reporte</a></li>
+                        {% endif %}
+                    {% endif %}
+                    <li class="nav-item mt-2">
+                        {% if user.is_authenticated %}
+                        <a class="nav-link text-warning" href="{% url 'finanzas:logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión ({{ user.username }})</a>
+                        {% else %}
+                        <a class="nav-link" href="{% url 'finanzas:login' %}"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
+                        {% endif %}
+                    </li>
                 </ul>
             </div>
         </div>

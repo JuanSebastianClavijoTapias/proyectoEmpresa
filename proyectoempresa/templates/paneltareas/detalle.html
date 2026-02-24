@@ -10,7 +10,7 @@
             <li class="breadcrumb-item active">{{ tarea.placa }}</li>
         </ol>
     </nav>
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h1><i class="bi bi-clipboard-data"></i> Detalle de Tarea</h1>
         <div>
             <span class="badge badge-estado badge-{{ tarea.estado }} me-2" style="font-size: 1rem;">
@@ -63,6 +63,79 @@
                 <hr>
                 <h6 class="text-muted">Observaciones</h6>
                 <div class="bg-light p-3 rounded">{{ tarea.observaciones|linebreaks }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sección de Imágenes del Progreso -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><i class="bi bi-images text-success"></i> Imágenes del Progreso</span>
+                <button class="btn btn-sm btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formSubirImagen">
+                    <i class="bi bi-camera me-1"></i> Subir Imagen
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Formulario para subir imágenes (colapsable) -->
+                <div class="collapse mb-4" id="formSubirImagen">
+                    <div class="card card-body bg-light">
+                        <h6 class="mb-3"><i class="bi bi-upload me-2"></i>Subir Nueva Imagen</h6>
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="id_imagen" class="form-label">Seleccionar imagen o tomar foto</label>
+                                {{ form_imagen.imagen }}
+                                <div class="form-text">Puedes seleccionar una imagen de tu galería o tomar una foto con la cámara.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_descripcion" class="form-label">Descripción (opcional)</label>
+                                {{ form_imagen.descripcion }}
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="submit" class="btn btn-success flex-grow-1">
+                                    <i class="bi bi-cloud-upload me-2"></i>Subir Imagen
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#formSubirImagen">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Galería de imágenes -->
+                {% if imagenes %}
+                <div class="row g-3">
+                    {% for img in imagenes %}
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="card h-100 imagen-card">
+                            <a href="{{ img.imagen.url }}" target="_blank" class="imagen-link">
+                                <img src="{{ img.imagen.url }}" class="card-img-top imagen-thumbnail" alt="{{ img.descripcion|default:'Imagen del trabajo' }}">
+                            </a>
+                            <div class="card-body p-2">
+                                {% if img.descripcion %}
+                                <p class="card-text small mb-1 text-truncate" title="{{ img.descripcion }}">{{ img.descripcion }}</p>
+                                {% endif %}
+                                <small class="text-muted d-block">{{ img.fecha_subida|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <div class="card-footer p-1 bg-transparent border-0">
+                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-image" style="font-size: 3rem;"></i>
+                    <p class="mt-2 mb-0">No hay imágenes del progreso aún.</p>
+                    <p class="small">Sube fotos para documentar el avance del trabajo.</p>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -132,4 +205,49 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Estilos para la galería de imágenes - Responsive para móviles */
+.imagen-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.imagen-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.imagen-thumbnail {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+@media (max-width: 576px) {
+    .imagen-thumbnail {
+        height: 120px;
+    }
+}
+
+.imagen-link {
+    display: block;
+    overflow: hidden;
+}
+
+/* Mejoras para el formulario en móvil */
+@media (max-width: 768px) {
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 0.75rem;
+    }
+}
+</style>
 {% endblock %}

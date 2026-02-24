@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.http import JsonResponse
 from datetime import date, timedelta
 import calendar
-from .models import Cliente, TareaPlanificada
-from .forms import TareaPlanificadaForm, ClienteForm
+from .models import Cliente, TareaPlanificada, ImagenTarea
+from .forms import TareaPlanificadaForm, ClienteForm, ImagenTareaForm
 
 
 def home(request):
@@ -106,9 +107,45 @@ def eliminar_tarea(request, pk):
 
 
 def detalle_tarea(request, pk):
-    """Vista para ver el detalle de una tarea"""
+    """Vista para ver el detalle de una tarea y subir imágenes"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
-    return render(request, 'paneltareas/detalle.html', {'tarea': tarea})
+    
+    if request.method == 'POST':
+        form_imagen = ImagenTareaForm(request.POST, request.FILES)
+        if form_imagen.is_valid():
+            imagen = form_imagen.save(commit=False)
+            imagen.tarea = tarea
+            imagen.save()
+            messages.success(request, 'Imagen subida exitosamente.')
+            return redirect('tareas:detalle', pk=pk)
+        else:
+            messages.error(request, 'Error al subir la imagen. Verifica que sea un archivo de imagen válido.')
+    else:
+        form_imagen = ImagenTareaForm()
+    
+    imagenes = tarea.imagenes.all()
+    
+    return render(request, 'paneltareas/detalle.html', {
+        'tarea': tarea,
+        'form_imagen': form_imagen,
+        'imagenes': imagenes,
+    })
+
+
+def eliminar_imagen(request, pk, imagen_pk):
+    """Vista para eliminar una imagen de una tarea"""
+    tarea = get_object_or_404(TareaPlanificada, pk=pk)
+    imagen = get_object_or_404(ImagenTarea, pk=imagen_pk, tarea=tarea)
+    
+    if request.method == 'POST':
+        # Eliminar el archivo físico
+        if imagen.imagen:
+            imagen.imagen.delete(save=False)
+        imagen.delete()
+        messages.success(request, 'Imagen eliminada exitosamente.')
+        return redirect('tareas:detalle', pk=pk)
+    
+    return redirect('tareas:detalle', pk=pk)
 
 
 def cambiar_estado_tarea(request, pk, estado):

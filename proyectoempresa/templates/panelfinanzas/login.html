@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Iniciar Sesión - Tapicería{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header text-center py-4">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>Iniciar Sesión
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuario</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       placeholder="Tu nombre de usuario" required autofocus>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Contraseña</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Tu contraseña" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Ingresar
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'home' %}" class="text-muted">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
