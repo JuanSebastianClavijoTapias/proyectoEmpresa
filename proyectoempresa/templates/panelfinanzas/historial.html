@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Historial de Entregas - Finanzas{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-clock-history me-2"></i>Historial de Entregas</h1>
+        <p class="text-muted mb-0">Registro de productos entregados y sus finanzas</p>
+    </div>
+    <div>
+        <a href="{% url 'finanzas:reporte' %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-graph-up me-1"></i>Ver Reporte
+        </a>
+        <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-box-seam me-1"></i>Catálogo
+        </a>
+    </div>
+</div>
+
+<!-- Resumen Financiero -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card proceso">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Entregas</h6>
+                    <h3>{{ total_cantidad }}</h3>
+                </div>
+                <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card pendientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Costos</h6>
+                    <h3>${{ total_costo|floatformat:0 }}</h3>
+                </div>
+                <i class="bi bi-cart" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Ventas</h6>
+                    <h3>${{ total_venta|floatformat:0 }}</h3>
+                </div>
+                <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card completadas">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Ganancia Total</h6>
+                    <h3>${{ total_ganancia|floatformat:0 }}</h3>
+                </div>
+                <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Desde</label>
+                {{ form_filtro.fecha_desde }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Hasta</label>
+                {{ form_filtro.fecha_hasta }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                {{ form_filtro.categoria }}
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-funnel me-1"></i>Filtrar
+                </button>
+                <a href="{% url 'finanzas:historial' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de Entregas -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-list-ul me-2"></i>Historial de Entregas
+    </div>
+    <div class="card-body p-0">
+        {% if entregas %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cliente / Tarea</th>
+                        <th class="text-end">P. Costo</th>
+                        <th class="text-end">P. Venta</th>
+                        <th class="text-center">Cant.</th>
+                        <th class="text-end">Ganancia</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in entregas %}
+                    <tr>
+                        <td>
+                            <strong>{{ entrega.nombre_producto }}</strong>
+                            {% if entrega.producto and entrega.producto.categoria %}
+                            <br><span class="badge bg-secondary">{{ entrega.producto.categoria.nombre }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entrega.tarea %}
+                            <a href="{% url 'tareas:detalle' entrega.tarea.pk %}" class="text-decoration-none">
+                                {{ entrega.tarea.nombre_cliente }}
+                            </a>
+                            <br><small class="text-muted">{{ entrega.tarea.placa }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">${{ entrega.precio_costo|floatformat:0 }}</td>
+                        <td class="text-end">${{ entrega.precio_venta|floatformat:0 }}</td>
+                        <td class="text-center">{{ entrega.cantidad }}</td>
+                        <td class="text-end">
+                            <span class="{% if entrega.ganancia_total > 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                ${{ entrega.ganancia_total|floatformat:0 }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ entrega.porcentaje_ganancia|floatformat:1 }}%</small>
+                        </td>
+                        <td>{{ entrega.fecha_registro|date:"d/m/Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3">No hay entregas registradas</p>
+            <p class="text-muted">Las entregas se crean automáticamente cuando se agregan productos a las tareas.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

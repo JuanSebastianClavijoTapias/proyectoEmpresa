@@ -1,5 +1,7 @@
 from django import forms
-from .models import TareaPlanificada, Cliente, ImagenTarea
+from django.forms import inlineformset_factory
+from .models import TareaPlanificada, Cliente, ImagenTarea, ProductoTarea
+from panelfinanzas.models import Producto
 
 
 class TareaPlanificadaForm(forms.ModelForm):
@@ -25,6 +27,47 @@ class TareaPlanificadaForm(forms.ModelForm):
         }
 
 
+class TareaPlanificadaFormJefe(TareaPlanificadaForm):
+    """Formulario extendido para jefes que incluye monto abonado"""
+    class Meta(TareaPlanificadaForm.Meta):
+        fields = TareaPlanificadaForm.Meta.fields + ['monto_abonado']
+        widgets = {
+            **TareaPlanificadaForm.Meta.widgets,
+            'monto_abonado': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+        }
+
+
+class ProductoTareaForm(forms.ModelForm):
+    """Formulario para agregar productos a una tarea"""
+    class Meta:
+        model = ProductoTarea
+        fields = ['producto', 'cantidad']
+        widgets = {
+            'producto': forms.Select(attrs={'class': 'form-select producto-select'}),
+            'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['producto'].queryset = Producto.objects.all()
+        self.fields['producto'].required = False
+
+
+ProductoTareaFormSet = inlineformset_factory(
+    TareaPlanificada,
+    ProductoTarea,
+    form=ProductoTareaForm,
+    extra=1,
+    can_delete=True,
+    fields=['producto', 'cantidad'],
+)
+
+
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
@@ -43,8 +86,8 @@ class ImagenTareaForm(forms.ModelForm):
         widgets = {
             'imagen': forms.FileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*',  # Permite seleccionar solo imágenes
-                'capture': 'environment',  # Habilita cámara en móviles
+                'accept': 'image/*',
+                'capture': 'environment',
             }),
             'descripcion': forms.TextInput(attrs={
                 'class': 'form-control',

@@ -45,35 +45,27 @@ class CategoriaProductoAdmin(admin.ModelAdmin):
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'categoria', 'precio_costo', 'precio_venta', 
-                    'ganancia_unitaria', 'cantidad', 'fecha', 'creado_por']
-    list_filter = ['categoria', 'fecha']
-    search_fields = ['nombre', 'cliente_nombre', 'descripcion']
-    date_hierarchy = 'fecha'
-    readonly_fields = ['ganancia_unitaria', 'ganancia_total', 'porcentaje_ganancia']
+                    'ganancia_unitaria', 'creado_por']
+    list_filter = ['categoria']
+    search_fields = ['nombre', 'descripcion']
+    readonly_fields = ['ganancia_unitaria', 'porcentaje_ganancia']
     
     fieldsets = (
         ('Información del Producto', {
             'fields': ('nombre', 'descripcion', 'categoria')
         }),
-        ('Precios y Cantidades', {
-            'fields': ('precio_costo', 'precio_venta', 'cantidad')
+        ('Precios', {
+            'fields': ('precio_costo', 'precio_venta')
         }),
         ('Información de Ganancia (calculado)', {
-            'fields': ('ganancia_unitaria', 'ganancia_total', 'porcentaje_ganancia'),
+            'fields': ('ganancia_unitaria', 'porcentaje_ganancia'),
             'classes': ('collapse',)
-        }),
-        ('Cliente y Fecha', {
-            'fields': ('cliente_nombre', 'fecha')
         }),
     )
     
     def ganancia_unitaria(self, obj):
         return f"${obj.ganancia_unitaria:,.2f}"
     ganancia_unitaria.short_description = 'Ganancia Unitaria'
-    
-    def ganancia_total(self, obj):
-        return f"${obj.ganancia_total:,.2f}"
-    ganancia_total.short_description = 'Ganancia Total'
     
     def porcentaje_ganancia(self, obj):
         return f"{obj.porcentaje_ganancia:.1f}%"

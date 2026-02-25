@@ -3,14 +3,13 @@ from .models import Producto, CategoriaProducto
 
 
 class ProductoForm(forms.ModelForm):
-    """Formulario para crear/editar productos"""
+    """Formulario para crear/editar productos del catálogo"""
     
     class Meta:
         model = Producto
         fields = [
             'nombre', 'descripcion', 'categoria', 
-            'precio_costo', 'precio_venta', 'cantidad',
-            'cliente_nombre', 'fecha'
+            'precio_costo', 'precio_venta',
         ]
         widgets = {
             'nombre': forms.TextInput(attrs={
@@ -37,19 +36,6 @@ class ProductoForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0'
             }),
-            'cantidad': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'min': '1',
-                'value': '1'
-            }),
-            'cliente_nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre del cliente (opcional)'
-            }),
-            'fecha': forms.DateInput(attrs={
-                'class': 'form-control',
-                'type': 'date'
-            }),
         }
 
 
@@ -73,7 +59,27 @@ class CategoriaProductoForm(forms.ModelForm):
 
 
 class FiltroProductoForm(forms.Form):
-    """Formulario para filtrar productos"""
+    """Formulario para filtrar productos del catálogo"""
+    
+    categoria = forms.ModelChoiceField(
+        queryset=CategoriaProducto.objects.all(),
+        required=False,
+        empty_label='Todas las categorías',
+        widget=forms.Select(attrs={
+            'class': 'form-select'
+        })
+    )
+    buscar = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Buscar producto...'
+        })
+    )
+
+
+class FiltroHistorialForm(forms.Form):
+    """Formulario para filtrar el historial de entregas"""
     
     fecha_desde = forms.DateField(
         required=False,

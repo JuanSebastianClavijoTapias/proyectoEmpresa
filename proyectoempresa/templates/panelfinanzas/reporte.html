@@ -41,8 +41,8 @@
         <div class="stat-card proceso">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 opacity-75">Productos</h6>
-                    <h3>{{ total_productos }}</h3>
+                    <h6 class="mb-1 opacity-75">Entregas</h6>
+                    <h3>{{ total_entregas }}</h3>
                     <small>{{ total_cantidad }} unidades</small>
                 </div>
                 <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.3;"></i>
@@ -130,7 +130,7 @@
     <div class="col-md-6">
         <div class="card mb-4">
             <div class="card-header">
-                <i class="bi bi-trophy me-2"></i>Top 5 Productos Más Rentables
+                <i class="bi bi-trophy me-2"></i>Top 5 Productos Más Entregados
             </div>
             <div class="card-body p-0">
                 {% if top_productos %}
@@ -140,11 +140,12 @@
                             <tr>
                                 <th>#</th>
                                 <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
                                 <th class="text-end">Ganancia</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for producto in top_productos %}
+                            {% for item in top_productos %}
                             <tr>
                                 <td>
                                     {% if forloop.counter == 1 %}
@@ -153,13 +154,9 @@
                                     {{ forloop.counter }}
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <a href="{% url 'finanzas:detalle' producto.pk %}" class="text-decoration-none">
-                                        {{ producto.nombre }}
-                                    </a>
-                                    <br><small class="text-muted">{{ producto.fecha|date:"d/m/Y" }}</small>
-                                </td>
-                                <td class="text-end text-success fw-bold">${{ producto.ganancia_total|floatformat:2 }}</td>
+                                <td>{{ item.nombre_producto }}</td>
+                                <td class="text-center">{{ item.total_cant }}</td>
+                                <td class="text-end text-success fw-bold">${{ item.total_gan|floatformat:0 }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

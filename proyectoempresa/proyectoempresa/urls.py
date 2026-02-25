@@ -18,11 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from paneltareas.views import home
+from paneltareas.views import home, login_view, logout_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'),
+    # Autenticación
+    path('', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    # Dashboard (página principal después de login)
+    path('dashboard/', home, name='dashboard'),
+    path('home/', home, name='home'),  # Alias para compatibilidad
+    # Apps
     path('productividad/', include('panelproductividad.urls')),
     path('tareas/', include('paneltareas.urls')),
     path('finanzas/', include('panelfinanzas.urls')),

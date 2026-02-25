@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Editar {{ producto.nombre }} - Finanzas{% endblock %}
+{% block title %}Editar {{ producto.nombre }} - Catálogo{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{% url 'finanzas:lista' %}">Productos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:lista' %}">Catálogo</a></li>
             <li class="breadcrumb-item"><a href="{% url 'finanzas:detalle' producto.pk %}">{{ producto.nombre }}</a></li>
             <li class="breadcrumb-item active">Editar</li>
         </ol>
@@ -40,58 +40,36 @@
                     </div>
                     
                     <hr class="my-4">
-                    <h6 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Precios y Cantidades</h6>
+                    <h6 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Precios</h6>
                     
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">Precio de Costo *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 {{ form.precio_costo }}
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">Precio de Venta *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
                                 {{ form.precio_venta }}
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Cantidad *</label>
-                            {{ form.cantidad }}
-                        </div>
                     </div>
                     
                     <!-- Vista previa de ganancia -->
                     <div class="alert alert-info" id="preview-ganancia">
                         <div class="row text-center">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <small>Ganancia Unitaria</small>
-                                <h5 id="ganancia-unitaria">$0.00</h5>
+                                <h5 id="ganancia-unitaria">$0</h5>
                             </div>
-                            <div class="col-md-4">
-                                <small>Ganancia Total</small>
-                                <h5 id="ganancia-total">$0.00</h5>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <small>% Ganancia</small>
                                 <h5 id="porcentaje-ganancia">0%</h5>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <hr class="my-4">
-                    <h6 class="mb-3"><i class="bi bi-person me-2"></i>Cliente y Fecha</h6>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-8">
-                            <label class="form-label">Nombre del Cliente</label>
-                            {{ form.cliente_nombre }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Fecha *</label>
-                            {{ form.fecha }}
                         </div>
                     </div>
                     
@@ -132,25 +110,21 @@
 document.addEventListener('DOMContentLoaded', function() {
     const precioCosto = document.querySelector('[name="precio_costo"]');
     const precioVenta = document.querySelector('[name="precio_venta"]');
-    const cantidad = document.querySelector('[name="cantidad"]');
     
     function calcularGanancia() {
         const costo = parseFloat(precioCosto.value) || 0;
         const venta = parseFloat(precioVenta.value) || 0;
-        const cant = parseInt(cantidad.value) || 1;
         
         const gananciaUnitaria = venta - costo;
-        const gananciaTotal = gananciaUnitaria * cant;
         const porcentaje = costo > 0 ? ((venta - costo) / costo * 100) : 0;
         
-        document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toFixed(2);
-        document.getElementById('ganancia-total').textContent = '$' + gananciaTotal.toFixed(2);
+        document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toFixed(0);
         document.getElementById('porcentaje-ganancia').textContent = porcentaje.toFixed(1) + '%';
         
         const previewDiv = document.getElementById('preview-ganancia');
-        if (gananciaTotal > 0) {
+        if (gananciaUnitaria > 0) {
             previewDiv.className = 'alert alert-success';
-        } else if (gananciaTotal < 0) {
+        } else if (gananciaUnitaria < 0) {
             previewDiv.className = 'alert alert-danger';
         } else {
             previewDiv.className = 'alert alert-info';
@@ -159,7 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     precioCosto.addEventListener('input', calcularGanancia);
     precioVenta.addEventListener('input', calcularGanancia);
-    cantidad.addEventListener('input', calcularGanancia);
     
     calcularGanancia();
 });

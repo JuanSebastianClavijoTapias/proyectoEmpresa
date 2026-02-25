@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 
 class Cliente(models.Model):
     """Modelo para almacenar información de clientes"""
@@ -53,6 +54,15 @@ class TareaPlanificada(models.Model):
     # Observaciones
     observaciones = models.TextField(blank=True, null=True, verbose_name='Observaciones')
     
+    # Monto abonado por el cliente (solo visible para jefes/admin)
+    monto_abonado = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name='Monto Abonado',
+        help_text='Monto que el cliente ha abonado del precio total'
+    )
+    
     # Metadatos
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     actualizado_en = models.DateTimeField(auto_now=True, verbose_name='Última Actualización')
@@ -73,6 +83,19 @@ class TareaPlanificada(models.Model):
             return 0
         delta = self.fecha_entrega - date.today()
         return delta.days
+    
+    @property
+    def precio_total(self):
+        """Calcula el precio total sumando todos los productos de la tarea"""
+        total = Decimal('0')
+        for pt in self.productos_tarea.all():
+            total += pt.total_venta
+        return total
+    
+    @property
+    def saldo_pendiente(self):
+        """Calcula el saldo pendiente (precio total - monto abonado)"""
+        return self.precio_total - self.monto_abonado
 
 
 class ImagenTarea(models.Model):
@@ -89,3 +112,69 @@ class ImagenTarea(models.Model):
     
     def __str__(self):
         return f"Imagen de {self.tarea.placa} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
+
+
+class ProductoTarea(models.Model):
+    """Productos asociados a una tarea con precios al momento de la asignación"""
+    
+    tarea = models.ForeignKey(
+        TareaPlanificada, 
+        on_delete=models.CASCADE, 
+        related_name='productos_tarea',
+        verbose_name='Tarea'
+    )
+    producto = models.ForeignKey(
+        'panelfinanzas.Producto', 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='entregas',
+        verbose_name='Producto'
+    )
+    nombre_producto = models.CharField(max_length=200, verbose_name='Nombre del Producto')
+    cantidad = models.PositiveIntegerField(default=1, verbose_name='Cantidad')
+    precio_costo = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        verbose_name='Precio de Costo'
+    )
+    precio_venta = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        verbose_name='Precio de Venta'
+    )
+    fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
+    
+    class Meta:
+        verbose_name = 'Producto de Tarea'
+        verbose_name_plural = 'Productos de Tareas'
+        ordering = ['-fecha_registro']
+    
+    def __str__(self):
+        return f"{self.nombre_producto} x{self.cantidad} - {self.tarea}"
+    
+    @property
+    def ganancia_unitaria(self):
+        """Ganancia por unidad"""
+        return self.precio_venta - self.precio_costo
+    
+    @property
+    def ganancia_total(self):
+        """Ganancia total (considerando cantidad)"""
+        return self.ganancia_unitaria * self.cantidad
+    
+    @property
+    def total_venta(self):
+        """Total de venta"""
+        return self.precio_venta * self.cantidad
+    
+    @property
+    def total_costo(self):
+        """Total de costo"""
+        return self.precio_costo * self.cantidad
+    
+    @property
+    def porcentaje_ganancia(self):
+        """Porcentaje de ganancia"""
+        if self.precio_costo > 0:
+            return ((self.precio_venta - self.precio_costo) / self.precio_costo) * 100
+        return 0

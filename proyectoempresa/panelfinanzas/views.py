@@ -3,14 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-from django.db.models import Sum, Avg, Count
+from django.db.models import Sum, Avg, Count, F, DecimalField
 from django.db.models.functions import TruncMonth
 from functools import wraps
 from datetime import date, timedelta
 from decimal import Decimal
 
 from .models import Producto, CategoriaProducto, PerfilUsuario
-from .forms import ProductoForm, CategoriaProductoForm, FiltroProductoForm
+from .forms import ProductoForm, CategoriaProductoForm, FiltroProductoForm, FiltroHistorialForm
+from paneltareas.models import ProductoTarea
 
 
 # =============================================
@@ -78,52 +79,35 @@ def logout_view(request):
 
 
 # =============================================
-# VISTAS DE PRODUCTOS (SOLO JEFES)
+# VISTAS DE PRODUCTOS / CATÁLOGO (SOLO JEFES)
 # =============================================
 
 @solo_jefes
 def lista_productos(request):
-    """Lista de todos los productos con filtros"""
+    """Lista del catálogo de productos"""
     productos = Producto.objects.all()
     form_filtro = FiltroProductoForm(request.GET)
     
     # Aplicar filtros
     if form_filtro.is_valid():
-        fecha_desde = form_filtro.cleaned_data.get('fecha_desde')
-        fecha_hasta = form_filtro.cleaned_data.get('fecha_hasta')
         categoria = form_filtro.cleaned_data.get('categoria')
+        buscar = form_filtro.cleaned_data.get('buscar')
         
-        if fecha_desde:
-            productos = productos.filter(fecha__gte=fecha_desde)
-        if fecha_hasta:
-            productos = productos.filter(fecha__lte=fecha_hasta)
         if categoria:
             productos = productos.filter(categoria=categoria)
-    
-    # Calcular totales
-    totales = productos.aggregate(
-        total_costo=Sum('precio_costo'),
-        total_venta=Sum('precio_venta'),
-        total_cantidad=Sum('cantidad')
-    )
-    
-    # Calcular ganancia total
-    ganancia_total = Decimal('0')
-    for producto in productos:
-        ganancia_total += producto.ganancia_total
+        if buscar:
+            productos = productos.filter(nombre__icontains=buscar)
     
     context = {
         'productos': productos,
         'form_filtro': form_filtro,
-        'totales': totales,
-        'ganancia_total': ganancia_total,
     }
     return render(request, 'panelfinanzas/lista.html', context)
 
 
 @solo_jefes
 def crear_producto(request):
-    """Crear un nuevo producto"""
+    """Crear un nuevo producto en el catálogo"""
     if request.method == 'POST':
         form = ProductoForm(request.POST)
         if form.is_valid():
@@ -133,16 +117,21 @@ def crear_producto(request):
             messages.success(request, 'Producto registrado correctamente.')
             return redirect('finanzas:lista')
     else:
-        form = ProductoForm(initial={'fecha': date.today()})
+        form = ProductoForm()
     
     return render(request, 'panelfinanzas/crear.html', {'form': form})
 
 
 @solo_jefes
 def detalle_producto(request, pk):
-    """Ver detalle de un producto"""
+    """Ver detalle de un producto del catálogo"""
     producto = get_object_or_404(Producto, pk=pk)
-    return render(request, 'panelfinanzas/detalle.html', {'producto': producto})
+    # Obtener historial de entregas de este producto
+    entregas = ProductoTarea.objects.filter(producto=producto).select_related('tarea')
+    return render(request, 'panelfinanzas/detalle.html', {
+        'producto': producto,
+        'entregas': entregas,
+    })
 
 
 @solo_jefes
@@ -176,13 +165,58 @@ def eliminar_producto(request, pk):
 
 
 # =============================================
+# VISTAS DE HISTORIAL DE ENTREGAS (SOLO JEFES)
+# =============================================
+
+@solo_jefes
+def historial_entregas(request):
+    """Historial de productos entregados con sus finanzas"""
+    entregas = ProductoTarea.objects.all().select_related('tarea', 'producto')
+    form_filtro = FiltroHistorialForm(request.GET)
+    
+    # Aplicar filtros
+    if form_filtro.is_valid():
+        fecha_desde = form_filtro.cleaned_data.get('fecha_desde')
+        fecha_hasta = form_filtro.cleaned_data.get('fecha_hasta')
+        categoria = form_filtro.cleaned_data.get('categoria')
+        
+        if fecha_desde:
+            entregas = entregas.filter(fecha_registro__date__gte=fecha_desde)
+        if fecha_hasta:
+            entregas = entregas.filter(fecha_registro__date__lte=fecha_hasta)
+        if categoria:
+            entregas = entregas.filter(producto__categoria=categoria)
+    
+    # Calcular totales
+    total_costo = Decimal('0')
+    total_venta = Decimal('0')
+    total_ganancia = Decimal('0')
+    total_cantidad = 0
+    
+    for entrega in entregas:
+        total_costo += entrega.total_costo
+        total_venta += entrega.total_venta
+        total_ganancia += entrega.ganancia_total
+        total_cantidad += entrega.cantidad
+    
+    context = {
+        'entregas': entregas,
+        'form_filtro': form_filtro,
+        'total_costo': total_costo,
+        'total_venta': total_venta,
+        'total_ganancia': total_ganancia,
+        'total_cantidad': total_cantidad,
+    }
+    return render(request, 'panelfinanzas/historial.html', context)
+
+
+# =============================================
 # VISTAS DE REPORTES (SOLO JEFES)
 # =============================================
 
 @solo_jefes
 def reporte_finanzas(request):
-    """Reporte general de finanzas"""
-    # Obtener rango de fechas (por defecto último mes)
+    """Reporte general de finanzas basado en entregas"""
     hoy = date.today()
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
@@ -197,41 +231,50 @@ def reporte_finanzas(request):
     else:
         fecha_hasta = hoy
     
-    # Filtrar productos por rango de fechas
-    productos = Producto.objects.filter(fecha__gte=fecha_desde, fecha__lte=fecha_hasta)
+    # Filtrar entregas por rango de fechas
+    entregas = ProductoTarea.objects.filter(
+        fecha_registro__date__gte=fecha_desde, 
+        fecha_registro__date__lte=fecha_hasta
+    ).select_related('producto', 'tarea')
     
     # Estadísticas generales
-    total_productos = productos.count()
-    total_cantidad = productos.aggregate(total=Sum('cantidad'))['total'] or 0
+    total_entregas = entregas.count()
+    total_cantidad = 0
     
     # Calcular totales financieros
     total_costos = Decimal('0')
     total_ventas = Decimal('0')
     total_ganancias = Decimal('0')
     
-    for producto in productos:
-        total_costos += producto.total_costo
-        total_ventas += producto.total_venta
-        total_ganancias += producto.ganancia_total
+    for entrega in entregas:
+        total_costos += entrega.total_costo
+        total_ventas += entrega.total_venta
+        total_ganancias += entrega.ganancia_total
+        total_cantidad += entrega.cantidad
     
     # Porcentaje de ganancia promedio
     porcentaje_ganancia = 0
     if total_costos > 0:
         porcentaje_ganancia = ((total_ventas - total_costos) / total_costos) * 100
     
-    # Productos por categoría
-    por_categoria = productos.values('categoria__nombre').annotate(
+    # Entregas por categoría
+    por_categoria = entregas.filter(producto__isnull=False).values(
+        'producto__categoria__nombre'
+    ).annotate(
         cantidad=Count('id'),
-        total_ganancia=Sum('precio_venta') - Sum('precio_costo')
+        total_ganancia=Sum(F('precio_venta') - F('precio_costo'), output_field=DecimalField())
     ).order_by('-total_ganancia')
     
-    # Top 5 productos más rentables
-    top_productos = sorted(productos, key=lambda x: x.ganancia_total, reverse=True)[:5]
+    # Top 5 productos más entregados
+    top_productos = entregas.values('nombre_producto').annotate(
+        total_cant=Sum('cantidad'),
+        total_gan=Sum(F('precio_venta') - F('precio_costo'), output_field=DecimalField())
+    ).order_by('-total_cant')[:5]
     
     context = {
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
-        'total_productos': total_productos,
+        'total_entregas': total_entregas,
         'total_cantidad': total_cantidad,
         'total_costos': total_costos,
         'total_ventas': total_ventas,

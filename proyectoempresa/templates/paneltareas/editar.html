@@ -52,6 +52,66 @@
             
             <hr>
             
+            <!-- Productos -->
+            <h5 class="text-primary mb-3"><i class="bi bi-box-seam"></i> Productos</h5>
+            <p class="text-muted small">Selecciona los productos del catálogo para esta tarea.</p>
+            
+            {{ formset.management_form }}
+            
+            <div id="productos-container">
+                {% for form_producto in formset %}
+                <div class="producto-row row g-2 mb-2 align-items-end" {% if form_producto.DELETE.value %}style="display:none"{% endif %}>
+                    <div class="col-md-6">
+                        {% if forloop.first %}
+                        <label class="form-label">Producto</label>
+                        {% endif %}
+                        {{ form_producto.producto }}
+                        {% for hidden in form_producto.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-2">
+                        {% if forloop.first %}
+                        <label class="form-label">Cantidad</label>
+                        {% endif %}
+                        {{ form_producto.cantidad }}
+                    </div>
+                    <div class="col-md-2">
+                        {% if forloop.first %}
+                        <label class="form-label">Precio Venta</label>
+                        {% endif %}
+                        <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
+                    </div>
+                    <div class="col-md-2">
+                        {% if forloop.first %}
+                        <label class="form-label">&nbsp;</label>
+                        {% endif %}
+                        <div class="d-flex gap-1">
+                            {% if form_producto.DELETE %}
+                            <div class="d-none">{{ form_producto.DELETE }}</div>
+                            {% endif %}
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <button type="button" class="btn btn-outline-success btn-sm mt-2" id="btn-add-producto">
+                <i class="bi bi-plus-circle me-1"></i> Agregar Producto
+            </button>
+            
+            <div class="alert alert-info mt-3" id="total-productos">
+                <div class="d-flex justify-content-between">
+                    <strong>Total Estimado:</strong>
+                    <strong id="total-precio">$0</strong>
+                </div>
+            </div>
+            
+            <hr>
+            
             <!-- Fechas y Estado -->
             <h5 class="text-primary mb-3"><i class="bi bi-calendar"></i> Fechas y Estado</h5>
             <div class="row">
@@ -87,6 +147,24 @@
                 {{ form.observaciones }}
             </div>
             
+            {% if es_jefe %}
+            <hr>
+            <!-- Monto Abonado (Solo Jefes) -->
+            <h5 class="text-warning mb-3"><i class="bi bi-cash-coin"></i> Finanzas (Solo Administración)</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Monto Abonado por el Cliente</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.monto_abonado }}
+                        </div>
+                        <small class="text-muted">Este monto no es visible para los trabajadores.</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-circle me-2"></i> Actualizar Tarea
@@ -99,8 +177,142 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productosData = {{ productos_json|safe }};
+    const container = document.getElementById('productos-container');
+    const btnAdd = document.getElementById('btn-add-producto');
+    const prefix = 'productos';
+    
+    function getProductoData(id) {
+        return productosData.find(p => p.id == id);
+    }
+    
+    function updatePrecioDisplay(row) {
+        const select = row.querySelector('select[name$="-producto"]');
+        const cantInput = row.querySelector('input[name$="-cantidad"]');
+        const precioDisplay = row.querySelector('.precio-display');
+        
+        if (select && cantInput && precioDisplay) {
+            const prod = getProductoData(select.value);
+            const cant = parseInt(cantInput.value) || 1;
+            if (prod) {
+                const total = parseFloat(prod.precio_venta) * cant;
+                precioDisplay.value = '$' + total.toLocaleString('es-CO', {maximumFractionDigits: 0});
+            } else {
+                precioDisplay.value = '$0';
+            }
+        }
+        updateTotal();
+    }
+    
+    function updateTotal() {
+        let total = 0;
+        container.querySelectorAll('.producto-row').forEach(row => {
+            if (row.style.display === 'none') return;
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox && deleteCheckbox.checked) return;
+            
+            const select = row.querySelector('select[name$="-producto"]');
+            const cantInput = row.querySelector('input[name$="-cantidad"]');
+            if (select && cantInput) {
+                const prod = getProductoData(select.value);
+                const cant = parseInt(cantInput.value) || 1;
+                if (prod) {
+                    total += parseFloat(prod.precio_venta) * cant;
+                }
+            }
+        });
+        document.getElementById('total-precio').textContent = '$' + total.toLocaleString('es-CO', {maximumFractionDigits: 0});
+    }
+    
+    container.addEventListener('change', function(e) {
+        if (e.target.matches('select[name$="-producto"]') || e.target.matches('input[name$="-cantidad"]')) {
+            updatePrecioDisplay(e.target.closest('.producto-row'));
+        }
+    });
+    
+    container.addEventListener('input', function(e) {
+        if (e.target.matches('input[name$="-cantidad"]')) {
+            updatePrecioDisplay(e.target.closest('.producto-row'));
+        }
+    });
+    
+    container.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-remove-producto');
+        if (btn) {
+            const row = btn.closest('.producto-row');
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (deleteCheckbox) {
+                deleteCheckbox.checked = true;
+                row.style.display = 'none';
+            } else {
+                row.remove();
+                updateFormIndexes();
+            }
+            updateTotal();
+        }
+    });
+    
+    btnAdd.addEventListener('click', function() {
+        const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+        const formNum = parseInt(totalForms.value);
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'producto-row row g-2 mb-2 align-items-end';
+        
+        let optionsHtml = '<option value="">---------</option>';
+        productosData.forEach(p => {
+            optionsHtml += `<option value="${p.id}">${p.nombre} - $${parseFloat(p.precio_venta).toLocaleString('es-CO', {maximumFractionDigits: 0})}</option>`;
+        });
+        
+        newRow.innerHTML = `
+            <div class="col-md-6">
+                <select name="${prefix}-${formNum}-producto" class="form-select producto-select" id="id_${prefix}-${formNum}-producto">
+                    ${optionsHtml}
+                </select>
+                <input type="hidden" name="${prefix}-${formNum}-id" id="id_${prefix}-${formNum}-id">
             </div>
-        </form>
-    </div>
-</div>
+            <div class="col-md-2">
+                <input type="number" name="${prefix}-${formNum}-cantidad" class="form-control" min="1" value="1" id="id_${prefix}-${formNum}-cantidad">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
+            </div>
+            <div class="col-md-2">
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(newRow);
+        totalForms.value = formNum + 1;
+    });
+    
+    function updateFormIndexes() {
+        const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+        const rows = container.querySelectorAll('.producto-row');
+        rows.forEach((row, index) => {
+            row.querySelectorAll('input, select').forEach(field => {
+                if (field.name) {
+                    field.name = field.name.replace(/-\d+-/, `-${index}-`);
+                }
+                if (field.id) {
+                    field.id = field.id.replace(/-\d+-/, `-${index}-`);
+                }
+            });
+        });
+        totalForms.value = rows.length;
+    }
+    
+    container.querySelectorAll('.producto-row').forEach(row => {
+        updatePrecioDisplay(row);
+    });
+});
+</script>
 {% endblock %}

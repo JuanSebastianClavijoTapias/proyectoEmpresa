@@ -59,7 +59,7 @@ class CategoriaProducto(models.Model):
 
 
 class Producto(models.Model):
-    """Modelo para registrar productos realizados con sus precios y ganancias"""
+    """Catálogo de productos con sus precios"""
     
     nombre = models.CharField(max_length=200, verbose_name='Nombre del Producto')
     descripcion = models.TextField(blank=True, verbose_name='Descripción')
@@ -86,15 +86,6 @@ class Producto(models.Model):
         help_text='A cuánto se vende al cliente'
     )
     
-    # Cantidad
-    cantidad = models.PositiveIntegerField(default=1, verbose_name='Cantidad')
-    
-    # Cliente (opcional)
-    cliente_nombre = models.CharField(max_length=200, blank=True, verbose_name='Nombre del Cliente')
-    
-    # Fecha del registro
-    fecha = models.DateField(verbose_name='Fecha')
-    
     # Metadatos
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     actualizado_en = models.DateTimeField(auto_now=True, verbose_name='Última Actualización')
@@ -110,10 +101,10 @@ class Producto(models.Model):
     class Meta:
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
-        ordering = ['-fecha', '-creado_en']
+        ordering = ['nombre']
     
     def __str__(self):
-        return f"{self.nombre} - {self.fecha}"
+        return f"{self.nombre} - ${self.precio_venta:,.0f}"
     
     @property
     def ganancia_unitaria(self):
@@ -121,23 +112,8 @@ class Producto(models.Model):
         return self.precio_venta - self.precio_costo
     
     @property
-    def ganancia_total(self):
-        """Calcula la ganancia total (considerando cantidad)"""
-        return self.ganancia_unitaria * self.cantidad
-    
-    @property
     def porcentaje_ganancia(self):
         """Calcula el porcentaje de ganancia"""
         if self.precio_costo > 0:
             return ((self.precio_venta - self.precio_costo) / self.precio_costo) * 100
         return 0
-    
-    @property
-    def total_venta(self):
-        """Total de la venta (precio venta * cantidad)"""
-        return self.precio_venta * self.cantidad
-    
-    @property
-    def total_costo(self):
-        """Total del costo (precio costo * cantidad)"""
-        return self.precio_costo * self.cantidad

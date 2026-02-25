@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from datetime import date, timedelta
 from .models import Trabajador, RegistroProductividad
 from .forms import RegistroProductividadForm, TrabajadorForm
 
 
+@login_required
 def lista_productividad(request):
     """Vista para listar todos los registros de productividad"""
     registros = RegistroProductividad.objects.all()
@@ -39,6 +41,7 @@ def lista_productividad(request):
     return render(request, 'panelproductividad/lista.html', context)
 
 
+@login_required
 def crear_productividad(request):
     """Vista para crear un nuevo registro de productividad"""
     if request.method == 'POST':
@@ -53,6 +56,7 @@ def crear_productividad(request):
     return render(request, 'panelproductividad/crear.html', {'form': form})
 
 
+@login_required
 def editar_productividad(request, pk):
     """Vista para editar un registro de productividad existente"""
     registro = get_object_or_404(RegistroProductividad, pk=pk)
@@ -69,6 +73,7 @@ def editar_productividad(request, pk):
     return render(request, 'panelproductividad/editar.html', {'form': form, 'registro': registro})
 
 
+@login_required
 def eliminar_productividad(request, pk):
     """Vista para eliminar un registro de productividad"""
     registro = get_object_or_404(RegistroProductividad, pk=pk)
@@ -81,6 +86,7 @@ def eliminar_productividad(request, pk):
     return render(request, 'panelproductividad/eliminar.html', {'registro': registro})
 
 
+@login_required
 def detalle_productividad(request, pk):
     """Vista para ver el detalle de un registro"""
     registro = get_object_or_404(RegistroProductividad, pk=pk)
@@ -88,6 +94,7 @@ def detalle_productividad(request, pk):
 
 
 # Vistas de Trabajadores
+@login_required
 def lista_trabajadores(request):
     """Vista para listar todos los trabajadores"""
     trabajadores = Trabajador.objects.all()
@@ -123,6 +130,7 @@ def lista_trabajadores(request):
     return render(request, 'panelproductividad/trabajadores/lista.html', {'trabajadores': trabajadores})
 
 
+@login_required
 def detalle_trabajador(request, pk):
     """Vista para ver el detalle y estadísticas de un trabajador"""
     trabajador = get_object_or_404(Trabajador, pk=pk)
@@ -158,6 +166,7 @@ def detalle_trabajador(request, pk):
     return render(request, 'panelproductividad/trabajadores/detalle.html', context)
 
 
+@login_required
 def crear_trabajador(request):
     """Vista para crear un nuevo trabajador"""
     if request.method == 'POST':
@@ -172,6 +181,7 @@ def crear_trabajador(request):
     return render(request, 'panelproductividad/trabajadores/crear.html', {'form': form})
 
 
+@login_required
 def editar_trabajador(request, pk):
     """Vista para editar un trabajador"""
     trabajador = get_object_or_404(Trabajador, pk=pk)

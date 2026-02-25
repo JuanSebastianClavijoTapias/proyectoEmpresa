@@ -1,12 +1,63 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from datetime import date, timedelta
 import calendar
-from .models import Cliente, TareaPlanificada, ImagenTarea
-from .forms import TareaPlanificadaForm, ClienteForm, ImagenTareaForm
+import json
+from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
+from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet
+from panelfinanzas.models import Producto, PerfilUsuario
 
 
+def es_jefe(user):
+    """Verifica si el usuario es jefe o superusuario"""
+    if user.is_superuser:
+        return True
+    try:
+        return user.perfil.es_jefe
+    except (PerfilUsuario.DoesNotExist, AttributeError):
+        return False
+
+
+# =============================================
+# VISTAS DE AUTENTICACIÓN
+# =============================================
+
+def login_view(request):
+    """Vista principal de login"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'¡Bienvenido, {user.username}!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    """Vista de cierre de sesión"""
+    logout(request)
+    messages.info(request, 'Has cerrado sesión correctamente.')
+    return redirect('login')
+
+
+# =============================================
+# VISTAS PRINCIPALES
+# =============================================
+
+@login_required
 def home(request):
     """Vista principal del dashboard"""
     # Estadísticas generales
@@ -40,6 +91,7 @@ def home(request):
     return render(request, 'home.html', context)
 
 
+@login_required
 def lista_tareas(request):
     """Vista para listar todas las tareas planificadas"""
     tareas = TareaPlanificada.objects.all()
@@ -64,36 +116,102 @@ def lista_tareas(request):
     return render(request, 'paneltareas/lista.html', context)
 
 
+@login_required
 def crear_tarea(request):
-    """Vista para crear una nueva tarea planificada"""
+    """Vista para crear una nueva tarea planificada con productos"""
+    usuario_es_jefe = es_jefe(request.user)
+    FormClass = TareaPlanificadaFormJefe if usuario_es_jefe else TareaPlanificadaForm
+    
     if request.method == 'POST':
-        form = TareaPlanificadaForm(request.POST)
-        if form.is_valid():
-            form.save()
+        form = FormClass(request.POST)
+        formset = ProductoTareaFormSet(request.POST, prefix='productos')
+        if form.is_valid() and formset.is_valid():
+            tarea = form.save()
+            formset.instance = tarea
+            productos_tarea = formset.save(commit=False)
+            for pt in productos_tarea:
+                if pt.producto:
+                    # Copiar precios del catálogo como snapshot
+                    pt.nombre_producto = pt.producto.nombre
+                    pt.precio_costo = pt.producto.precio_costo
+                    pt.precio_venta = pt.producto.precio_venta
+                    pt.save()
+            # Eliminar los marcados para borrar
+            for obj in formset.deleted_objects:
+                obj.delete()
             messages.success(request, 'Tarea creada exitosamente.')
             return redirect('tareas:lista')
     else:
-        form = TareaPlanificadaForm(initial={'fecha_ingreso': date.today()})
+        form = FormClass(initial={'fecha_ingreso': date.today()})
+        formset = ProductoTareaFormSet(prefix='productos')
     
-    return render(request, 'paneltareas/crear.html', {'form': form})
+    # Preparar datos de productos para JavaScript
+    productos_json = json.dumps([
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_costo': str(p.precio_costo),
+            'precio_venta': str(p.precio_venta),
+        }
+        for p in Producto.objects.all()
+    ])
+    
+    return render(request, 'paneltareas/crear.html', {
+        'form': form,
+        'formset': formset,
+        'productos_json': productos_json,
+        'es_jefe': usuario_es_jefe,
+    })
 
 
+@login_required
 def editar_tarea(request, pk):
-    """Vista para editar una tarea existente"""
+    """Vista para editar una tarea existente con productos"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
+    usuario_es_jefe = es_jefe(request.user)
+    FormClass = TareaPlanificadaFormJefe if usuario_es_jefe else TareaPlanificadaForm
     
     if request.method == 'POST':
-        form = TareaPlanificadaForm(request.POST, instance=tarea)
-        if form.is_valid():
+        form = FormClass(request.POST, instance=tarea)
+        formset = ProductoTareaFormSet(request.POST, instance=tarea, prefix='productos')
+        if form.is_valid() and formset.is_valid():
             form.save()
+            productos_tarea = formset.save(commit=False)
+            for pt in productos_tarea:
+                if pt.producto:
+                    pt.nombre_producto = pt.producto.nombre
+                    pt.precio_costo = pt.producto.precio_costo
+                    pt.precio_venta = pt.producto.precio_venta
+                    pt.save()
+            for obj in formset.deleted_objects:
+                obj.delete()
             messages.success(request, 'Tarea actualizada exitosamente.')
             return redirect('tareas:lista')
     else:
-        form = TareaPlanificadaForm(instance=tarea)
+        form = FormClass(instance=tarea)
+        formset = ProductoTareaFormSet(instance=tarea, prefix='productos')
     
-    return render(request, 'paneltareas/editar.html', {'form': form, 'tarea': tarea})
+    # Preparar datos de productos para JavaScript
+    productos_json = json.dumps([
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_costo': str(p.precio_costo),
+            'precio_venta': str(p.precio_venta),
+        }
+        for p in Producto.objects.all()
+    ])
+    
+    return render(request, 'paneltareas/editar.html', {
+        'form': form,
+        'formset': formset,
+        'tarea': tarea,
+        'productos_json': productos_json,
+        'es_jefe': usuario_es_jefe,
+    })
 
 
+@login_required
 def eliminar_tarea(request, pk):
     """Vista para eliminar una tarea"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
@@ -106,9 +224,11 @@ def eliminar_tarea(request, pk):
     return render(request, 'paneltareas/eliminar.html', {'tarea': tarea})
 
 
+@login_required
 def detalle_tarea(request, pk):
     """Vista para ver el detalle de una tarea y subir imágenes"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
+    usuario_es_jefe = es_jefe(request.user)
     
     if request.method == 'POST':
         form_imagen = ImagenTareaForm(request.POST, request.FILES)
@@ -124,14 +244,18 @@ def detalle_tarea(request, pk):
         form_imagen = ImagenTareaForm()
     
     imagenes = tarea.imagenes.all()
+    productos_tarea = tarea.productos_tarea.all()
     
     return render(request, 'paneltareas/detalle.html', {
         'tarea': tarea,
         'form_imagen': form_imagen,
         'imagenes': imagenes,
+        'productos_tarea': productos_tarea,
+        'es_jefe': usuario_es_jefe,
     })
 
 
+@login_required
 def eliminar_imagen(request, pk, imagen_pk):
     """Vista para eliminar una imagen de una tarea"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
@@ -148,6 +272,7 @@ def eliminar_imagen(request, pk, imagen_pk):
     return redirect('tareas:detalle', pk=pk)
 
 
+@login_required
 def cambiar_estado_tarea(request, pk, estado):
     """Vista para cambiar rápidamente el estado de una tarea"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
@@ -164,6 +289,7 @@ def cambiar_estado_tarea(request, pk, estado):
 
 
 # Vistas para Clientes
+@login_required
 def lista_clientes(request):
     """Vista para listar todos los clientes"""
     clientes = Cliente.objects.all()
@@ -175,6 +301,7 @@ def lista_clientes(request):
     return render(request, 'paneltareas/clientes/lista.html', {'clientes': clientes})
 
 
+@login_required
 def crear_cliente(request):
     """Vista para crear un nuevo cliente"""
     if request.method == 'POST':
@@ -189,6 +316,7 @@ def crear_cliente(request):
     return render(request, 'paneltareas/clientes/crear.html', {'form': form})
 
 
+@login_required
 def editar_cliente(request, pk):
     """Vista para editar un cliente existente"""
     cliente = get_object_or_404(Cliente, pk=pk)
@@ -205,6 +333,7 @@ def editar_cliente(request, pk):
     return render(request, 'paneltareas/clientes/editar.html', {'form': form, 'cliente': cliente})
 
 
+@login_required
 def calendario_tareas(request):
     """Vista de calendario para ver las fechas de entrega"""
     # Obtener mes y año de los parámetros o usar el actual

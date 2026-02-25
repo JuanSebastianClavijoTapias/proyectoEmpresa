@@ -67,6 +67,72 @@
             </div>
         </div>
         
+        <!-- Productos Asignados -->
+        {% if productos_tarea %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-box-seam text-info"></i> Productos Asignados
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end">P. Venta</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pt in productos_tarea %}
+                            <tr>
+                                <td>{{ pt.nombre_producto }}</td>
+                                <td class="text-center">{{ pt.cantidad }}</td>
+                                <td class="text-end">${{ pt.precio_venta|floatformat:0 }}</td>
+                                <td class="text-end"><strong>${{ pt.total_venta|floatformat:0 }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                <td class="text-end"><strong class="text-primary">${{ tarea.precio_total|floatformat:0 }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if es_jefe and productos_tarea %}
+        <!-- Finanzas (Solo Jefes) -->
+        <div class="card mb-4 border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <i class="bi bi-cash-coin text-warning"></i> Finanzas (Solo Administración)
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <small class="text-muted d-block">Precio Total</small>
+                        <strong class="text-primary">${{ tarea.precio_total|floatformat:0 }}</strong>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">Abonado</small>
+                        <strong class="text-success">${{ tarea.monto_abonado|floatformat:0 }}</strong>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">Saldo Pendiente</small>
+                        <strong class="{% if tarea.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
+                            ${{ tarea.saldo_pendiente|floatformat:0 }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Sección de Imágenes del Progreso -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
