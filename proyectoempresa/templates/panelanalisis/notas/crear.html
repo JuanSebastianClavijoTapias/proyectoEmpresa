@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Nota de Análisis{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-plus-lg"></i> Nueva Nota de Análisis</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">{{ form.titulo.label }}</label>
+                {{ form.titulo }}
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.tipo.label }}</label>
+                    {{ form.tipo }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">{{ form.prioridad.label }}</label>
+                    {{ form.prioridad }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">{{ form.contenido.label }}</label>
+                {{ form.contenido }}
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Guardar
+                </button>
+                <a href="{% url 'analisis:lista_notas' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

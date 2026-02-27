@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis Financiero{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-cash-stack"></i> Análisis Financiero</h1>
+        <p class="text-muted mb-0">Rentabilidad, márgenes y tendencias financieras</p>
+    </div>
+    <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+<!-- Filtro de Fechas -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">Desde</label>
+                {{ form_filtro.fecha_desde }}
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">Hasta</label>
+                {{ form_filtro.fecha_hasta }}
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen General -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card proceso">
+            <p class="mb-1 small opacity-75">Ingresos Totales</p>
+            <h3>${{ total_ingresos|floatformat:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card urgentes">
+            <p class="mb-1 small opacity-75">Costos Totales</p>
+            <h3>${{ total_costos|floatformat:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card completadas">
+            <p class="mb-1 small opacity-75">Ganancia Neta</p>
+            <h3>${{ total_ganancia|floatformat:0 }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card clientes">
+            <p class="mb-1 small opacity-75">Margen Promedio</p>
+            <h3>{{ margen_promedio }}%</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Cobros y Cartera -->
+<h5 class="text-muted mb-3"><i class="bi bi-wallet2"></i> Estado de Cobros</h5>
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Total Facturado</p>
+                <h4 class="mb-0">${{ total_facturado|floatformat:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Total Cobrado</p>
+                <h4 class="mb-0 text-success">${{ total_abonado|floatformat:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100 {% if saldo_pendiente > 0 %}border-warning{% endif %}">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Saldo Pendiente</p>
+                <h4 class="mb-0 text-warning">${{ saldo_pendiente|floatformat:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Tasa de Cobro</p>
+                <h4 class="mb-0">{{ tasa_cobro }}%</h4>
+                <div class="progress mt-1" style="height: 6px;">
+                    <div class="progress-bar bg-{% if tasa_cobro >= 80 %}success{% elif tasa_cobro >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ tasa_cobro }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfica de Rentabilidad por Categoría -->
+{% if por_categoria %}
+<div class="row mb-4">
+    <div class="col-md-7 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> Rentabilidad por Categoría
+            </div>
+            <div class="card-body">
+                <canvas id="chartCategorias" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-tags"></i> Detalle por Categoría
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Categoría</th>
+                                <th class="text-end">Ingreso</th>
+                                <th class="text-end">Ganancia</th>
+                                <th class="text-end">Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in por_categoria %}
+                            <tr>
+                                <td>{{ cat.nombre }}</td>
+                                <td class="text-end">${{ cat.ingresos|floatformat:0 }}</td>
+                                <td class="text-end text-success">${{ cat.ganancia|floatformat:0 }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-{% if cat.margen >= 30 %}success{% elif cat.margen >= 15 %}warning text-dark{% else %}danger{% endif %}">
+                                        {{ cat.margen }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Productos más Rentables -->
+{% if productos_rentabilidad %}
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-sort-down"></i> Productos por Rentabilidad
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Ingresos</th>
+                        <th class="text-end">Costos</th>
+                        <th class="text-end">Ganancia</th>
+                        <th class="text-end">Margen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos_rentabilidad %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ p.nombre }}</strong></td>
+                        <td class="text-center">{{ p.cantidad }}</td>
+                        <td class="text-end">${{ p.ingresos|floatformat:0 }}</td>
+                        <td class="text-end text-danger">${{ p.costos|floatformat:0 }}</td>
+                        <td class="text-end text-success fw-bold">${{ p.ganancia|floatformat:0 }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-{% if p.margen >= 30 %}success{% elif p.margen >= 15 %}warning text-dark{% else %}danger{% endif %}">
+                                {{ p.margen }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+{% if por_categoria %}
+const ctxCat = document.getElementById('chartCategorias').getContext('2d');
+new Chart(ctxCat, {
+    type: 'bar',
+    data: {
+        labels: {{ cat_labels|safe }},
+        datasets: [
+            {
+                label: 'Ingresos',
+                data: {{ cat_ingresos|safe }},
+                backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                borderRadius: 6,
+            },
+            {
+                label: 'Ganancia',
+                data: {{ cat_ganancia|safe }},
+                backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                borderRadius: 6,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'top' } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+{% endif %}
+</script>
+{% endblock %}

@@ -78,6 +78,22 @@ class ClienteForm(forms.ModelForm):
         }
 
 
+class AbonarForm(forms.Form):
+    """Formulario para abonar dinero a una tarea"""
+    monto = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=0.01,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '0.00',
+            'step': '0.01',
+            'min': '0.01',
+        }),
+        label='Monto a abonar',
+    )
+
+
 class ImagenTareaForm(forms.ModelForm):
     """Formulario para subir imágenes a las tareas"""
     class Meta:

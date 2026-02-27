@@ -7,7 +7,7 @@ from datetime import date, timedelta
 import calendar
 import json
 from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
-from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet
+from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, AbonarForm
 from panelfinanzas.models import Producto, PerfilUsuario
 
 
@@ -246,13 +246,58 @@ def detalle_tarea(request, pk):
     imagenes = tarea.imagenes.all()
     productos_tarea = tarea.productos_tarea.all()
     
+    form_abonar = AbonarForm() if usuario_es_jefe else None
+
     return render(request, 'paneltareas/detalle.html', {
         'tarea': tarea,
         'form_imagen': form_imagen,
         'imagenes': imagenes,
         'productos_tarea': productos_tarea,
         'es_jefe': usuario_es_jefe,
+        'form_abonar': form_abonar,
     })
+
+
+@login_required
+def abonar_tarea(request, pk):
+    """Vista para abonar dinero adicional a una tarea (solo jefes)"""
+    tarea = get_object_or_404(TareaPlanificada, pk=pk)
+    if not es_jefe(request.user):
+        messages.error(request, 'No tienes permiso para realizar esta acción.')
+        return redirect('tareas:detalle', pk=pk)
+
+    if request.method == 'POST':
+        form = AbonarForm(request.POST)
+        if form.is_valid():
+            monto = form.cleaned_data['monto']
+            saldo = tarea.saldo_pendiente
+            if monto > saldo:
+                messages.warning(request, f'El monto ingresado (${monto:,.0f}) supera el saldo pendiente (${saldo:,.0f}). Se ajustó al saldo pendiente.')
+                monto = saldo
+            tarea.monto_abonado += monto
+            tarea.save()
+            messages.success(request, f'Se abonaron ${monto:,.0f} exitosamente. Nuevo saldo pendiente: ${tarea.saldo_pendiente:,.0f}')
+        else:
+            messages.error(request, 'Monto inválido. Ingresa un valor mayor a 0.')
+    return redirect('tareas:detalle', pk=pk)
+
+
+@login_required
+def completar_pago_tarea(request, pk):
+    """Vista para completar el pago total de una tarea (solo jefes)"""
+    tarea = get_object_or_404(TareaPlanificada, pk=pk)
+    if not es_jefe(request.user):
+        messages.error(request, 'No tienes permiso para realizar esta acción.')
+        return redirect('tareas:detalle', pk=pk)
+
+    if request.method == 'POST':
+        if tarea.saldo_pendiente > 0:
+            tarea.monto_abonado = tarea.precio_total
+            tarea.save()
+            messages.success(request, '¡Pago completado! El saldo pendiente ahora es $0.')
+        else:
+            messages.info(request, 'Esta tarea ya está completamente pagada.')
+    return redirect('tareas:detalle', pk=pk)
 
 
 @login_required
