@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'paneltareas',
     'panelfinanzas',
     'panelanalisis',
+    'panelestandares',
 ]
 
 MIDDLEWARE = [

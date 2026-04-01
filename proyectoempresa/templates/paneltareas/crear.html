@@ -23,8 +23,21 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="mb-3">
+                        <label class="form-label">Seleccionar Cliente Existente</label>
+                        <select id="cliente-selector" class="form-select">
+                            <option value="">-- Nuevo cliente / Escribir manualmente --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
                         <label class="form-label">Nombre del Cliente *</label>
-                        {{ form.nombre_cliente }}
+                        <div class="position-relative">
+                            {{ form.nombre_cliente }}
+                            <div id="nombre-suggestions" class="autocomplete-list"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -36,7 +49,10 @@
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label">Placa del Vehículo *</label>
-                        {{ form.placa }}
+                        <div class="position-relative">
+                            {{ form.placa }}
+                            <div id="placa-suggestions" class="autocomplete-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -178,13 +194,129 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.autocomplete-list {
+    position: absolute;
+    z-index: 1050;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: none;
+}
+.autocomplete-list .autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+.autocomplete-list .autocomplete-item:hover,
+.autocomplete-list .autocomplete-item.active {
+    background-color: #e9ecef;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const productosData = {{ productos_json|safe }};
+    const clientesData = {{ clientes_json|safe }};
+    const placasData = {{ placas_json|safe }};
     const container = document.getElementById('productos-container');
     const btnAdd = document.getElementById('btn-add-producto');
     const prefix = 'productos';
+    
+    // ==========================================
+    // SELECTOR DE CLIENTE EXISTENTE
+    // ==========================================
+    const clienteSelector = document.getElementById('cliente-selector');
+    const nombreInput = document.getElementById('id_nombre_cliente');
+    const telefonoInput = document.getElementById('id_telefono_cliente');
+    
+    // Poblar el selector de clientes
+    clientesData.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre + ' - ' + c.telefono;
+        clienteSelector.appendChild(opt);
+    });
+    
+    clienteSelector.addEventListener('change', function() {
+        const cliente = clientesData.find(c => c.id == this.value);
+        if (cliente) {
+            nombreInput.value = cliente.nombre;
+            telefonoInput.value = cliente.telefono;
+        }
+    });
+    
+    // ==========================================
+    // AUTOCOMPLETE NOMBRE CLIENTE
+    // ==========================================
+    const nombreSuggestions = document.getElementById('nombre-suggestions');
+    
+    nombreInput.addEventListener('input', function() {
+        const val = this.value.toLowerCase().trim();
+        nombreSuggestions.innerHTML = '';
+        if (val.length < 1) { nombreSuggestions.style.display = 'none'; return; }
+        
+        const matches = clientesData.filter(c => c.nombre.toLowerCase().includes(val));
+        if (matches.length === 0) { nombreSuggestions.style.display = 'none'; return; }
+        
+        matches.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-item';
+            div.innerHTML = '<strong>' + c.nombre + '</strong> <small class="text-muted">- ' + c.telefono + '</small>';
+            div.addEventListener('click', function() {
+                nombreInput.value = c.nombre;
+                telefonoInput.value = c.telefono;
+                nombreSuggestions.style.display = 'none';
+            });
+            nombreSuggestions.appendChild(div);
+        });
+        nombreSuggestions.style.display = 'block';
+    });
+    
+    // ==========================================
+    // AUTOCOMPLETE PLACA
+    // ==========================================
+    const placaInput = document.getElementById('id_placa');
+    const placaSuggestions = document.getElementById('placa-suggestions');
+    
+    placaInput.addEventListener('input', function() {
+        const val = this.value.toLowerCase().trim();
+        placaSuggestions.innerHTML = '';
+        if (val.length < 1) { placaSuggestions.style.display = 'none'; return; }
+        
+        const matches = placasData.filter(p => p.toLowerCase().includes(val));
+        if (matches.length === 0) { placaSuggestions.style.display = 'none'; return; }
+        
+        matches.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-item';
+            div.textContent = p;
+            div.addEventListener('click', function() {
+                placaInput.value = p;
+                placaSuggestions.style.display = 'none';
+            });
+            placaSuggestions.appendChild(div);
+        });
+        placaSuggestions.style.display = 'block';
+    });
+    
+    // Cerrar autocomplete al hacer click fuera
+    document.addEventListener('click', function(e) {
+        if (!nombreInput.contains(e.target) && !nombreSuggestions.contains(e.target)) {
+            nombreSuggestions.style.display = 'none';
+        }
+        if (!placaInput.contains(e.target) && !placaSuggestions.contains(e.target)) {
+            placaSuggestions.style.display = 'none';
+        }
+    });
     
     function getProductoData(id) {
         return productosData.find(p => p.id == id);

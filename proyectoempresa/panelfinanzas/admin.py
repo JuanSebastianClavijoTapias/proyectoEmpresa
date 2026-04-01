@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import PerfilUsuario, Producto, CategoriaProducto
+from .models import PerfilUsuario, Producto, CategoriaProducto, Gasto
 
 
 class PerfilUsuarioInline(admin.StackedInline):
@@ -70,3 +70,11 @@ class ProductoAdmin(admin.ModelAdmin):
     def porcentaje_ganancia(self, obj):
         return f"{obj.porcentaje_ganancia:.1f}%"
     porcentaje_ganancia.short_description = '% Ganancia'
+
+
+@admin.register(Gasto)
+class GastoAdmin(admin.ModelAdmin):
+    list_display = ['descripcion', 'monto', 'categoria', 'fecha', 'creado_por']
+    list_filter = ['categoria', 'fecha']
+    search_fields = ['descripcion', 'observaciones']
+    date_hierarchy = 'fecha'

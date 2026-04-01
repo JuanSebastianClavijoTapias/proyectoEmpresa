@@ -9,8 +9,8 @@ from functools import wraps
 from datetime import date, timedelta
 from decimal import Decimal
 
-from .models import Producto, CategoriaProducto, PerfilUsuario
-from .forms import ProductoForm, CategoriaProductoForm, FiltroProductoForm, FiltroHistorialForm
+from .models import Producto, CategoriaProducto, PerfilUsuario, Gasto
+from .forms import ProductoForm, CategoriaProductoForm, FiltroProductoForm, FiltroHistorialForm, GastoForm
 from paneltareas.models import ProductoTarea
 
 
@@ -271,6 +271,30 @@ def reporte_finanzas(request):
         total_gan=Sum(F('precio_venta') - F('precio_costo'), output_field=DecimalField())
     ).order_by('-total_cant')[:5]
     
+    # ==========================================
+    # GASTOS EN EL PERÍODO
+    # ==========================================
+    gastos = Gasto.objects.filter(
+        fecha__gte=fecha_desde,
+        fecha__lte=fecha_hasta
+    )
+    
+    total_gastos = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0')
+    
+    # Gastos por categoría
+    gastos_por_categoria = gastos.values('categoria').annotate(
+        total=Sum('monto'),
+        cantidad=Count('id')
+    ).order_by('-total')
+    
+    # Mapear nombres de categorías
+    cat_display = dict(Gasto.CATEGORIA_CHOICES)
+    for g in gastos_por_categoria:
+        g['categoria_display'] = cat_display.get(g['categoria'], g['categoria'])
+    
+    # Ganancia real = ventas - costos - gastos
+    ganancia_real = total_ventas - total_costos - total_gastos
+    
     context = {
         'fecha_desde': fecha_desde,
         'fecha_hasta': fecha_hasta,
@@ -282,6 +306,10 @@ def reporte_finanzas(request):
         'porcentaje_ganancia': porcentaje_ganancia,
         'por_categoria': por_categoria,
         'top_productos': top_productos,
+        'total_gastos': total_gastos,
+        'gastos_por_categoria': gastos_por_categoria,
+        'ganancia_real': ganancia_real,
+        'gastos_lista': gastos,
     }
     
     return render(request, 'panelfinanzas/reporte.html', context)
@@ -346,3 +374,81 @@ def eliminar_categoria(request, pk):
         return redirect('finanzas:lista_categorias')
     
     return render(request, 'panelfinanzas/categorias/eliminar.html', {'categoria': categoria})
+
+
+# =============================================
+# VISTAS DE GASTOS (SOLO JEFES)
+# =============================================
+
+@solo_jefes
+def lista_gastos(request):
+    """Lista de gastos del negocio"""
+    gastos = Gasto.objects.all()
+    
+    # Filtros
+    categoria_filtro = request.GET.get('categoria')
+    fecha_desde = request.GET.get('fecha_desde')
+    fecha_hasta = request.GET.get('fecha_hasta')
+    
+    if categoria_filtro:
+        gastos = gastos.filter(categoria=categoria_filtro)
+    if fecha_desde:
+        gastos = gastos.filter(fecha__gte=date.fromisoformat(fecha_desde))
+    if fecha_hasta:
+        gastos = gastos.filter(fecha__lte=date.fromisoformat(fecha_hasta))
+    
+    total_gastos = gastos.aggregate(total=Sum('monto'))['total'] or Decimal('0')
+    
+    context = {
+        'gastos': gastos,
+        'total_gastos': total_gastos,
+        'categorias': Gasto.CATEGORIA_CHOICES,
+    }
+    return render(request, 'panelfinanzas/gastos/lista.html', context)
+
+
+@solo_jefes
+def crear_gasto(request):
+    """Crear un nuevo gasto"""
+    if request.method == 'POST':
+        form = GastoForm(request.POST)
+        if form.is_valid():
+            gasto = form.save(commit=False)
+            gasto.creado_por = request.user
+            gasto.save()
+            messages.success(request, 'Gasto registrado correctamente.')
+            return redirect('finanzas:lista_gastos')
+    else:
+        form = GastoForm(initial={'fecha': date.today()})
+    
+    return render(request, 'panelfinanzas/gastos/crear.html', {'form': form})
+
+
+@solo_jefes
+def editar_gasto(request, pk):
+    """Editar un gasto existente"""
+    gasto = get_object_or_404(Gasto, pk=pk)
+    
+    if request.method == 'POST':
+        form = GastoForm(request.POST, instance=gasto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Gasto actualizado correctamente.')
+            return redirect('finanzas:lista_gastos')
+    else:
+        form = GastoForm(instance=gasto)
+    
+    return render(request, 'panelfinanzas/gastos/editar.html', {'form': form, 'gasto': gasto})
+
+
+@solo_jefes
+def eliminar_gasto(request, pk):
+    """Eliminar un gasto"""
+    gasto = get_object_or_404(Gasto, pk=pk)
+    
+    if request.method == 'POST':
+        gasto.delete()
+        messages.success(request, 'Gasto eliminado correctamente.')
+        return redirect('finanzas:lista_gastos')
+    
+    return render(request, 'panelfinanzas/gastos/eliminar.html', {'gasto': gasto})

@@ -117,3 +117,42 @@ class Producto(models.Model):
         if self.precio_costo > 0:
             return ((self.precio_venta - self.precio_costo) / self.precio_costo) * 100
         return 0
+
+
+class Gasto(models.Model):
+    """Modelo para registrar gastos del negocio"""
+    
+    CATEGORIA_CHOICES = [
+        ('servicios', 'Servicios (Luz, Agua, Internet)'),
+        ('alquiler', 'Alquiler / Arriendo'),
+        ('materiales', 'Materiales e Insumos'),
+        ('herramientas', 'Herramientas y Equipos'),
+        ('transporte', 'Transporte'),
+        ('salarios', 'Salarios / Nómina'),
+        ('impuestos', 'Impuestos'),
+        ('mantenimiento', 'Mantenimiento'),
+        ('publicidad', 'Publicidad / Marketing'),
+        ('otro', 'Otro'),
+    ]
+    
+    descripcion = models.CharField(max_length=300, verbose_name='Descripción del Gasto')
+    monto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Monto')
+    categoria = models.CharField(max_length=30, choices=CATEGORIA_CHOICES, default='otro', verbose_name='Categoría')
+    fecha = models.DateField(verbose_name='Fecha del Gasto')
+    observaciones = models.TextField(blank=True, verbose_name='Observaciones')
+    creado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='gastos_creados',
+        verbose_name='Registrado por'
+    )
+    creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
+    
+    class Meta:
+        verbose_name = 'Gasto'
+        verbose_name_plural = 'Gastos'
+        ordering = ['-fecha']
+    
+    def __str__(self):
+        return f"{self.descripcion} - ${self.monto:,.0f} ({self.get_categoria_display()})"

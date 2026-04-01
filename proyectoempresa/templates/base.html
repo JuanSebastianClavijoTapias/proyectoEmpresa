@@ -207,6 +207,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if 'gastos' in request.path %}active{% endif %}" href="{% url 'finanzas:lista_gastos' %}">
+                        <i class="bi bi-cash-coin"></i> Gastos
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'finanzas:lista_categorias' %}">
                         <i class="bi bi-tags"></i> Categorías
                     </a>
@@ -225,17 +230,39 @@
                         <i class="bi bi-cash-stack"></i> Análisis Financiero
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'analisis' in request.path and 'trabajadores' in request.path %}active{% endif %}" href="{% url 'analisis:trabajadores' %}">
-                        <i class="bi bi-person-lines-fill"></i> Rendimiento
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'objetivos' in request.path %}active{% endif %}" href="{% url 'analisis:lista_objetivos' %}">
-                        <i class="bi bi-bullseye"></i> Objetivos
-                    </a>
-                </li>
                 {% endif %}
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'analisis' in request.path and 'trabajadores' in request.path %}active{% endif %}" href="{% url 'analisis:trabajadores' %}">
+                    <i class="bi bi-person-lines-fill"></i> Rendimiento
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'objetivos' in request.path %}active{% endif %}" href="{% url 'analisis:lista_objetivos' %}">
+                    <i class="bi bi-bullseye"></i> Objetivos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'notas' in request.path %}active{% endif %}" href="{% url 'analisis:lista_notas' %}">
+                    <i class="bi bi-journal-text"></i> Notas Análisis
+                </a>
+            </li>
+            
+            <li class="nav-item mt-3">
+                <small class="text-white-50 px-3">ESTÁNDARES</small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'estandares' in request.path and 'categorias' not in request.path %}active{% endif %}" href="{% url 'estandares:lista' %}">
+                    <i class="bi bi-card-checklist"></i> Estándares
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'estandares' in request.path and 'categorias' in request.path %}active{% endif %}" href="{% url 'estandares:lista_categorias' %}">
+                    <i class="bi bi-tags"></i> Categorías
+                </a>
+            </li>
             {% endif %}
             
             <li class="nav-item mt-4">
@@ -288,10 +315,16 @@
                         <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:lista' %}"><i class="bi bi-box-seam"></i> Productos</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:historial' %}"><i class="bi bi-clock-history"></i> Historial</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:reporte' %}"><i class="bi bi-graph-up-arrow"></i> Reporte</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'finanzas:lista_gastos' %}"><i class="bi bi-cash-coin"></i> Gastos</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'analisis:dashboard' %}"><i class="bi bi-bar-chart-line"></i> KPIs</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'analisis:financiero' %}"><i class="bi bi-cash-stack"></i> Análisis Financiero</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'analisis:trabajadores' %}"><i class="bi bi-person-lines-fill"></i> Rendimiento</a></li>
                         {% endif %}
+                    {% endif %}
+                    {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'analisis:trabajadores' %}"><i class="bi bi-person-lines-fill"></i> Rendimiento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'analisis:lista_objetivos' %}"><i class="bi bi-bullseye"></i> Objetivos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'analisis:lista_notas' %}"><i class="bi bi-journal-text"></i> Notas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'estandares:lista' %}"><i class="bi bi-card-checklist"></i> Estándares</a></li>
                     {% endif %}
                     <li class="nav-item mt-2">
                         {% if user.is_authenticated %}

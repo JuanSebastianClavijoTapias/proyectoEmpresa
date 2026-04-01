@@ -50,18 +50,6 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="stat-card pendientes">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1 opacity-75">Total Costos</h6>
-                    <h3>${{ total_costos|floatformat:0 }}</h3>
-                    <small>Inversión</small>
-                </div>
-                <i class="bi bi-cart" style="font-size: 2.5rem; opacity: 0.3;"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
         <div class="stat-card clientes">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -74,12 +62,24 @@
         </div>
     </div>
     <div class="col-md-3">
+        <div class="stat-card urgentes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Gastos</h6>
+                    <h3>${{ total_gastos|floatformat:0 }}</h3>
+                    <small>Egresos operativos</small>
+                </div>
+                <i class="bi bi-cash-coin" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="stat-card completadas">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 opacity-75">Ganancia Neta</h6>
-                    <h3>${{ total_ganancias|floatformat:0 }}</h3>
-                    <small>{{ porcentaje_ganancia|floatformat:1 }}% margen</small>
+                    <h6 class="mb-1 opacity-75">Ganancia Real</h6>
+                    <h3>${{ ganancia_real|floatformat:0 }}</h3>
+                    <small>Ventas - Costos - Gastos</small>
                 </div>
                 <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
@@ -173,30 +173,119 @@
     </div>
 </div>
 
+<!-- Gastos por Categoría -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-cash-coin me-2"></i>Gastos por Categoría
+    </div>
+    <div class="card-body p-0">
+        {% if gastos_por_categoria %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in gastos_por_categoria %}
+                    <tr>
+                        <td>{{ g.categoria_display }}</td>
+                        <td class="text-center">{{ g.cantidad }}</td>
+                        <td class="text-end text-danger fw-bold">${{ g.total|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-warning">
+                        <td colspan="2"><strong>Total Gastos</strong></td>
+                        <td class="text-end fw-bold text-danger">${{ total_gastos|floatformat:0 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+            <p class="mb-0 mt-2">No hay gastos en este período</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Detalle de Gastos -->
+{% if gastos_lista %}
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-list-ul me-2"></i>Detalle de Gastos del Período
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th class="text-end">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos_lista %}
+                    <tr>
+                        <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ gasto.descripcion }}</td>
+                        <td><span class="badge bg-secondary">{{ gasto.get_categoria_display }}</span></td>
+                        <td class="text-end text-danger">${{ gasto.monto|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Resumen Detallado -->
 <div class="card">
     <div class="card-header">
         <i class="bi bi-calculator me-2"></i>Resumen Financiero Detallado
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-4">
+        <div class="row mb-3">
+            <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Total Invertido (Costos)</h6>
-                    <h3 class="text-danger">${{ total_costos|floatformat:2 }}</h3>
+                    <h3 class="text-danger">${{ total_costos|floatformat:0 }}</h3>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Total Vendido (Ingresos)</h6>
-                    <h3 class="text-primary">${{ total_ventas|floatformat:2 }}</h3>
+                    <h3 class="text-primary">${{ total_ventas|floatformat:0 }}</h3>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="border rounded p-3 text-center">
+                    <h6 class="text-muted mb-2">Total Gastos Operativos</h6>
+                    <h3 class="text-warning">${{ total_gastos|floatformat:0 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="border rounded p-3 text-center">
+                    <h6 class="text-muted mb-2">Ganancia s/ Productos</h6>
+                    <h3 class="text-info">${{ total_ganancias|floatformat:0 }}</h3>
+                    <small class="text-muted">{{ porcentaje_ganancia|floatformat:1 }}% margen</small>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <div class="border rounded p-3 text-center bg-success bg-opacity-10">
-                    <h6 class="text-muted mb-2">Ganancia Neta</h6>
-                    <h3 class="text-success">${{ total_ganancias|floatformat:2 }}</h3>
-                    <small class="text-muted">Margen: {{ porcentaje_ganancia|floatformat:1 }}%</small>
+                    <h6 class="text-muted mb-2">Ganancia Real (Ventas - Costos - Gastos)</h6>
+                    <h2 class="{% if ganancia_real >= 0 %}text-success{% else %}text-danger{% endif %}">${{ ganancia_real|floatformat:0 }}</h2>
                 </div>
             </div>
         </div>

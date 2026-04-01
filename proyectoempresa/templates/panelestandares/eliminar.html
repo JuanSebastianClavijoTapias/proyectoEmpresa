@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Eliminar Estándar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h5>
+            </div>
+            <div class="card-body text-center">
+                <i class="bi bi-trash display-1 text-danger"></i>
+                <h4 class="mt-3">¿Eliminar este estándar?</h4>
+                <p class="text-muted">
+                    <strong>{{ estandar.titulo }}</strong><br>
+                    Categoría: {{ estandar.categoria.nombre }}
+                </p>
+                <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'estandares:lista' %}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

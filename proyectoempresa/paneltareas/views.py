@@ -156,10 +156,23 @@ def crear_tarea(request):
         for p in Producto.objects.all()
     ])
     
+    # Preparar datos de clientes para autocompletar
+    clientes_json = json.dumps([
+        {'id': c.id, 'nombre': c.nombre, 'telefono': c.telefono}
+        for c in Cliente.objects.all()
+    ])
+    
+    # Placas existentes para autocompletar
+    placas_json = json.dumps(list(
+        TareaPlanificada.objects.values_list('placa', flat=True).distinct()
+    ))
+    
     return render(request, 'paneltareas/crear.html', {
         'form': form,
         'formset': formset,
         'productos_json': productos_json,
+        'clientes_json': clientes_json,
+        'placas_json': placas_json,
         'es_jefe': usuario_es_jefe,
     })
 
@@ -202,11 +215,24 @@ def editar_tarea(request, pk):
         for p in Producto.objects.all()
     ])
     
+    # Preparar datos de clientes para autocompletar
+    clientes_json = json.dumps([
+        {'id': c.id, 'nombre': c.nombre, 'telefono': c.telefono}
+        for c in Cliente.objects.all()
+    ])
+    
+    # Placas existentes para autocompletar
+    placas_json = json.dumps(list(
+        TareaPlanificada.objects.values_list('placa', flat=True).distinct()
+    ))
+    
     return render(request, 'paneltareas/editar.html', {
         'form': form,
         'formset': formset,
         'tarea': tarea,
         'productos_json': productos_json,
+        'clientes_json': clientes_json,
+        'placas_json': placas_json,
         'es_jefe': usuario_es_jefe,
     })
 

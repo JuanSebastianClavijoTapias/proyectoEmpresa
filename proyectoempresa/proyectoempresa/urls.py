@@ -33,6 +33,7 @@ urlpatterns = [
     path('tareas/', include('paneltareas.urls')),
     path('finanzas/', include('panelfinanzas.urls')),
     path('analisis/', include('panelanalisis.urls')),
+    path('estandares/', include('panelestandares.urls')),
 ]
 
 # Servir archivos media en desarrollo

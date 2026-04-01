@@ -26,4 +26,10 @@ urlpatterns = [
     path('categorias/crear/', views.crear_categoria, name='crear_categoria'),
     path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
     path('categorias/<int:pk>/eliminar/', views.eliminar_categoria, name='eliminar_categoria'),
+    
+    # Gastos
+    path('gastos/', views.lista_gastos, name='lista_gastos'),
+    path('gastos/crear/', views.crear_gasto, name='crear_gasto'),
+    path('gastos/<int:pk>/editar/', views.editar_gasto, name='editar_gasto'),
+    path('gastos/<int:pk>/eliminar/', views.eliminar_gasto, name='eliminar_gasto'),
 ]

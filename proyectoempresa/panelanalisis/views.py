@@ -396,7 +396,7 @@ def dashboard_analisis(request):
 # ANÁLISIS DE RENDIMIENTO POR TRABAJADOR
 # =============================================
 
-@solo_jefes
+@login_required
 def analisis_trabajadores(request):
     """Análisis detallado de rendimiento por trabajador"""
     fecha_desde, fecha_hasta = _obtener_rango_fechas(request)
@@ -590,11 +590,15 @@ def analisis_financiero(request):
 # OBJETIVOS MENSUALES
 # =============================================
 
-@solo_jefes
+@login_required
 def lista_objetivos(request):
     """Lista de objetivos mensuales"""
     objetivos = ObjetivoMensual.objects.all()
-    return render(request, 'panelanalisis/objetivos/lista.html', {'objetivos': objetivos})
+    usuario_es_jefe = request.user.is_superuser or (hasattr(request.user, 'perfil') and request.user.perfil.es_jefe)
+    return render(request, 'panelanalisis/objetivos/lista.html', {
+        'objetivos': objetivos,
+        'es_jefe': usuario_es_jefe,
+    })
 
 
 @solo_jefes
@@ -645,7 +649,7 @@ def eliminar_objetivo(request, pk):
 # NOTAS DE ANÁLISIS
 # =============================================
 
-@solo_jefes
+@login_required
 def lista_notas(request):
     """Lista de notas de análisis"""
     notas = NotaAnalisis.objects.all()
@@ -655,13 +659,15 @@ def lista_notas(request):
     elif filtro == 'resueltas':
         notas = notas.filter(resuelta=True)
     
+    usuario_es_jefe = request.user.is_superuser or (hasattr(request.user, 'perfil') and request.user.perfil.es_jefe)
     return render(request, 'panelanalisis/notas/lista.html', {
         'notas': notas,
         'filtro': filtro,
+        'es_jefe': usuario_es_jefe,
     })
 
 
-@solo_jefes
+@login_required
 def crear_nota(request):
     """Crear una nueva nota de análisis"""
     if request.method == 'POST':
@@ -677,7 +683,7 @@ def crear_nota(request):
     return render(request, 'panelanalisis/notas/crear.html', {'form': form})
 
 
-@solo_jefes
+@login_required
 def resolver_nota(request, pk):
     """Marcar una nota como resuelta"""
     nota = get_object_or_404(NotaAnalisis, pk=pk)
@@ -688,7 +694,7 @@ def resolver_nota(request, pk):
     return redirect('analisis:lista_notas')
 
 
-@solo_jefes
+@login_required
 def eliminar_nota(request, pk):
     """Eliminar una nota"""
     nota = get_object_or_404(NotaAnalisis, pk=pk)
