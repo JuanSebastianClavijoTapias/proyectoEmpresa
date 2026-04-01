@@ -1,5 +1,10 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from decimal import Decimal
+from io import BytesIO
+from PIL import Image
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
 class Cliente(models.Model):
     """Modelo para almacenar información de clientes"""
@@ -98,10 +103,21 @@ class TareaPlanificada(models.Model):
         return self.precio_total - self.monto_abonado
 
 
+def validar_imagen(fieldfile_obj):
+    """Valida que el archivo sea una imagen y no exceda 10MB"""
+    max_size = 10 * 1024 * 1024  # 10MB
+    if fieldfile_obj.size > max_size:
+        raise ValidationError('La imagen no puede superar los 10MB.')
+
+
 class ImagenTarea(models.Model):
     """Modelo para almacenar imágenes del progreso de las tareas"""
     tarea = models.ForeignKey(TareaPlanificada, on_delete=models.CASCADE, related_name='imagenes', verbose_name='Tarea')
-    imagen = models.ImageField(upload_to='tareas/imagenes/%Y/%m/', verbose_name='Imagen')
+    imagen = models.ImageField(
+        upload_to='tareas/imagenes/%Y/%m/',
+        verbose_name='Imagen',
+        validators=[validar_imagen],
+    )
     descripcion = models.CharField(max_length=200, blank=True, verbose_name='Descripción')
     fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Subida')
     
@@ -112,6 +128,55 @@ class ImagenTarea(models.Model):
     
     def __str__(self):
         return f"Imagen de {self.tarea.placa} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
+
+    def save(self, *args, **kwargs):
+        if self.imagen:
+            self.imagen = self._comprimir_imagen(self.imagen)
+        super().save(*args, **kwargs)
+
+    def _comprimir_imagen(self, imagen):
+        """Comprime y redimensiona la imagen para reducir almacenamiento"""
+        img = Image.open(imagen)
+        
+        # Mantener orientación EXIF
+        try:
+            from PIL import ExifTags
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = img._getexif()
+            if exif is not None:
+                orient = exif.get(orientation)
+                if orient == 3:
+                    img = img.rotate(180, expand=True)
+                elif orient == 6:
+                    img = img.rotate(270, expand=True)
+                elif orient == 8:
+                    img = img.rotate(90, expand=True)
+        except (AttributeError, KeyError, IndexError):
+            pass
+
+        # Redimensionar si excede 1920px en cualquier lado
+        max_dimension = 1920
+        if img.width > max_dimension or img.height > max_dimension:
+            img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
+
+        # Convertir a RGB si es necesario (para guardar como JPEG)
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+
+        # Comprimir como JPEG con calidad 75
+        output = BytesIO()
+        img.save(output, format='JPEG', quality=75, optimize=True)
+        output.seek(0)
+
+        # Generar nombre con extensión .jpg
+        nombre = imagen.name.rsplit('.', 1)[0] + '.jpg'
+
+        return InMemoryUploadedFile(
+            output, 'ImageField', nombre, 'image/jpeg',
+            sys.getsizeof(output), None
+        )
 
 
 class ProductoTarea(models.Model):
