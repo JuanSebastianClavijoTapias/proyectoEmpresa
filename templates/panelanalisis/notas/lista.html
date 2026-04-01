@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Notas de Análisis{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-journal-text"></i> Notas de Análisis</h1>
+        <p class="text-muted mb-0">Observaciones, fortalezas, debilidades y acciones</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
+        <a href="{% url 'analisis:crear_nota' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nueva Nota
+        </a>
+    </div>
+</div>
+
+<!-- Filtro -->
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <a href="?filtro=activas" class="btn btn-{% if filtro == 'activas' %}primary{% else %}outline-primary{% endif %} btn-sm">
+            <i class="bi bi-clock"></i> Activas
+        </a>
+        <a href="?filtro=resueltas" class="btn btn-{% if filtro == 'resueltas' %}success{% else %}outline-success{% endif %} btn-sm">
+            <i class="bi bi-check-circle"></i> Resueltas
+        </a>
+        <a href="?filtro=todas" class="btn btn-{% if filtro == 'todas' %}secondary{% else %}outline-secondary{% endif %} btn-sm">
+            <i class="bi bi-list"></i> Todas
+        </a>
+    </div>
+</div>
+
+{% if notas %}
+<div class="row">
+    {% for nota in notas %}
+    <div class="col-md-6 mb-3">
+        <div class="card h-100 {% if nota.resuelta %}border-success bg-light{% endif %} {% if nota.prioridad == 'critica' %}border-danger{% elif nota.prioridad == 'alta' %}border-warning{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="badge bg-{% if nota.tipo == 'fortaleza' %}success{% elif nota.tipo == 'debilidad' %}danger{% elif nota.tipo == 'oportunidad' %}primary{% elif nota.tipo == 'amenaza' %}warning text-dark{% elif nota.tipo == 'accion' %}info{% else %}secondary{% endif %} me-1">
+                        {{ nota.get_tipo_display }}
+                    </span>
+                    <span class="badge bg-{% if nota.prioridad == 'critica' %}danger{% elif nota.prioridad == 'alta' %}warning text-dark{% elif nota.prioridad == 'media' %}info{% else %}secondary{% endif %}">
+                        {{ nota.get_prioridad_display }}
+                    </span>
+                    {% if nota.resuelta %}
+                    <span class="badge bg-success ms-1"><i class="bi bi-check"></i> Resuelta</span>
+                    {% endif %}
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'analisis:resolver_nota' nota.pk %}">
+                                <i class="bi bi-{% if nota.resuelta %}arrow-counterclockwise{% else %}check-circle{% endif %}"></i>
+                                {% if nota.resuelta %}Reabrir{% else %}Marcar Resuelta{% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{% url 'analisis:eliminar_nota' nota.pk %}">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <h6 class="card-title">{{ nota.titulo }}</h6>
+                <p class="card-text small">{{ nota.contenido }}</p>
+            </div>
+            <div class="card-footer text-muted small">
+                <i class="bi bi-person"></i> {{ nota.creado_por|default:"Sistema" }} &middot;
+                <i class="bi bi-clock"></i> {{ nota.creado_en|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-journal-text fs-1"></i>
+    <p class="mt-2">No hay notas en esta categoría.</p>
+    <a href="{% url 'analisis:crear_nota' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Crear Primera Nota
+    </a>
+</div>
+{% endif %}
+{% endblock %}

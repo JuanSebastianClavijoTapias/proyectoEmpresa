@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Objetivos Mensuales{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-bullseye"></i> Objetivos Mensuales</h1>
+        <p class="text-muted mb-0">Metas y targets para cada mes</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
+        <a href="{% url 'analisis:crear_objetivo' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Nuevo Objetivo
+        </a>
+    </div>
+</div>
+
+{% if objetivos %}
+<div class="row">
+    {% for obj in objetivos %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between">
+                <strong><i class="bi bi-calendar-month"></i> {{ obj.mes|date:"F Y" }}</strong>
+                <div>
+                    <a href="{% url 'analisis:editar_objetivo' obj.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'analisis:eliminar_objetivo' obj.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col">
+                        <p class="small text-muted mb-0">Ingresos</p>
+                        <strong>${{ obj.meta_ingresos|floatformat:0 }}</strong>
+                    </div>
+                    <div class="col">
+                        <p class="small text-muted mb-0">Ganancia</p>
+                        <strong>${{ obj.meta_ganancia|floatformat:0 }}</strong>
+                    </div>
+                    <div class="col">
+                        <p class="small text-muted mb-0">Tareas</p>
+                        <strong>{{ obj.meta_tareas_completadas }}</strong>
+                    </div>
+                    <div class="col">
+                        <p class="small text-muted mb-0">Clientes</p>
+                        <strong>{{ obj.meta_clientes_nuevos }}</strong>
+                    </div>
+                    <div class="col">
+                        <p class="small text-muted mb-0">Items</p>
+                        <strong>{{ obj.meta_items_producidos }}</strong>
+                    </div>
+                </div>
+                {% if obj.notas %}
+                <hr>
+                <p class="small text-muted mb-0">{{ obj.notas|truncatewords:30 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-bullseye fs-1"></i>
+    <p class="mt-2">No hay objetivos mensuales definidos.</p>
+    <a href="{% url 'analisis:crear_objetivo' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Crear Primer Objetivo
+    </a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Categorías de Productos - Finanzas{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-tags me-2"></i>Categorías</h1>
+        <p class="text-muted mb-0">Organiza tus productos por categorías</p>
+    </div>
+    <div>
+        <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>Productos
+        </a>
+        <a href="{% url 'finanzas:crear_categoria' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nueva Categoría
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if categorias %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th class="text-center">Productos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td class="fw-bold">{{ categoria.nombre }}</td>
+                        <td>{{ categoria.descripcion|default:"-"|truncatewords:10 }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ categoria.num_productos }}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'finanzas:editar_categoria' categoria.pk %}" class="btn btn-outline-primary" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'finanzas:eliminar_categoria' categoria.pk %}" class="btn btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
+            <p class="text-muted mt-3">No hay categorías registradas</p>
+            <a href="{% url 'finanzas:crear_categoria' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Crear primera categoría
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

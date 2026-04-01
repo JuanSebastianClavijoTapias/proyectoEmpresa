@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ trabajador.nombre }} - Estadísticas{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'productividad:lista_trabajadores' %}">Trabajadores</a></li>
+            <li class="breadcrumb-item active">{{ trabajador.nombre }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1><i class="bi bi-person-badge"></i> {{ trabajador.nombre }}</h1>
+        {% if trabajador.activo %}
+            <span class="badge bg-success" style="font-size: 1rem;">Activo</span>
+        {% else %}
+            <span class="badge bg-secondary" style="font-size: 1rem;">Inactivo</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtro de fechas -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Desde</label>
+                <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'productividad:detalle_trabajador' trabajador.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas totales -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-bar-chart text-primary"></i> Estadísticas Totales
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_cortado|default:0 }}</h3>
+                        <small>Cortado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_marcado|default:0 }}</h3>
+                        <small>Marcado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_costura|default:0 }}</h3>
+                        <small>Costura</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_armado|default:0 }}</h3>
+                        <small>Armado</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_instalacion|default:0 }}</h3>
+                        <small>Instalación</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_sillas|default:0 }}</h3>
+                        <small>Sillas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card bg-dark text-white">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_puertas|default:0 }}</h3>
+                        <small>Puertas</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="card" style="background-color: #6f42c1; color: white;">
+                    <div class="card-body text-center py-3">
+                        <h3>{{ stats.total_techo|default:0 }}</h3>
+                        <small>Techo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Últimos registros -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history text-primary"></i> Últimos Registros</span>
+        <a href="{% url 'productividad:crear' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus"></i> Nuevo Registro
+        </a>
+    </div>
+    <div class="card-body">
+        {% if registros %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Horario</th>
+                        <th>Cortado</th>
+                        <th>Marcado</th>
+                        <th>Costura</th>
+                        <th>Sillas</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registro in registros %}
+                    <tr>
+                        <td>{{ registro.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ registro.hora_inicio|time:"H:i" }} - {{ registro.hora_finalizacion|time:"H:i" }}</td>
+                        <td>{{ registro.cortado }}</td>
+                        <td>{{ registro.marcado_piezas }}</td>
+                        <td>{{ registro.costura }}</td>
+                        <td>{{ registro.sillas_realizadas }}</td>
+                        <td><span class="badge bg-primary">{{ registro.total_items }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-clipboard-x" style="font-size: 3rem;"></i>
+            <p class="mt-2">No hay registros para este trabajador</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'productividad:lista_trabajadores' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i> Volver
+    </a>
+    <a href="{% url 'productividad:editar_trabajador' trabajador.pk %}" class="btn btn-outline-primary">
+        <i class="bi bi-pencil me-2"></i> Editar Trabajador
+    </a>
+</div>
+{% endblock %}

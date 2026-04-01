@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Análisis - KPIs{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-bar-chart-line"></i> Panel de Análisis</h1>
+        <p class="text-muted mb-0">KPIs y métricas de rendimiento del negocio</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'analisis:lista_objetivos' %}" class="btn btn-outline-primary">
+            <i class="bi bi-bullseye"></i> Objetivos
+        </a>
+        <a href="{% url 'analisis:lista_notas' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-journal-text"></i> Notas
+        </a>
+    </div>
+</div>
+
+<!-- Filtro de Fechas -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">Desde</label>
+                {{ form_filtro.fecha_desde }}
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">Hasta</label>
+                {{ form_filtro.fecha_hasta }}
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+            <div class="col-auto">
+                <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- KPIs FINANCIEROS -->
+<!-- ============================================ -->
+<h5 class="text-muted mb-3"><i class="bi bi-currency-dollar"></i> KPIs Financieros</h5>
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted small mb-1">Ingresos</p>
+                        <h4 class="mb-0">${{ ingresos|floatformat:0 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <span class="badge bg-{% if var_ingresos >= 0 %}success{% else %}danger{% endif %} fs-6">
+                            <i class="bi bi-{% if var_ingresos >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                            {{ var_ingresos }}%
+                        </span>
+                    </div>
+                </div>
+                <small class="text-muted">vs período anterior</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <p class="text-muted small mb-1">Ganancia Neta</p>
+                        <h4 class="mb-0 {% if ganancia >= 0 %}text-success{% else %}text-danger{% endif %}">${{ ganancia|floatformat:0 }}</h4>
+                    </div>
+                    <div class="align-self-center">
+                        <span class="badge bg-{% if var_ganancia >= 0 %}success{% else %}danger{% endif %} fs-6">
+                            <i class="bi bi-{% if var_ganancia >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                            {{ var_ganancia }}%
+                        </span>
+                    </div>
+                </div>
+                <small class="text-muted">vs período anterior</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Margen de Ganancia</p>
+                <h4 class="mb-0">{{ margen }}%</h4>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-{% if margen >= 30 %}success{% elif margen >= 15 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ margen }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Ticket Promedio</p>
+                <h4 class="mb-0">${{ ticket_promedio|floatformat:0 }}</h4>
+                <small class="text-muted">por tarea</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- KPIs OPERATIVOS -->
+<!-- ============================================ -->
+<h5 class="text-muted mb-3"><i class="bi bi-clipboard-data"></i> KPIs Operativos</h5>
+<div class="row mb-4">
+    <div class="col-md-2 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Tareas Completadas</p>
+                <h3 class="mb-0 text-success">{{ tareas_completadas }}</h3>
+                <span class="badge bg-{% if var_tareas >= 0 %}success{% else %}danger{% endif %}">
+                    {{ var_tareas }}%
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Total Tareas</p>
+                <h3 class="mb-0">{{ tareas_total }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Tasa Completación</p>
+                <h3 class="mb-0">{{ tasa_completacion }}%</h3>
+                <div class="progress mt-1" style="height: 5px;">
+                    <div class="progress-bar bg-info" style="width: {{ tasa_completacion }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Tiempo Promedio</p>
+                <h3 class="mb-0">{{ tiempo_promedio }}</h3>
+                <small class="text-muted">días</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Puntualidad</p>
+                <h3 class="mb-0 {% if tasa_puntualidad >= 80 %}text-success{% elif tasa_puntualidad >= 60 %}text-warning{% else %}text-danger{% endif %}">{{ tasa_puntualidad }}%</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card h-100 {% if tareas_vencidas > 0 %}border-danger{% endif %}">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">Tareas Vencidas</p>
+                <h3 class="mb-0 text-danger">{{ tareas_vencidas }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- KPIs PRODUCTIVIDAD Y CLIENTES -->
+<!-- ============================================ -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h5 class="text-muted mb-3"><i class="bi bi-gear"></i> KPIs de Productividad</h5>
+        <div class="row">
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Items Producidos</p>
+                        <h3 class="mb-0">{{ total_items_producidos }}</h3>
+                        <span class="badge bg-{% if var_productividad >= 0 %}success{% else %}danger{% endif %}">
+                            {{ var_productividad }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Horas Trabajo</p>
+                        <h3 class="mb-0">{{ total_horas_trabajo }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Items/Hora</p>
+                        <h3 class="mb-0 text-primary">{{ productividad_hora }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h5 class="text-muted mb-3"><i class="bi bi-people"></i> KPIs de Clientes</h5>
+        <div class="row">
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Clientes Nuevos</p>
+                        <h3 class="mb-0">{{ clientes_nuevos }}</h3>
+                        <span class="badge bg-{% if var_clientes >= 0 %}success{% else %}danger{% endif %}">
+                            {{ var_clientes }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Total Clientes</p>
+                        <h3 class="mb-0">{{ total_clientes }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <p class="text-muted small mb-1">Más Detalles</p>
+                        <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary mt-1">
+                            <i class="bi bi-person-lines-fill"></i> Ver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- PROGRESO DE OBJETIVOS DEL MES -->
+<!-- ============================================ -->
+{% if progreso_objetivo %}
+<h5 class="text-muted mb-3"><i class="bi bi-bullseye"></i> Progreso del Objetivo Mensual</h5>
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md mb-3">
+                <label class="small text-muted">Ingresos</label>
+                <div class="d-flex justify-content-between small">
+                    <span>${{ progreso_objetivo.ingresos.actual|floatformat:0 }}</span>
+                    <span>Meta: ${{ progreso_objetivo.ingresos.meta|floatformat:0 }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-{% if progreso_objetivo.ingresos.porcentaje >= 80 %}success{% elif progreso_objetivo.ingresos.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ progreso_objetivo.ingresos.porcentaje }}%">{{ progreso_objetivo.ingresos.porcentaje }}%</div>
+                </div>
+            </div>
+            <div class="col-md mb-3">
+                <label class="small text-muted">Ganancia</label>
+                <div class="d-flex justify-content-between small">
+                    <span>${{ progreso_objetivo.ganancia.actual|floatformat:0 }}</span>
+                    <span>Meta: ${{ progreso_objetivo.ganancia.meta|floatformat:0 }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-{% if progreso_objetivo.ganancia.porcentaje >= 80 %}success{% elif progreso_objetivo.ganancia.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ progreso_objetivo.ganancia.porcentaje }}%">{{ progreso_objetivo.ganancia.porcentaje }}%</div>
+                </div>
+            </div>
+            <div class="col-md mb-3">
+                <label class="small text-muted">Tareas Completadas</label>
+                <div class="d-flex justify-content-between small">
+                    <span>{{ progreso_objetivo.tareas.actual }}</span>
+                    <span>Meta: {{ progreso_objetivo.tareas.meta }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-{% if progreso_objetivo.tareas.porcentaje >= 80 %}success{% elif progreso_objetivo.tareas.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ progreso_objetivo.tareas.porcentaje }}%">{{ progreso_objetivo.tareas.porcentaje }}%</div>
+                </div>
+            </div>
+            <div class="col-md mb-3">
+                <label class="small text-muted">Clientes Nuevos</label>
+                <div class="d-flex justify-content-between small">
+                    <span>{{ progreso_objetivo.clientes.actual }}</span>
+                    <span>Meta: {{ progreso_objetivo.clientes.meta }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-{% if progreso_objetivo.clientes.porcentaje >= 80 %}success{% elif progreso_objetivo.clientes.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ progreso_objetivo.clientes.porcentaje }}%">{{ progreso_objetivo.clientes.porcentaje }}%</div>
+                </div>
+            </div>
+            <div class="col-md mb-3">
+                <label class="small text-muted">Items Producidos</label>
+                <div class="d-flex justify-content-between small">
+                    <span>{{ progreso_objetivo.items.actual }}</span>
+                    <span>Meta: {{ progreso_objetivo.items.meta }}</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar bg-{% if progreso_objetivo.items.porcentaje >= 80 %}success{% elif progreso_objetivo.items.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
+                         style="width: {{ progreso_objetivo.items.porcentaje }}%">{{ progreso_objetivo.items.porcentaje }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info mb-4">
+    <i class="bi bi-info-circle"></i> No hay objetivos definidos para este mes.
+    <a href="{% url 'analisis:crear_objetivo' %}" class="alert-link">Crear objetivo mensual</a>
+</div>
+{% endif %}
+
+<!-- ============================================ -->
+<!-- GRÁFICAS -->
+<!-- ============================================ -->
+<div class="row mb-4">
+    <!-- Tendencia de Ingresos -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up"></i> Tendencia Financiera (últimos 6 meses)</span>
+                <a href="{% url 'analisis:financiero' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary">
+                    Ver detalle
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="chartIngresos" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Distribución de Tareas por Estado -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-pie-chart"></i> Tareas por Estado
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="chartEstados" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Producción por Proceso -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bar-chart"></i> Producción por Proceso</span>
+                <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary">
+                    Ver trabajadores
+                </a>
+            </div>
+            <div class="card-body">
+                <canvas id="chartProcesos" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Top Productos -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-trophy"></i> Top Productos Más Vendidos
+            </div>
+            <div class="card-body">
+                <canvas id="chartTopProductos" height="160"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notas Activas -->
+{% if notas_activas %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-sticky"></i> Notas Pendientes</span>
+        <a href="{% url 'analisis:lista_notas' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for nota in notas_activas %}
+            <div class="list-group-item d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="badge bg-{% if nota.tipo == 'fortaleza' %}success{% elif nota.tipo == 'debilidad' %}danger{% elif nota.tipo == 'oportunidad' %}primary{% elif nota.tipo == 'amenaza' %}warning text-dark{% elif nota.tipo == 'accion' %}info{% else %}secondary{% endif %} me-2">
+                        {{ nota.get_tipo_display }}
+                    </span>
+                    <strong>{{ nota.titulo }}</strong>
+                    <p class="mb-0 text-muted small">{{ nota.contenido|truncatewords:20 }}</p>
+                </div>
+                <span class="badge bg-{% if nota.prioridad == 'critica' %}danger{% elif nota.prioridad == 'alta' %}warning text-dark{% elif nota.prioridad == 'media' %}info{% else %}secondary{% endif %}">
+                    {{ nota.get_prioridad_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Tendencia Financiera
+const ctxIngresos = document.getElementById('chartIngresos').getContext('2d');
+new Chart(ctxIngresos, {
+    type: 'line',
+    data: {
+        labels: {{ labels_ingresos|safe }},
+        datasets: [
+            {
+                label: 'Ingresos',
+                data: {{ data_ingresos|safe }},
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                fill: true,
+                tension: 0.3,
+            },
+            {
+                label: 'Costos',
+                data: {{ data_costos_chart|safe }},
+                borderColor: '#e74c3c',
+                backgroundColor: 'rgba(231, 76, 60, 0.05)',
+                fill: true,
+                tension: 0.3,
+            },
+            {
+                label: 'Ganancia',
+                data: {{ data_ganancia_chart|safe }},
+                borderColor: '#27ae60',
+                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                fill: true,
+                tension: 0.3,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Tareas por Estado
+const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+new Chart(ctxEstados, {
+    type: 'doughnut',
+    data: {
+        labels: {{ estado_labels|safe }},
+        datasets: [{
+            data: {{ estado_data|safe }},
+            backgroundColor: {{ estado_bg|safe }},
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' },
+        }
+    }
+});
+
+// Producción por Proceso
+const ctxProcesos = document.getElementById('chartProcesos').getContext('2d');
+new Chart(ctxProcesos, {
+    type: 'bar',
+    data: {
+        labels: {{ proc_labels|safe }},
+        datasets: [{
+            label: 'Cantidad',
+            data: {{ proc_totals|safe }},
+            backgroundColor: [
+                '#3498db', '#2ecc71', '#e74c3c', '#f39c12',
+                '#9b59b6', '#1abc9c', '#e67e22', '#34495e'
+            ],
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Top Productos
+const ctxTop = document.getElementById('chartTopProductos').getContext('2d');
+new Chart(ctxTop, {
+    type: 'bar',
+    data: {
+        labels: {{ top_prod_labels|safe }},
+        datasets: [{
+            label: 'Cantidad Vendida',
+            data: {{ top_prod_data|safe }},
+            backgroundColor: '#3498db',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

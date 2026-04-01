@@ -1,0 +1,563 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$NwgPRT6QjLssOt9iOwRXqD$DbYU18esqz/cD4l+cdoS6541kjc29M7iIjQGBIU8Enc=",
+      "last_login": "2026-04-01T00:36:26.703Z",
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "",
+      "last_name": "",
+      "email": "admin@tapiceria.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-02-24T16:04:06.303Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$kTXs0Buxd9jcfeam40qk0f$bEpEGRwIRPxGKd1GRHEAKMBjZkEMaUbK69GNADwrROA=",
+      "last_login": "2026-02-27T12:55:53.222Z",
+      "is_superuser": false,
+      "username": "trabajador1",
+      "first_name": "",
+      "last_name": "",
+      "email": "trabajador@tapiceria.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-24T16:04:39.057Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "0re9se89uwrbusvjw39rsbonpe79l2ud",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1vv5sT:Rsd7HAkmDkYXqwS-5ciHuS9GYkkgWV6OEMbSDc_wU8s",
+      "expire_date": "2026-03-11T03:47:57.853Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "17l0gh364h6mb7z5igaqzomfq7aesdm8",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1w3IR9:A4y_q3qWw_TXJoq4IRMWGJSHYgv7pm1x3xeJqXRL9aQ",
+      "expire_date": "2026-04-02T18:49:39.292Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "6nicomi48mhp5wq2pqefpn5abr6esmkv",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1w6Xar:wb6drgc-gp9lwZqIp8wR2Pt4yZaNfQ1tJH6ZoEM0e7o",
+      "expire_date": "2026-04-11T17:37:05.574Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "ac3fv02ivdhbj73ung5mbji7hef5mjpf",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1w7jZK:cA8BhYHE9iyxCKEd_yoRZtMKPESO5jOYgKquVYsiHac",
+      "expire_date": "2026-04-15T00:36:26.745Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "en7ouyy1g75szmngf7f5ggdj29e436ze",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1vwkCb:Qk5VlC_80lKJ9dnmECa0tU1PMGkKGWtNOhG6d6JMU98",
+      "expire_date": "2026-03-15T17:03:33.827Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "ljwyfs6df4hcz2s5kqx680fjrss9vlpn",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1w0KAn:6Ul8hr4z8h3PMxp7tiH1TVIHoB48anDd65IKFoGf0wM",
+      "expire_date": "2026-03-25T14:04:29.260Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "ovghy3bqjl3kauqbj8r6befrjl1qe5f8",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1vvxRK:NgEM1PkrJKluI2jdDRvniO7bekYUrLSntjxtRmpG4ks",
+      "expire_date": "2026-03-13T12:59:30.882Z"
+    }
+  },
+  {
+    "model": "sessions.session",
+    "pk": "v0np1y206s01cdaosgqekd4my30f4t9k",
+    "fields": {
+      "session_data": ".eJxVjMsOwiAQRf-FtSEM8hqX7vsNBBiQqoGktCvjv2uTLnR7zzn3xXzY1uq3kRc_E7swYKffLYb0yG0HdA_t1nnqbV3myHeFH3TwqVN-Xg_376CGUb81FgPWgUCkaFDqbEvKRZ-xSIPakAqoKcYYsgWLKBQgSUfCJpUAnGXvD9b0N24:1vxlrm:FMhiX9Tq7B9bNiuGzpjMau0Rjuysxks04uSNQjQC3rg",
+      "expire_date": "2026-03-18T13:02:18.712Z"
+    }
+  },
+  {
+    "model": "panelproductividad.trabajador",
+    "pk": 1,
+    "fields": {
+      "nombre": "clavijo",
+      "activo": true,
+      "creado_en": "2026-02-20T16:10:43.936Z"
+    }
+  },
+  {
+    "model": "panelproductividad.registroproductividad",
+    "pk": 1,
+    "fields": {
+      "fecha": "2026-02-20",
+      "trabajador": null,
+      "hora_inicio": "11:49:00",
+      "hora_finalizacion": "00:50:00",
+      "cortado": 0,
+      "marcado_piezas": 0,
+      "costura": 0,
+      "armado": 0,
+      "instalacion": 0,
+      "sillas_realizadas": 0,
+      "tapizado_puertas": 0,
+      "tapizado_techo": 0,
+      "observaciones": "jadskoasdj",
+      "creado_en": "2026-02-20T15:49:07.697Z",
+      "actualizado_en": "2026-02-20T15:49:07.697Z"
+    }
+  },
+  {
+    "model": "panelproductividad.registroproductividad",
+    "pk": 3,
+    "fields": {
+      "fecha": "2026-02-25",
+      "trabajador": 1,
+      "hora_inicio": "17:06:00",
+      "hora_finalizacion": "20:06:00",
+      "cortado": 22,
+      "marcado_piezas": 31,
+      "costura": 0,
+      "armado": 0,
+      "instalacion": 0,
+      "sillas_realizadas": 0,
+      "tapizado_puertas": 0,
+      "tapizado_techo": 0,
+      "observaciones": "",
+      "creado_en": "2026-02-25T22:06:43.746Z",
+      "actualizado_en": "2026-02-25T22:06:43.746Z"
+    }
+  },
+  {
+    "model": "paneltareas.cliente",
+    "pk": 1,
+    "fields": {
+      "nombre": "clavijo",
+      "telefono": "q21312",
+      "creado_en": "2026-02-20T15:52:02.804Z"
+    }
+  },
+  {
+    "model": "paneltareas.cliente",
+    "pk": 2,
+    "fields": {
+      "nombre": "namired",
+      "telefono": "0203020200",
+      "creado_en": "2026-02-20T18:35:41.003Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 1,
+    "fields": {
+      "nombre_cliente": "hola",
+      "telefono_cliente": "302123021",
+      "placa": "121o1",
+      "descripcion_trabajo": "12312o321o3",
+      "fecha_ingreso": "2026-02-20",
+      "fecha_entrega": "2026-02-27",
+      "estado": "pendiente",
+      "prioridad": "media",
+      "observaciones": "",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-20T15:50:25.009Z",
+      "actualizado_en": "2026-02-20T15:50:25.009Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 2,
+    "fields": {
+      "nombre_cliente": "solobus",
+      "telefono_cliente": "3200302",
+      "placa": "2199219",
+      "descripcion_trabajo": "tapiceria completa",
+      "fecha_ingreso": "2026-02-20",
+      "fecha_entrega": "2026-02-28",
+      "estado": "completado",
+      "prioridad": "media",
+      "observaciones": "",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-20T18:34:08.717Z",
+      "actualizado_en": "2026-02-24T22:30:52.065Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 3,
+    "fields": {
+      "nombre_cliente": "solobus",
+      "telefono_cliente": "3200302",
+      "placa": "2199219",
+      "descripcion_trabajo": "espuma, y en azul",
+      "fecha_ingreso": "2026-02-20",
+      "fecha_entrega": "2026-02-28",
+      "estado": "completado",
+      "prioridad": "media",
+      "observaciones": "",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-20T18:36:10.274Z",
+      "actualizado_en": "2026-02-20T18:36:24.551Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 4,
+    "fields": {
+      "nombre_cliente": "solobus",
+      "telefono_cliente": "3200302",
+      "placa": "2199219",
+      "descripcion_trabajo": "se debe espumar y cortar",
+      "fecha_ingreso": "2026-02-20",
+      "fecha_entrega": "2026-02-28",
+      "estado": "en_proceso",
+      "prioridad": "urgente",
+      "observaciones": "",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-24T22:35:54.919Z",
+      "actualizado_en": "2026-02-24T22:35:54.919Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 5,
+    "fields": {
+      "nombre_cliente": "solobus",
+      "telefono_cliente": "3200302",
+      "placa": "2199219",
+      "descripcion_trabajo": "2313",
+      "fecha_ingreso": "2026-02-20",
+      "fecha_entrega": "2026-02-28",
+      "estado": "pendiente",
+      "prioridad": "media",
+      "observaciones": "",
+      "monto_abonado": "100000.00",
+      "creado_en": "2026-02-25T03:40:38.523Z",
+      "actualizado_en": "2026-02-25T03:40:38.523Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 6,
+    "fields": {
+      "nombre_cliente": "wilmar",
+      "telefono_cliente": "3200302",
+      "placa": "2199219",
+      "descripcion_trabajo": "muchas cosas",
+      "fecha_ingreso": "2026-02-24",
+      "fecha_entrega": "2026-02-28",
+      "estado": "en_proceso",
+      "prioridad": "media",
+      "observaciones": "",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-25T03:47:43.767Z",
+      "actualizado_en": "2026-02-25T03:47:43.767Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 7,
+    "fields": {
+      "nombre_cliente": "solobus",
+      "telefono_cliente": "99999",
+      "placa": "9999",
+      "descripcion_trabajo": "muchas cosas",
+      "fecha_ingreso": "2026-02-25",
+      "fecha_entrega": "2026-02-28",
+      "estado": "pendiente",
+      "prioridad": "urgente",
+      "observaciones": "el cliente esta enojado",
+      "monto_abonado": "2000000.00",
+      "creado_en": "2026-02-25T22:10:25.640Z",
+      "actualizado_en": "2026-02-27T11:28:23.006Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 8,
+    "fields": {
+      "nombre_cliente": "namired",
+      "telefono_cliente": "9999",
+      "placa": "hola123",
+      "descripcion_trabajo": "espumado y material en ferro",
+      "fecha_ingreso": "2026-02-25",
+      "fecha_entrega": "2026-03-02",
+      "estado": "pendiente",
+      "prioridad": "media",
+      "observaciones": "hice 1 silla",
+      "monto_abonado": "0.00",
+      "creado_en": "2026-02-25T22:18:51.536Z",
+      "actualizado_en": "2026-02-25T22:18:51.536Z"
+    }
+  },
+  {
+    "model": "paneltareas.tareaplanificada",
+    "pk": 9,
+    "fields": {
+      "nombre_cliente": "juan carlos rodriguez",
+      "telefono_cliente": "3105959866",
+      "placa": "lx-930",
+      "descripcion_trabajo": "asiento de nqr con mejora de espuma en gris ferro y microperforado",
+      "fecha_ingreso": "2026-03-19",
+      "fecha_entrega": "2026-03-21",
+      "estado": "pendiente",
+      "prioridad": "alta",
+      "observaciones": "",
+      "monto_abonado": "100000.00",
+      "creado_en": "2026-03-19T18:52:15.597Z",
+      "actualizado_en": "2026-03-19T18:52:15.597Z"
+    }
+  },
+  {
+    "model": "paneltareas.imagentarea",
+    "pk": 1,
+    "fields": {
+      "tarea": 1,
+      "imagen": "tareas/imagenes/2026/02/Captura_de_pantalla_2026-02-13_110824.png",
+      "descripcion": "espumado de las sillas de solobus",
+      "fecha_subida": "2026-02-22T00:43:54.609Z"
+    }
+  },
+  {
+    "model": "paneltareas.imagentarea",
+    "pk": 2,
+    "fields": {
+      "tarea": 1,
+      "imagen": "tareas/imagenes/2026/02/Captura_de_pantalla_2026-02-13_110906.png",
+      "descripcion": "la perra de juliana",
+      "fecha_subida": "2026-02-22T00:44:33.137Z"
+    }
+  },
+  {
+    "model": "paneltareas.imagentarea",
+    "pk": 3,
+    "fields": {
+      "tarea": 1,
+      "imagen": "tareas/imagenes/2026/02/Captura_de_pantalla_2026-02-13_110906_jYsRJuL.png",
+      "descripcion": "",
+      "fecha_subida": "2026-02-22T00:47:00.603Z"
+    }
+  },
+  {
+    "model": "paneltareas.imagentarea",
+    "pk": 4,
+    "fields": {
+      "tarea": 8,
+      "imagen": "tareas/imagenes/2026/02/Captura_de_pantalla_2026-02-13_110824_TG4iHvF.png",
+      "descripcion": "",
+      "fecha_subida": "2026-02-25T22:19:13.680Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 1,
+    "fields": {
+      "tarea": 5,
+      "producto": 1,
+      "nombre_producto": "silla carro",
+      "cantidad": 1,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "fecha_registro": "2026-02-25T03:40:38.527Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 2,
+    "fields": {
+      "tarea": 6,
+      "producto": 1,
+      "nombre_producto": "silla carro",
+      "cantidad": 1,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "fecha_registro": "2026-02-25T03:47:43.771Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 3,
+    "fields": {
+      "tarea": 6,
+      "producto": 2,
+      "nombre_producto": "silla moto bwis",
+      "cantidad": 1,
+      "precio_costo": "12000.00",
+      "precio_venta": "35000.00",
+      "fecha_registro": "2026-02-25T03:47:43.776Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 4,
+    "fields": {
+      "tarea": 6,
+      "producto": 2,
+      "nombre_producto": "silla moto bwis",
+      "cantidad": 1,
+      "precio_costo": "12000.00",
+      "precio_venta": "35000.00",
+      "fecha_registro": "2026-02-25T03:47:43.779Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 5,
+    "fields": {
+      "tarea": 7,
+      "producto": 1,
+      "nombre_producto": "silla carro",
+      "cantidad": 8,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "fecha_registro": "2026-02-25T22:10:25.645Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 6,
+    "fields": {
+      "tarea": 7,
+      "producto": 2,
+      "nombre_producto": "silla moto bwis",
+      "cantidad": 2,
+      "precio_costo": "12000.00",
+      "precio_venta": "35000.00",
+      "fecha_registro": "2026-02-25T22:10:25.653Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 7,
+    "fields": {
+      "tarea": 8,
+      "producto": 1,
+      "nombre_producto": "silla carro",
+      "cantidad": 2,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "fecha_registro": "2026-02-25T22:18:51.542Z"
+    }
+  },
+  {
+    "model": "paneltareas.productotarea",
+    "pk": 8,
+    "fields": {
+      "tarea": 9,
+      "producto": 1,
+      "nombre_producto": "silla carro",
+      "cantidad": 1,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "fecha_registro": "2026-03-19T18:52:15.605Z"
+    }
+  },
+  {
+    "model": "panelfinanzas.producto",
+    "pk": 1,
+    "fields": {
+      "nombre": "silla carro",
+      "descripcion": "silla de carro en ferro",
+      "categoria": null,
+      "precio_costo": "200000.00",
+      "precio_venta": "400000.00",
+      "creado_en": "2026-02-24T22:34:04.930Z",
+      "actualizado_en": "2026-02-24T22:34:04.930Z",
+      "creado_por": 1
+    }
+  },
+  {
+    "model": "panelfinanzas.producto",
+    "pk": 2,
+    "fields": {
+      "nombre": "silla moto bwis",
+      "descripcion": "12121",
+      "categoria": null,
+      "precio_costo": "12000.00",
+      "precio_venta": "35000.00",
+      "creado_en": "2026-02-25T03:42:13.515Z",
+      "actualizado_en": "2026-02-25T03:42:13.515Z",
+      "creado_por": 1
+    }
+  },
+  {
+    "model": "panelfinanzas.producto",
+    "pk": 3,
+    "fields": {
+      "nombre": "muebles",
+      "descripcion": "",
+      "categoria": null,
+      "precio_costo": "100000.00",
+      "precio_venta": "300000.00",
+      "creado_en": "2026-02-25T22:13:08.736Z",
+      "actualizado_en": "2026-02-25T22:13:08.736Z",
+      "creado_por": 1
+    }
+  },
+  {
+    "model": "panelanalisis.objetivomensual",
+    "pk": 1,
+    "fields": {
+      "mes": "2026-03-01",
+      "meta_ingresos": "10000000.00",
+      "meta_ganancia": "0.00",
+      "meta_tareas_completadas": 0,
+      "meta_clientes_nuevos": 0,
+      "meta_items_producidos": 0,
+      "notas": "queremos ganar este mes 10 millones",
+      "creado_por": 1,
+      "creado_en": "2026-03-01T17:13:32.782Z",
+      "actualizado_en": "2026-03-01T17:13:32.783Z"
+    }
+  },
+  {
+    "model": "panelanalisis.notaanalisis",
+    "pk": 1,
+    "fields": {
+      "titulo": "redes",
+      "contenido": "mejorar redes",
+      "tipo": "debilidad",
+      "prioridad": "media",
+      "resuelta": false,
+      "creado_por": 1,
+      "creado_en": "2026-02-27T12:54:45.138Z",
+      "actualizado_en": "2026-02-27T12:54:45.138Z"
+    }
+  },
+  {
+    "model": "panelanalisis.notaanalisis",
+    "pk": 2,
+    "fields": {
+      "titulo": "precio de los productos",
+      "contenido": "vendemos muy barato para que los clientes puedean comprar",
+      "tipo": "fortaleza",
+      "prioridad": "baja",
+      "resuelta": false,
+      "creado_por": 1,
+      "creado_en": "2026-03-01T17:12:22.935Z",
+      "actualizado_en": "2026-03-01T17:12:22.935Z"
+    }
+  }
+]

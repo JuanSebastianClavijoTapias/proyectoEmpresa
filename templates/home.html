@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Tapicería{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+    <p class="text-muted">Resumen general del taller</p>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card pendientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>{{ tareas_pendientes }}</h3>
+                    <p class="mb-0">Tareas Pendientes</p>
+                </div>
+                <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.7;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card proceso">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>{{ tareas_en_proceso }}</h3>
+                    <p class="mb-0">En Proceso</p>
+                </div>
+                <i class="bi bi-gear-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card completadas">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>{{ tareas_completadas }}</h3>
+                    <p class="mb-0">Completadas</p>
+                </div>
+                <i class="bi bi-check-circle-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="stat-card clientes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>{{ total_clientes }}</h3>
+                    <p class="mb-0">Clientes</p>
+                </div>
+                <i class="bi bi-people-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if tareas_urgentes > 0 %}
+<div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
+    <div>
+        <strong>¡Atención!</strong> Tienes <strong>{{ tareas_urgentes }}</strong> tarea(s) vencida(s) o por vencer hoy.
+        <a href="{% url 'tareas:lista' %}?estado=pendiente" class="alert-link">Ver tareas</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Accesos rápidos -->
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-lightning-fill text-warning"></i> Acciones Rápidas
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'tareas:crear' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i> Nueva Tarea
+                    </a>
+                    <a href="{% url 'productividad:crear' %}" class="btn btn-success">
+                        <i class="bi bi-clipboard-plus me-2"></i> Registrar Productividad
+                    </a>
+                    <a href="{% url 'tareas:crear_cliente' %}" class="btn btn-info text-white">
+                        <i class="bi bi-person-plus me-2"></i> Nuevo Cliente
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Próximas entregas -->
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-event text-primary"></i> Próximas Entregas</span>
+                <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+            </div>
+            <div class="card-body">
+                {% if tareas_proximas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Placa</th>
+                                <th>Cliente</th>
+                                <th>Trabajo</th>
+                                <th>Entrega</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarea in tareas_proximas %}
+                            <tr>
+                                <td><strong>{{ tarea.placa }}</strong></td>
+                                <td>{{ tarea.nombre_cliente }}</td>
+                                <td>{{ tarea.get_tipo_trabajo_display }}</td>
+                                <td>
+                                    {% if tarea.dias_restantes < 0 %}
+                                        <span class="text-danger"><i class="bi bi-exclamation-circle"></i> Vencido</span>
+                                    {% elif tarea.dias_restantes == 0 %}
+                                        <span class="text-warning"><i class="bi bi-clock"></i> Hoy</span>
+                                    {% else %}
+                                        {{ tarea.fecha_entrega|date:"d/m/Y" }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-estado badge-{{ tarea.estado }}">
+                                        {{ tarea.get_estado_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-check" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No hay entregas programadas próximamente</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

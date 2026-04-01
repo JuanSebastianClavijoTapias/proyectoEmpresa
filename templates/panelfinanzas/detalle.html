@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}{{ producto.nombre }} - Catálogo{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'finanzas:lista' %}">Catálogo</a></li>
+                <li class="breadcrumb-item active">{{ producto.nombre }}</li>
+            </ol>
+        </nav>
+        <h1 class="mt-2"><i class="bi bi-box-seam me-2"></i>{{ producto.nombre }}</h1>
+    </div>
+    <div>
+        <a href="{% url 'finanzas:editar' producto.pk %}" class="btn btn-primary me-2">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        <a href="{% url 'finanzas:eliminar' producto.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i>Eliminar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Información del Producto
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted">Nombre</label>
+                        <p class="fw-bold fs-5">{{ producto.nombre }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted">Categoría</label>
+                        <p>
+                            {% if producto.categoria %}
+                            <span class="badge bg-secondary">{{ producto.categoria.nombre }}</span>
+                            {% else %}
+                            <span class="text-muted">Sin categoría</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if producto.descripcion %}
+                <div class="mb-3">
+                    <label class="text-muted">Descripción</label>
+                    <p>{{ producto.descripcion }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Historial de Entregas de este producto -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Historial de Entregas
+            </div>
+            <div class="card-body p-0">
+                {% if entregas %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tarea/Cliente</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end">P. Venta</th>
+                                <th class="text-end">Total</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entrega in entregas %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'tareas:detalle' entrega.tarea.pk %}">
+                                        {{ entrega.tarea.nombre_cliente }} - {{ entrega.tarea.placa }}
+                                    </a>
+                                </td>
+                                <td class="text-center">{{ entrega.cantidad }}</td>
+                                <td class="text-end">${{ entrega.precio_venta|floatformat:0 }}</td>
+                                <td class="text-end fw-bold">${{ entrega.total_venta|floatformat:0 }}</td>
+                                <td>{{ entrega.fecha_registro|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Este producto aún no ha sido asignado a ninguna tarea.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Resumen Financiero -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-currency-dollar me-2"></i>Precios del Catálogo
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Precio de Costo:</span>
+                    <span class="fw-bold">${{ producto.precio_costo|floatformat:0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Precio de Venta:</span>
+                    <span class="fw-bold">${{ producto.precio_venta|floatformat:0 }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Ganancia Unitaria:</span>
+                    <span class="fw-bold {% if producto.ganancia_unitaria > 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ producto.ganancia_unitaria|floatformat:0 }}
+                    </span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">% Ganancia:</span>
+                    <span class="fw-bold">{{ producto.porcentaje_ganancia|floatformat:1 }}%</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Metadatos -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Información de Registro
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Creado:</span>
+                    <span>{{ producto.creado_en|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Actualizado:</span>
+                    <span>{{ producto.actualizado_en|date:"d/m/Y H:i" }}</span>
+                </div>
+                {% if producto.creado_por %}
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted">Registrado por:</span>
+                    <span>{{ producto.creado_por.username }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Volver al catálogo
+    </a>
+</div>
+{% endblock %}

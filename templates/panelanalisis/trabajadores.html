@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Análisis de Trabajadores{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-person-lines-fill"></i> Rendimiento por Trabajador</h1>
+        <p class="text-muted mb-0">Análisis detallado de productividad individual</p>
+    </div>
+    <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+<!-- Filtro de Fechas -->
+<div class="card mb-4">
+    <div class="card-body py-2">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small mb-0">Desde</label>
+                {{ form_filtro.fecha_desde }}
+            </div>
+            <div class="col-auto">
+                <label class="form-label small mb-0">Hasta</label>
+                {{ form_filtro.fecha_hasta }}
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Gráfica Comparativa -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart"></i> Total Items por Trabajador
+            </div>
+            <div class="card-body">
+                <canvas id="chartItemsTrabajador" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-speedometer"></i> Productividad (Items/Hora)
+            </div>
+            <div class="card-body">
+                <canvas id="chartProdTrabajador" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ranking de Trabajadores -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-trophy"></i> Ranking de Rendimiento
+        <span class="text-muted small">({{ fecha_desde|date:"d/m/Y" }} - {{ fecha_hasta|date:"d/m/Y" }})</span>
+    </div>
+    <div class="card-body p-0">
+        {% if ranking %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Trabajador</th>
+                        <th class="text-center">Items Totales</th>
+                        <th class="text-center">Horas Trabajadas</th>
+                        <th class="text-center">Días Trabajados</th>
+                        <th class="text-center">Items/Hora</th>
+                        <th class="text-center">Items/Día</th>
+                        <th>Mejor Proceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in ranking %}
+                    <tr>
+                        <td>
+                            {% if forloop.counter == 1 %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-trophy-fill"></i> 1°</span>
+                            {% elif forloop.counter == 2 %}
+                                <span class="badge bg-secondary">2°</span>
+                            {% elif forloop.counter == 3 %}
+                                <span class="badge bg-info">3°</span>
+                            {% else %}
+                                <span class="text-muted">{{ forloop.counter }}°</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ r.trabajador.nombre }}</strong></td>
+                        <td class="text-center">
+                            <span class="fw-bold">{{ r.total_items }}</span>
+                        </td>
+                        <td class="text-center">{{ r.total_horas }}h</td>
+                        <td class="text-center">{{ r.dias_trabajados }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-{% if r.productividad_hora >= 5 %}success{% elif r.productividad_hora >= 3 %}warning text-dark{% else %}secondary{% endif %} fs-6">
+                                {{ r.productividad_hora }}
+                            </span>
+                        </td>
+                        <td class="text-center">{{ r.items_por_dia }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ r.mejor_proceso }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-inbox fs-1"></i>
+            <p>No hay registros de productividad en este período.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Desglose detallado por trabajador -->
+{% if ranking %}
+<h5 class="text-muted mb-3"><i class="bi bi-list-columns-reverse"></i> Desglose por Proceso</h5>
+<div class="row">
+    {% for r in ranking %}
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <strong>{{ r.trabajador.nombre }}</strong>
+                <span class="float-end text-muted small">{{ r.total_items }} items totales</span>
+            </div>
+            <div class="card-body">
+                {% for proceso, cantidad in r.desglose.items %}
+                {% if cantidad > 0 %}
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small">
+                        <span>{{ proceso|title }}</span>
+                        <span class="fw-bold">{{ cantidad }}</span>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        {% widthratio cantidad r.total_items 100 as porcentaje %}
+                        <div class="progress-bar" style="width: {{ porcentaje }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Items por Trabajador
+const ctxItems = document.getElementById('chartItemsTrabajador').getContext('2d');
+new Chart(ctxItems, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Items Totales',
+            data: {{ chart_items|safe }},
+            backgroundColor: '#3498db',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+
+// Productividad por Trabajador
+const ctxProd = document.getElementById('chartProdTrabajador').getContext('2d');
+new Chart(ctxProd, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [{
+            label: 'Items/Hora',
+            data: {{ chart_prod|safe }},
+            backgroundColor: '#27ae60',
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}

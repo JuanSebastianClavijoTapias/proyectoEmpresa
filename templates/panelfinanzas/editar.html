@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Editar {{ producto.nombre }} - Catálogo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:lista' %}">Catálogo</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'finanzas:detalle' producto.pk %}">{{ producto.nombre }}</a></li>
+            <li class="breadcrumb-item active">Editar</li>
+        </ol>
+    </nav>
+    <h1 class="mt-2"><i class="bi bi-pencil me-2"></i>Editar Producto</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-box-seam me-2"></i>Información del Producto
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Nombre del Producto *</label>
+                            {{ form.nombre }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Categoría</label>
+                            {{ form.categoria }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        {{ form.descripcion }}
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Precios</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Precio de Costo *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio_costo }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio de Venta *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.precio_venta }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Vista previa de ganancia -->
+                    <div class="alert alert-info" id="preview-ganancia">
+                        <div class="row text-center">
+                            <div class="col-md-6">
+                                <small>Ganancia Unitaria</small>
+                                <h5 id="ganancia-unitaria">$0</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <small>% Ganancia</small>
+                                <h5 id="porcentaje-ganancia">0%</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'finanzas:detalle' producto.pk %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Información
+            </div>
+            <div class="card-body">
+                <p><strong>Creado:</strong> {{ producto.creado_en|date:"d/m/Y H:i" }}</p>
+                <p><strong>Última actualización:</strong> {{ producto.actualizado_en|date:"d/m/Y H:i" }}</p>
+                {% if producto.creado_por %}
+                <p><strong>Registrado por:</strong> {{ producto.creado_por.username }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const precioCosto = document.querySelector('[name="precio_costo"]');
+    const precioVenta = document.querySelector('[name="precio_venta"]');
+    
+    function calcularGanancia() {
+        const costo = parseFloat(precioCosto.value) || 0;
+        const venta = parseFloat(precioVenta.value) || 0;
+        
+        const gananciaUnitaria = venta - costo;
+        const porcentaje = costo > 0 ? ((venta - costo) / costo * 100) : 0;
+        
+        document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toFixed(0);
+        document.getElementById('porcentaje-ganancia').textContent = porcentaje.toFixed(1) + '%';
+        
+        const previewDiv = document.getElementById('preview-ganancia');
+        if (gananciaUnitaria > 0) {
+            previewDiv.className = 'alert alert-success';
+        } else if (gananciaUnitaria < 0) {
+            previewDiv.className = 'alert alert-danger';
+        } else {
+            previewDiv.className = 'alert alert-info';
+        }
+    }
+    
+    precioCosto.addEventListener('input', calcularGanancia);
+    precioVenta.addEventListener('input', calcularGanancia);
+    
+    calcularGanancia();
+});
+</script>
+{% endblock %}
