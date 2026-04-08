@@ -35,7 +35,7 @@ class PerfilUsuario(models.Model):
 @receiver(post_save, sender=User)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
     if created:
-        PerfilUsuario.objects.create(user=instance)
+        PerfilUsuario.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
@@ -86,6 +86,12 @@ class Producto(models.Model):
         help_text='A cuánto se vende al cliente'
     )
     
+    es_precio_variable = models.BooleanField(
+        default=False,
+        verbose_name='Precio Variable',
+        help_text='Si está activo, el trabajador ingresa el precio al crear la tarea'
+    )
+    
     # Metadatos
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     actualizado_en = models.DateTimeField(auto_now=True, verbose_name='Última Actualización')
@@ -104,7 +110,7 @@ class Producto(models.Model):
         ordering = ['nombre']
     
     def __str__(self):
-        return f"{self.nombre} - ${self.precio_venta:,.0f}"
+        return self.nombre
     
     @property
     def ganancia_unitaria(self):

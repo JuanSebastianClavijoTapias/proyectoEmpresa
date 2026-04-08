@@ -196,6 +196,7 @@ class ProductoTarea(models.Model):
         verbose_name='Producto'
     )
     nombre_producto = models.CharField(max_length=200, verbose_name='Nombre del Producto')
+    placa = models.CharField(max_length=20, blank=True, default='', verbose_name='Placa del Vehículo')
     cantidad = models.PositiveIntegerField(default=1, verbose_name='Cantidad')
     precio_costo = models.DecimalField(
         max_digits=12, 
@@ -206,6 +207,13 @@ class ProductoTarea(models.Model):
         max_digits=12, 
         decimal_places=2, 
         verbose_name='Precio de Venta'
+    )
+    ajuste_precio = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        verbose_name='Ajuste de Precio',
+        help_text='Valor positivo para cobrar más, negativo para descuento'
     )
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     

@@ -48,10 +48,6 @@
                         <p class="mb-1"><strong>{{ tarea.nombre_cliente }}</strong></p>
                         <p class="text-muted"><i class="bi bi-telephone"></i> {{ tarea.telefono_cliente }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">Vehículo</h6>
-                        <p class="mb-1"><strong>Placa: {{ tarea.placa }}</strong></p>
-                    </div>
                 </div>
                 
                 <hr>
@@ -79,27 +75,35 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Producto</th>
+                                <th>Placa</th>
                                 <th class="text-center">Cant.</th>
+                                {% if es_jefe %}
                                 <th class="text-end">P. Venta</th>
                                 <th class="text-end">Total</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
                             {% for pt in productos_tarea %}
                             <tr>
                                 <td>{{ pt.nombre_producto }}</td>
+                                <td>{{ pt.placa }}</td>
                                 <td class="text-center">{{ pt.cantidad }}</td>
+                                {% if es_jefe %}
                                 <td class="text-end">${{ pt.precio_venta|floatformat:0 }}</td>
                                 <td class="text-end"><strong>${{ pt.total_venta|floatformat:0 }}</strong></td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
+                        {% if es_jefe %}
                         <tfoot class="table-light">
                             <tr>
-                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                <td colspan="4" class="text-end"><strong>Total:</strong></td>
                                 <td class="text-end"><strong class="text-primary">${{ tarea.precio_total|floatformat:0 }}</strong></td>
                             </tr>
                         </tfoot>
+                        {% endif %}
                     </table>
                 </div>
             </div>

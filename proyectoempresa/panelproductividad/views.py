@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db.models import Sum
 from datetime import date, timedelta
 from .models import Trabajador, RegistroProductividad
@@ -12,18 +13,24 @@ def lista_productividad(request):
     """Vista para listar todos los registros de productividad"""
     registros = RegistroProductividad.objects.all()
     
+    # Si es trabajador, solo ver sus propios registros
+    if hasattr(request.user, 'trabajador'):
+        registros = registros.filter(trabajador=request.user.trabajador)
+    
     # Filtros
     fecha_filtro = request.GET.get('fecha')
     trabajador_filtro = request.GET.get('trabajador')
     
     if fecha_filtro:
         registros = registros.filter(fecha=fecha_filtro)
-    if trabajador_filtro:
+    if trabajador_filtro and not hasattr(request.user, 'trabajador'):
         registros = registros.filter(trabajador_id=trabajador_filtro)
     
     # Estadísticas del día
     hoy = date.today()
     registros_hoy = RegistroProductividad.objects.filter(fecha=hoy)
+    if hasattr(request.user, 'trabajador'):
+        registros_hoy = registros_hoy.filter(trabajador=request.user.trabajador)
     stats_hoy = registros_hoy.aggregate(
         cortado=Sum('cortado'),
         marcado=Sum('marcado_piezas'),
@@ -172,7 +179,18 @@ def crear_trabajador(request):
     if request.method == 'POST':
         form = TrabajadorForm(request.POST)
         if form.is_valid():
-            form.save()
+            trabajador = form.save(commit=False)
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            if username and password:
+                usuario = User.objects.create_user(
+                    username=username,
+                    password=password,
+                    first_name=trabajador.nombre
+                )
+                # El PerfilUsuario se crea automáticamente con rol='trabajador'
+                trabajador.usuario = usuario
+            trabajador.save()
             messages.success(request, 'Trabajador creado exitosamente.')
             return redirect('productividad:lista_trabajadores')
     else:
@@ -189,7 +207,23 @@ def editar_trabajador(request, pk):
     if request.method == 'POST':
         form = TrabajadorForm(request.POST, instance=trabajador)
         if form.is_valid():
-            form.save()
+            trabajador = form.save(commit=False)
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            if username:
+                if trabajador.usuario:
+                    trabajador.usuario.username = username
+                    if password:
+                        trabajador.usuario.set_password(password)
+                    trabajador.usuario.save()
+                elif password:
+                    usuario = User.objects.create_user(
+                        username=username,
+                        password=password,
+                        first_name=trabajador.nombre
+                    )
+                    trabajador.usuario = usuario
+            trabajador.save()
             messages.success(request, 'Trabajador actualizado exitosamente.')
             return redirect('productividad:lista_trabajadores')
     else:

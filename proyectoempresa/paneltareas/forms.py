@@ -9,7 +9,6 @@ class TareaPlanificadaForm(forms.ModelForm):
         model = TareaPlanificada
         fields = [
             'nombre_cliente', 'telefono_cliente',
-            'placa',
             'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
             'observaciones'
@@ -17,7 +16,6 @@ class TareaPlanificadaForm(forms.ModelForm):
         widgets = {
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
             'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
-            'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ABC-123'}),
             'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer al vehículo...'}),
             'fecha_ingreso': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -44,11 +42,32 @@ class TareaPlanificadaFormJefe(TareaPlanificadaForm):
 
 class ProductoTareaForm(forms.ModelForm):
     """Formulario para agregar productos a una tarea"""
+    nombre_producto_input = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control producto-nombre-input',
+            'placeholder': 'Escriba o seleccione un producto',
+            'autocomplete': 'off',
+        }),
+        label='Producto',
+    )
+    precio_cobrado = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control precio-cobrado-input',
+            'step': '1',
+            'min': '0',
+            'placeholder': 'Precio cobrado',
+        }),
+        label='Precio',
+    )
+
     class Meta:
         model = ProductoTarea
-        fields = ['producto', 'cantidad']
+        fields = ['producto', 'placa', 'cantidad']
         widgets = {
-            'producto': forms.Select(attrs={'class': 'form-select producto-select'}),
+            'producto': forms.HiddenInput(attrs={'class': 'producto-id-hidden'}),
+            'placa': forms.TextInput(attrs={'class': 'form-control placa-input', 'placeholder': 'Placa', 'autocomplete': 'off'}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
         }
     
@@ -56,6 +75,9 @@ class ProductoTareaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['producto'].queryset = Producto.objects.all()
         self.fields['producto'].required = False
+        # Pre-fill nombre_producto_input if editing an existing ProductoTarea
+        if self.instance and self.instance.pk:
+            self.fields['nombre_producto_input'].initial = self.instance.nombre_producto
 
 
 ProductoTareaFormSet = inlineformset_factory(
@@ -64,7 +86,7 @@ ProductoTareaFormSet = inlineformset_factory(
     form=ProductoTareaForm,
     extra=1,
     can_delete=True,
-    fields=['producto', 'cantidad'],
+    fields=['producto', 'placa', 'cantidad'],
 )
 
 

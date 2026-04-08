@@ -9,7 +9,7 @@ class ProductoForm(forms.ModelForm):
         model = Producto
         fields = [
             'nombre', 'descripcion', 'categoria', 
-            'precio_costo', 'precio_venta',
+            'precio_costo', 'precio_venta', 'es_precio_variable',
         ]
         widgets = {
             'nombre': forms.TextInput(attrs={
@@ -35,6 +35,9 @@ class ProductoForm(forms.ModelForm):
                 'placeholder': '0.00',
                 'step': '0.01',
                 'min': '0'
+            }),
+            'es_precio_variable': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
             }),
         }
 

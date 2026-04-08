@@ -60,6 +60,9 @@ def logout_view(request):
 @login_required
 def home(request):
     """Vista principal del dashboard"""
+    # Si es trabajador, mostrar solo sus tareas asignadas
+    es_trabajador_logueado = hasattr(request.user, 'trabajador')
+    
     # Estadísticas generales
     tareas_pendientes = TareaPlanificada.objects.filter(estado='pendiente').count()
     tareas_en_proceso = TareaPlanificada.objects.filter(estado='en_proceso').count()
@@ -87,6 +90,7 @@ def home(request):
         'total_clientes': total_clientes,
         'tareas_proximas': tareas_proximas,
         'tareas_urgentes': tareas_urgentes,
+        'es_trabajador': es_trabajador_logueado,
     }
     return render(request, 'home.html', context)
 
@@ -126,33 +130,44 @@ def crear_tarea(request):
         form = FormClass(request.POST)
         formset = ProductoTareaFormSet(request.POST, prefix='productos')
         if form.is_valid() and formset.is_valid():
-            tarea = form.save()
+            tarea = form.save(commit=False)
+            tarea.placa = ''
+            tarea.save()
             formset.instance = tarea
             productos_tarea = formset.save(commit=False)
-            for pt in productos_tarea:
+            for i, pt in enumerate(productos_tarea):
+                form_data = formset.forms[i].cleaned_data
+                nombre_input = form_data.get('nombre_producto_input', '').strip()
+                precio_cobrado = form_data.get('precio_cobrado')
+                
+                if not nombre_input and not pt.producto:
+                    continue
+                
                 if pt.producto:
-                    # Copiar precios del catálogo como snapshot
                     pt.nombre_producto = pt.producto.nombre
                     pt.precio_costo = pt.producto.precio_costo
-                    pt.precio_venta = pt.producto.precio_venta
-                    pt.save()
-            # Eliminar los marcados para borrar
+                    pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
+                else:
+                    pt.nombre_producto = nombre_input
+                    pt.precio_costo = 0
+                    pt.precio_venta = precio_cobrado if precio_cobrado else 0
+                pt.ajuste_precio = 0
+                pt.save()
             for obj in formset.deleted_objects:
                 obj.delete()
+            # Auto-set tarea.placa from product placas
+            placas = tarea.productos_tarea.exclude(placa='').values_list('placa', flat=True).distinct()
+            tarea.placa = ', '.join(placas)
+            tarea.save(update_fields=['placa'])
             messages.success(request, 'Tarea creada exitosamente.')
             return redirect('tareas:lista')
     else:
         form = FormClass(initial={'fecha_ingreso': date.today()})
         formset = ProductoTareaFormSet(prefix='productos')
     
-    # Preparar datos de productos para JavaScript
+    # Preparar datos de productos para JavaScript (autocompletar)
     productos_json = json.dumps([
-        {
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio_costo': str(p.precio_costo),
-            'precio_venta': str(p.precio_venta),
-        }
+        {'id': p.id, 'nombre': p.nombre}
         for p in Producto.objects.all()
     ])
     
@@ -164,7 +179,7 @@ def crear_tarea(request):
     
     # Placas existentes para autocompletar
     placas_json = json.dumps(list(
-        TareaPlanificada.objects.values_list('placa', flat=True).distinct()
+        ProductoTarea.objects.exclude(placa='').values_list('placa', flat=True).distinct()
     ))
     
     return render(request, 'paneltareas/crear.html', {
@@ -190,28 +205,39 @@ def editar_tarea(request, pk):
         if form.is_valid() and formset.is_valid():
             form.save()
             productos_tarea = formset.save(commit=False)
-            for pt in productos_tarea:
+            for i, pt in enumerate(productos_tarea):
+                form_data = formset.forms[i].cleaned_data
+                nombre_input = form_data.get('nombre_producto_input', '').strip()
+                precio_cobrado = form_data.get('precio_cobrado')
+                
+                if not nombre_input and not pt.producto:
+                    continue
+                
                 if pt.producto:
                     pt.nombre_producto = pt.producto.nombre
                     pt.precio_costo = pt.producto.precio_costo
-                    pt.precio_venta = pt.producto.precio_venta
-                    pt.save()
+                    pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
+                else:
+                    pt.nombre_producto = nombre_input
+                    pt.precio_costo = 0
+                    pt.precio_venta = precio_cobrado if precio_cobrado else 0
+                pt.ajuste_precio = 0
+                pt.save()
             for obj in formset.deleted_objects:
                 obj.delete()
+            # Auto-set tarea.placa from product placas
+            placas = tarea.productos_tarea.exclude(placa='').values_list('placa', flat=True).distinct()
+            tarea.placa = ', '.join(placas)
+            tarea.save(update_fields=['placa'])
             messages.success(request, 'Tarea actualizada exitosamente.')
             return redirect('tareas:lista')
     else:
         form = FormClass(instance=tarea)
         formset = ProductoTareaFormSet(instance=tarea, prefix='productos')
     
-    # Preparar datos de productos para JavaScript
+    # Preparar datos de productos para JavaScript (autocompletar)
     productos_json = json.dumps([
-        {
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio_costo': str(p.precio_costo),
-            'precio_venta': str(p.precio_venta),
-        }
+        {'id': p.id, 'nombre': p.nombre}
         for p in Producto.objects.all()
     ])
     
@@ -223,7 +249,7 @@ def editar_tarea(request, pk):
     
     # Placas existentes para autocompletar
     placas_json = json.dumps(list(
-        TareaPlanificada.objects.values_list('placa', flat=True).distinct()
+        ProductoTarea.objects.exclude(placa='').values_list('placa', flat=True).distinct()
     ))
     
     return render(request, 'paneltareas/editar.html', {

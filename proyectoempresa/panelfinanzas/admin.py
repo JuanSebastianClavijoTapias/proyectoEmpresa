@@ -29,11 +29,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 
-@admin.register(PerfilUsuario)
-class PerfilUsuarioAdmin(admin.ModelAdmin):
-    list_display = ['user', 'rol']
-    list_filter = ['rol']
-    search_fields = ['user__username', 'user__email']
+# PerfilUsuario se gestiona como inline dentro del admin de User
 
 
 @admin.register(CategoriaProducto)

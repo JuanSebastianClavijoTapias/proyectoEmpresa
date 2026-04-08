@@ -165,11 +165,13 @@
                 </a>
 
             </li>
+            {% if user.is_superuser or user.perfil.es_jefe %}
             <li class="nav-item">
                 <a class="nav-link {% if 'trabajadores' in request.path %}active{% endif %}" href="{% url 'productividad:lista_trabajadores' %}">
                     <i class="bi bi-person-badge"></i> Trabajadores
                 </a>
             </li>
+            {% endif %}
             <li class="nav-item">
                 <a class="nav-link {% if 'tareas' in request.path and 'clientes' not in request.path and 'calendario' not in request.path %}active{% endif %}" href="{% url 'tareas:lista' %}">
                     <i class="bi bi-clipboard-check"></i> Planificador
@@ -265,11 +267,13 @@
             </li>
             {% endif %}
             
+            {% if user.is_superuser or user.perfil.es_jefe %}
             <li class="nav-item mt-4">
                 <a class="nav-link" href="{% url 'admin:index' %}">
                     <i class="bi bi-gear"></i> Administración
                 </a>
             </li>
+            {% endif %}
             
             <!-- Login/Logout -->
             <li class="nav-item mt-2">
@@ -307,7 +311,9 @@
                 <ul class="navbar-nav">
                     <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'productividad:lista' %}"><i class="bi bi-graph-up"></i> Productividad</a></li>
+                    {% if user.is_superuser or user.perfil.es_jefe %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'productividad:lista_trabajadores' %}"><i class="bi bi-person-badge"></i> Trabajadores</a></li>
+                    {% endif %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}"><i class="bi bi-clipboard-check"></i> Planificador</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista_clientes' %}"><i class="bi bi-people"></i> Clientes</a></li>
                     {% if user.is_authenticated %}

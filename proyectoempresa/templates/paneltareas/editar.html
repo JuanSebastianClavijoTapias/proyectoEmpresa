@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Nombre del Cliente *</label>
                         <div class="position-relative">
@@ -40,19 +40,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="mb-3">
                         <label class="form-label">Teléfono de Contacto *</label>
                         {{ form.telefono_cliente }}
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="mb-3">
-                        <label class="form-label">Placa del Vehículo *</label>
-                        <div class="position-relative">
-                            {{ form.placa }}
-                            <div id="placa-suggestions" class="autocomplete-list"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -70,34 +61,54 @@
             
             <!-- Productos -->
             <h5 class="text-primary mb-3"><i class="bi bi-box-seam"></i> Productos</h5>
-            <p class="text-muted small">Selecciona los productos del catálogo para esta tarea.</p>
+            <p class="text-muted small">Escriba el nombre del producto o seleccione del catálogo.</p>
             
             {{ formset.management_form }}
             
             <div id="productos-container">
                 {% for form_producto in formset %}
                 <div class="producto-row row g-2 mb-2 align-items-end" {% if form_producto.DELETE.value %}style="display:none"{% endif %}>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         {% if forloop.first %}
                         <label class="form-label">Producto</label>
                         {% endif %}
-                        {{ form_producto.producto }}
+                        <div class="position-relative">
+                            {{ form_producto.nombre_producto_input }}
+                            <div class="producto-suggestions autocomplete-list"></div>
+                        </div>
                         {% for hidden in form_producto.hidden_fields %}
                             {{ hidden }}
                         {% endfor %}
                     </div>
                     <div class="col-md-2">
                         {% if forloop.first %}
-                        <label class="form-label">Cantidad</label>
+                        <label class="form-label">Placa</label>
+                        {% endif %}
+                        <div class="position-relative">
+                            {{ form_producto.placa }}
+                            <div class="placa-suggestions autocomplete-list"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        {% if forloop.first %}
+                        <label class="form-label">Cant.</label>
                         {% endif %}
                         {{ form_producto.cantidad }}
                     </div>
                     <div class="col-md-2">
                         {% if forloop.first %}
-                        <label class="form-label">Precio Venta</label>
+                        <label class="form-label">Precio</label>
+                        {% endif %}
+                        {{ form_producto.precio_cobrado }}
+                    </div>
+                    {% if es_jefe %}
+                    <div class="col-md-2">
+                        {% if forloop.first %}
+                        <label class="form-label">Total</label>
                         {% endif %}
                         <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
                     </div>
+                    {% endif %}
                     <div class="col-md-2">
                         {% if forloop.first %}
                         <label class="form-label">&nbsp;</label>
@@ -119,12 +130,14 @@
                 <i class="bi bi-plus-circle me-1"></i> Agregar Producto
             </button>
             
+            {% if es_jefe %}
             <div class="alert alert-info mt-3" id="total-productos">
                 <div class="d-flex justify-content-between">
                     <strong>Total Estimado:</strong>
                     <strong id="total-precio">$0</strong>
                 </div>
             </div>
+            {% endif %}
             
             <hr>
             
@@ -227,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const productosData = {{ productos_json|safe }};
     const clientesData = {{ clientes_json|safe }};
     const placasData = {{ placas_json|safe }};
+    const esJefe = {{ es_jefe|yesno:"true,false" }};
     const container = document.getElementById('productos-container');
     const btnAdd = document.getElementById('btn-add-producto');
     const prefix = 'productos';
@@ -281,92 +295,124 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ==========================================
-    // AUTOCOMPLETE PLACA
+    // AUTOCOMPLETE PLACA EN PRODUCTOS
     // ==========================================
-    const placaInput = document.getElementById('id_placa');
-    const placaSuggestions = document.getElementById('placa-suggestions');
-    
-    placaInput.addEventListener('input', function() {
-        const val = this.value.toLowerCase().trim();
-        placaSuggestions.innerHTML = '';
-        if (val.length < 1) { placaSuggestions.style.display = 'none'; return; }
+    function setupPlacaAutocomplete(row) {
+        const placaInput = row.querySelector('.placa-input');
+        const suggestions = row.querySelector('.placa-suggestions');
+        if (!placaInput || !suggestions) return;
         
-        const matches = placasData.filter(p => p.toLowerCase().includes(val));
-        if (matches.length === 0) { placaSuggestions.style.display = 'none'; return; }
-        
-        matches.forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'autocomplete-item';
-            div.textContent = p;
-            div.addEventListener('click', function() {
-                placaInput.value = p;
-                placaSuggestions.style.display = 'none';
+        placaInput.addEventListener('input', function() {
+            const val = this.value.toLowerCase().trim();
+            suggestions.innerHTML = '';
+            if (val.length < 1) { suggestions.style.display = 'none'; return; }
+            
+            const matches = placasData.filter(p => p.toLowerCase().includes(val));
+            if (matches.length === 0) { suggestions.style.display = 'none'; return; }
+            
+            matches.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = p;
+                div.addEventListener('click', function() {
+                    placaInput.value = p;
+                    suggestions.style.display = 'none';
+                });
+                suggestions.appendChild(div);
             });
-            placaSuggestions.appendChild(div);
+            suggestions.style.display = 'block';
         });
-        placaSuggestions.style.display = 'block';
-    });
+    }
     
     document.addEventListener('click', function(e) {
         if (!nombreInput.contains(e.target) && !nombreSuggestions.contains(e.target)) {
             nombreSuggestions.style.display = 'none';
         }
-        if (!placaInput.contains(e.target) && !placaSuggestions.contains(e.target)) {
-            placaSuggestions.style.display = 'none';
-        }
+        document.querySelectorAll('.producto-suggestions').forEach(s => {
+            if (!s.contains(e.target) && !s.previousElementSibling?.contains(e.target)) {
+                s.style.display = 'none';
+            }
+        });
+        document.querySelectorAll('.placa-suggestions').forEach(s => {
+            if (!s.contains(e.target) && !s.previousElementSibling?.contains(e.target)) {
+                s.style.display = 'none';
+            }
+        });
     });
     
-    function getProductoData(id) {
-        return productosData.find(p => p.id == id);
-    }
-    
-    function updatePrecioDisplay(row) {
-        const select = row.querySelector('select[name$="-producto"]');
-        const cantInput = row.querySelector('input[name$="-cantidad"]');
-        const precioDisplay = row.querySelector('.precio-display');
+    // ==========================================
+    // AUTOCOMPLETE PRODUCTOS
+    // ==========================================
+    function setupProductoAutocomplete(row) {
+        const nameInput = row.querySelector('.producto-nombre-input');
+        const suggestions = row.querySelector('.producto-suggestions');
+        const hiddenId = row.querySelector('.producto-id-hidden');
+        if (!nameInput || !suggestions) return;
         
-        if (select && cantInput && precioDisplay) {
-            const prod = getProductoData(select.value);
-            const cant = parseInt(cantInput.value) || 1;
-            if (prod) {
-                const total = parseFloat(prod.precio_venta) * cant;
-                precioDisplay.value = '$' + total.toLocaleString('es-CO', {maximumFractionDigits: 0});
-            } else {
-                precioDisplay.value = '$0';
-            }
-        }
-        updateTotal();
+        nameInput.addEventListener('input', function() {
+            const val = this.value.toLowerCase().trim();
+            suggestions.innerHTML = '';
+            if (hiddenId) hiddenId.value = '';
+            
+            if (val.length < 1) { suggestions.style.display = 'none'; updateTotal(); return; }
+            
+            const matches = productosData.filter(p => p.nombre.toLowerCase().includes(val));
+            if (matches.length === 0) { suggestions.style.display = 'none'; updateTotal(); return; }
+            
+            matches.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = p.nombre;
+                div.addEventListener('click', function() {
+                    nameInput.value = p.nombre;
+                    if (hiddenId) hiddenId.value = p.id;
+                    suggestions.style.display = 'none';
+                    updateTotal();
+                });
+                suggestions.appendChild(div);
+            });
+            suggestions.style.display = 'block';
+        });
     }
     
+    container.querySelectorAll('.producto-row').forEach(row => {
+        setupProductoAutocomplete(row);
+        setupPlacaAutocomplete(row);
+    });
+    
+    // ==========================================
+    // TOTALES (SOLO JEFE)
+    // ==========================================
     function updateTotal() {
+        if (!esJefe) return;
         let total = 0;
         container.querySelectorAll('.producto-row').forEach(row => {
             if (row.style.display === 'none') return;
             const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
             if (deleteCheckbox && deleteCheckbox.checked) return;
             
-            const select = row.querySelector('select[name$="-producto"]');
             const cantInput = row.querySelector('input[name$="-cantidad"]');
-            if (select && cantInput) {
-                const prod = getProductoData(select.value);
-                const cant = parseInt(cantInput.value) || 1;
-                if (prod) {
-                    total += parseFloat(prod.precio_venta) * cant;
-                }
+            const precioInput = row.querySelector('input[name$="-precio_cobrado"]');
+            const precioDisplay = row.querySelector('.precio-display');
+            
+            const cant = parseInt(cantInput?.value) || 1;
+            const precio = parseFloat(precioInput?.value) || 0;
+            const subtotal = precio * cant;
+            
+            if (precioDisplay) {
+                precioDisplay.value = '$' + subtotal.toLocaleString('es-CO', {maximumFractionDigits: 0});
             }
+            total += subtotal;
         });
-        document.getElementById('total-precio').textContent = '$' + total.toLocaleString('es-CO', {maximumFractionDigits: 0});
+        const totalEl = document.getElementById('total-precio');
+        if (totalEl) {
+            totalEl.textContent = '$' + total.toLocaleString('es-CO', {maximumFractionDigits: 0});
+        }
     }
     
-    container.addEventListener('change', function(e) {
-        if (e.target.matches('select[name$="-producto"]') || e.target.matches('input[name$="-cantidad"]')) {
-            updatePrecioDisplay(e.target.closest('.producto-row'));
-        }
-    });
-    
     container.addEventListener('input', function(e) {
-        if (e.target.matches('input[name$="-cantidad"]')) {
-            updatePrecioDisplay(e.target.closest('.producto-row'));
+        if (e.target.matches('input[name$="-cantidad"]') || e.target.matches('input[name$="-precio_cobrado"]')) {
+            updateTotal();
         }
     });
     
@@ -393,24 +439,36 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = document.createElement('div');
         newRow.className = 'producto-row row g-2 mb-2 align-items-end';
         
-        let optionsHtml = '<option value="">---------</option>';
-        productosData.forEach(p => {
-            optionsHtml += `<option value="${p.id}">${p.nombre} - $${parseFloat(p.precio_venta).toLocaleString('es-CO', {maximumFractionDigits: 0})}</option>`;
-        });
+        let precioCol = '';
+        if (esJefe) {
+            precioCol = `
+            <div class="col-md-2">
+                <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
+            </div>`;
+        }
         
         newRow.innerHTML = `
-            <div class="col-md-6">
-                <select name="${prefix}-${formNum}-producto" class="form-select producto-select" id="id_${prefix}-${formNum}-producto">
-                    ${optionsHtml}
-                </select>
+            <div class="col-md-3">
+                <div class="position-relative">
+                    <input type="text" name="${prefix}-${formNum}-nombre_producto_input" class="form-control producto-nombre-input" placeholder="Escriba o seleccione un producto" id="id_${prefix}-${formNum}-nombre_producto_input" autocomplete="off">
+                    <div class="producto-suggestions autocomplete-list"></div>
+                </div>
+                <input type="hidden" name="${prefix}-${formNum}-producto" class="producto-id-hidden" id="id_${prefix}-${formNum}-producto">
                 <input type="hidden" name="${prefix}-${formNum}-id" id="id_${prefix}-${formNum}-id">
             </div>
             <div class="col-md-2">
+                <div class="position-relative">
+                    <input type="text" name="${prefix}-${formNum}-placa" class="form-control placa-input" placeholder="Placa" id="id_${prefix}-${formNum}-placa" autocomplete="off">
+                    <div class="placa-suggestions autocomplete-list"></div>
+                </div>
+            </div>
+            <div class="col-md-1">
                 <input type="number" name="${prefix}-${formNum}-cantidad" class="form-control" min="1" value="1" id="id_${prefix}-${formNum}-cantidad">
             </div>
             <div class="col-md-2">
-                <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
+                <input type="number" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input" step="1" min="0" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
             </div>
+            ${precioCol}
             <div class="col-md-2">
                 <div class="d-flex gap-1">
                     <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
@@ -421,6 +479,8 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         container.appendChild(newRow);
+        setupProductoAutocomplete(newRow);
+        setupPlacaAutocomplete(newRow);
         totalForms.value = formNum + 1;
     });
     
@@ -440,9 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
         totalForms.value = rows.length;
     }
     
-    container.querySelectorAll('.producto-row').forEach(row => {
-        updatePrecioDisplay(row);
-    });
+    updateTotal();
 });
 </script>
 {% endblock %}
