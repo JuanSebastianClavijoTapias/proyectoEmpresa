@@ -559,6 +559,19 @@ def analisis_financiero(request):
     saldo_pendiente = total_facturado - total_abonado
     tasa_cobro = round(float(total_abonado / total_facturado * 100), 1) if total_facturado > 0 else 0
     
+    # Clientes morosos
+    morosos = []
+    for t in tareas_activas:
+        saldo_t = t.saldo_pendiente
+        if saldo_t > 0:
+            morosos.append({
+                'tarea': t,
+                'saldo': saldo_t,
+                'total': t.precio_total,
+                'abonado': t.monto_abonado,
+            })
+    morosos.sort(key=lambda x: x['saldo'], reverse=True)
+    
     # Datos para gráfica de categorías
     cat_labels = [c['nombre'] for c in por_categoria]
     cat_ingresos = [float(c['ingresos']) for c in por_categoria]
@@ -579,6 +592,7 @@ def analisis_financiero(request):
         'total_abonado': total_abonado,
         'saldo_pendiente': saldo_pendiente,
         'tasa_cobro': tasa_cobro,
+        'morosos': morosos,
         'cat_labels': json.dumps(cat_labels),
         'cat_ingresos': json.dumps(cat_ingresos),
         'cat_ganancia': json.dumps(cat_ganancia),

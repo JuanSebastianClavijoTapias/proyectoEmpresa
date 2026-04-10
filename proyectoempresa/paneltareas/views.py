@@ -112,10 +112,27 @@ def lista_tareas(request):
     if placa_filtro:
         tareas = tareas.filter(placa__icontains=placa_filtro)
     
+    # Clientes morosos: tareas con saldo pendiente > 0
+    todas_tareas = TareaPlanificada.objects.filter(estado__in=['pendiente', 'en_proceso', 'completado'])
+    morosos = []
+    for t in todas_tareas:
+        saldo = t.saldo_pendiente
+        if saldo > 0:
+            morosos.append({
+                'tarea': t,
+                'saldo': saldo,
+                'total': t.precio_total,
+                'abonado': t.monto_abonado,
+            })
+    morosos.sort(key=lambda x: x['saldo'], reverse=True)
+    total_saldo_pendiente = sum(m['saldo'] for m in morosos)
+    
     context = {
         'tareas': tareas,
         'estados': TareaPlanificada.ESTADO_CHOICES,
         'prioridades': TareaPlanificada.PRIORIDAD_CHOICES,
+        'morosos': morosos,
+        'total_saldo_pendiente': total_saldo_pendiente,
     }
     return render(request, 'paneltareas/lista.html', context)
 
@@ -133,6 +150,11 @@ def crear_tarea(request):
             tarea = form.save(commit=False)
             tarea.placa = ''
             tarea.save()
+            # Auto-registrar cliente si no existe
+            Cliente.objects.get_or_create(
+                nombre=tarea.nombre_cliente,
+                defaults={'telefono': tarea.telefono_cliente}
+            )
             formset.instance = tarea
             productos_tarea = formset.save(commit=False)
             for i, pt in enumerate(productos_tarea):
@@ -148,9 +170,19 @@ def crear_tarea(request):
                     pt.precio_costo = pt.producto.precio_costo
                     pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
                 else:
+                    # Auto-registrar producto nuevo en el catálogo
+                    nuevo_producto, created = Producto.objects.get_or_create(
+                        nombre=nombre_input,
+                        defaults={
+                            'precio_costo': 0,
+                            'precio_venta': precio_cobrado or 0,
+                            'creado_por': request.user,
+                        }
+                    )
+                    pt.producto = nuevo_producto
                     pt.nombre_producto = nombre_input
-                    pt.precio_costo = 0
-                    pt.precio_venta = precio_cobrado if precio_cobrado else 0
+                    pt.precio_costo = nuevo_producto.precio_costo
+                    pt.precio_venta = precio_cobrado if precio_cobrado else nuevo_producto.precio_venta
                 pt.ajuste_precio = 0
                 pt.save()
             for obj in formset.deleted_objects:
@@ -204,6 +236,11 @@ def editar_tarea(request, pk):
         formset = ProductoTareaFormSet(request.POST, instance=tarea, prefix='productos')
         if form.is_valid() and formset.is_valid():
             form.save()
+            # Auto-registrar cliente si no existe
+            Cliente.objects.get_or_create(
+                nombre=tarea.nombre_cliente,
+                defaults={'telefono': tarea.telefono_cliente}
+            )
             productos_tarea = formset.save(commit=False)
             for i, pt in enumerate(productos_tarea):
                 form_data = formset.forms[i].cleaned_data
@@ -218,9 +255,19 @@ def editar_tarea(request, pk):
                     pt.precio_costo = pt.producto.precio_costo
                     pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
                 else:
+                    # Auto-registrar producto nuevo en el catálogo
+                    nuevo_producto, created = Producto.objects.get_or_create(
+                        nombre=nombre_input,
+                        defaults={
+                            'precio_costo': 0,
+                            'precio_venta': precio_cobrado or 0,
+                            'creado_por': request.user,
+                        }
+                    )
+                    pt.producto = nuevo_producto
                     pt.nombre_producto = nombre_input
-                    pt.precio_costo = 0
-                    pt.precio_venta = precio_cobrado if precio_cobrado else 0
+                    pt.precio_costo = nuevo_producto.precio_costo
+                    pt.precio_venta = precio_cobrado if precio_cobrado else nuevo_producto.precio_venta
                 pt.ajuste_precio = 0
                 pt.save()
             for obj in formset.deleted_objects:
@@ -298,7 +345,7 @@ def detalle_tarea(request, pk):
     imagenes = tarea.imagenes.all()
     productos_tarea = tarea.productos_tarea.all()
     
-    form_abonar = AbonarForm() if usuario_es_jefe else None
+    form_abonar = AbonarForm()
 
     return render(request, 'paneltareas/detalle.html', {
         'tarea': tarea,
@@ -312,11 +359,8 @@ def detalle_tarea(request, pk):
 
 @login_required
 def abonar_tarea(request, pk):
-    """Vista para abonar dinero adicional a una tarea (solo jefes)"""
+    """Vista para abonar dinero adicional a una tarea"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
-    if not es_jefe(request.user):
-        messages.error(request, 'No tienes permiso para realizar esta acción.')
-        return redirect('tareas:detalle', pk=pk)
 
     if request.method == 'POST':
         form = AbonarForm(request.POST)
@@ -336,11 +380,8 @@ def abonar_tarea(request, pk):
 
 @login_required
 def completar_pago_tarea(request, pk):
-    """Vista para completar el pago total de una tarea (solo jefes)"""
+    """Vista para completar el pago total de una tarea"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
-    if not es_jefe(request.user):
-        messages.error(request, 'No tienes permiso para realizar esta acción.')
-        return redirect('tareas:detalle', pk=pk)
 
     if request.method == 'POST':
         if tarea.saldo_pendiente > 0:

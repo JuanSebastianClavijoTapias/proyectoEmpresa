@@ -82,10 +82,13 @@
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card h-100 {% if saldo_pendiente > 0 %}border-warning{% endif %}">
+        <div class="card h-100 {% if saldo_pendiente > 0 %}border-warning{% endif %}" {% if morosos %}style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#modalMorosos"{% endif %}>
             <div class="card-body text-center">
                 <p class="text-muted small mb-1">Saldo Pendiente</p>
                 <h4 class="mb-0 text-warning">${{ saldo_pendiente|floatformat:0 }}</h4>
+                {% if morosos %}
+                <small class="text-muted"><i class="bi bi-hand-index"></i> Click para ver detalle</small>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -192,6 +195,73 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Clientes Morosos -->
+{% if morosos %}
+<div class="modal fade" id="modalMorosos" tabindex="-1" aria-labelledby="modalMorososLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger bg-opacity-10">
+                <h5 class="modal-title" id="modalMorososLabel">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Clientes con Saldo Pendiente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning d-flex align-items-center mb-3">
+                    <i class="bi bi-wallet2 me-2 fs-4"></i>
+                    <div>
+                        <strong>Total pendiente por cobrar:</strong>
+                        <span class="fs-5 text-danger fw-bold ms-2">${{ saldo_pendiente|floatformat:0 }}</span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Placa</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-end">Abonado</th>
+                                <th class="text-end">Saldo</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in morosos %}
+                            <tr>
+                                <td>
+                                    <strong>{{ m.tarea.nombre_cliente }}</strong>
+                                    <br><small class="text-muted"><i class="bi bi-telephone"></i> {{ m.tarea.telefono_cliente }}</small>
+                                </td>
+                                <td>{{ m.tarea.placa }}</td>
+                                <td class="text-end">${{ m.total|floatformat:0 }}</td>
+                                <td class="text-end text-success">${{ m.abonado|floatformat:0 }}</td>
+                                <td class="text-end text-danger fw-bold">${{ m.saldo|floatformat:0 }}</td>
+                                <td>
+                                    <span class="badge badge-estado badge-{{ m.tarea.estado }}">
+                                        {{ m.tarea.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'tareas:detalle' m.tarea.pk %}" class="btn btn-outline-info btn-sm" title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>

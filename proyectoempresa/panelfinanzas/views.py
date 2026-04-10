@@ -143,6 +143,11 @@ def editar_producto(request, pk):
         form = ProductoForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
+            # Actualizar precio_costo en tareas activas que usan este producto
+            ProductoTarea.objects.filter(
+                producto=producto,
+                tarea__estado__in=['pendiente', 'en_proceso']
+            ).update(precio_costo=producto.precio_costo)
             messages.success(request, 'Producto actualizado correctamente.')
             return redirect('finanzas:detalle', pk=pk)
     else:
@@ -262,13 +267,13 @@ def reporte_finanzas(request):
         'producto__categoria__nombre'
     ).annotate(
         cantidad=Count('id'),
-        total_ganancia=Sum(F('precio_venta') - F('precio_costo'), output_field=DecimalField())
+        total_ganancia=Sum((F('precio_venta') - F('precio_costo')) * F('cantidad'), output_field=DecimalField())
     ).order_by('-total_ganancia')
     
     # Top 5 productos más entregados
     top_productos = entregas.values('nombre_producto').annotate(
         total_cant=Sum('cantidad'),
-        total_gan=Sum(F('precio_venta') - F('precio_costo'), output_field=DecimalField())
+        total_gan=Sum((F('precio_venta') - F('precio_costo')) * F('cantidad'), output_field=DecimalField())
     ).order_by('-total_cant')[:5]
     
     # ==========================================

@@ -77,10 +77,8 @@
                                 <th>Producto</th>
                                 <th>Placa</th>
                                 <th class="text-center">Cant.</th>
-                                {% if es_jefe %}
                                 <th class="text-end">P. Venta</th>
                                 <th class="text-end">Total</th>
-                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -89,32 +87,28 @@
                                 <td>{{ pt.nombre_producto }}</td>
                                 <td>{{ pt.placa }}</td>
                                 <td class="text-center">{{ pt.cantidad }}</td>
-                                {% if es_jefe %}
                                 <td class="text-end">${{ pt.precio_venta|floatformat:0 }}</td>
                                 <td class="text-end"><strong>${{ pt.total_venta|floatformat:0 }}</strong></td>
-                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
-                        {% if es_jefe %}
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Total:</strong></td>
                                 <td class="text-end"><strong class="text-primary">${{ tarea.precio_total|floatformat:0 }}</strong></td>
                             </tr>
                         </tfoot>
-                        {% endif %}
                     </table>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        {% if es_jefe and productos_tarea %}
-        <!-- Finanzas (Solo Jefes) -->
+        {% if productos_tarea %}
+        <!-- Finanzas -->
         <div class="card mb-4 border-warning">
             <div class="card-header bg-warning bg-opacity-10">
-                <i class="bi bi-cash-coin text-warning"></i> Finanzas (Solo Administración)
+                <i class="bi bi-cash-coin text-warning"></i> Finanzas
             </div>
             <div class="card-body">
                 <div class="row text-center">

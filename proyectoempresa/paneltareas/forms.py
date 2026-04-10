@@ -11,7 +11,7 @@ class TareaPlanificadaForm(forms.ModelForm):
             'nombre_cliente', 'telefono_cliente',
             'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
-            'observaciones'
+            'observaciones', 'monto_abonado'
         ]
         widgets = {
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
@@ -22,6 +22,12 @@ class TareaPlanificadaForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-select'}),
             'prioridad': forms.Select(attrs={'class': 'form-select'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Observaciones adicionales...'}),
+            'monto_abonado': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
         }
 
 
