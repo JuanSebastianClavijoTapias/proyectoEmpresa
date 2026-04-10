@@ -262,19 +262,27 @@ def reporte_finanzas(request):
     if total_costos > 0:
         porcentaje_ganancia = ((total_ventas - total_costos) / total_costos) * 100
     
-    # Entregas por categoría
-    por_categoria = entregas.filter(producto__isnull=False).values(
-        'producto__categoria__nombre'
-    ).annotate(
-        cantidad=Count('id'),
-        total_ganancia=Sum((F('precio_venta') - F('precio_costo')) * F('cantidad'), output_field=DecimalField())
-    ).order_by('-total_ganancia')
+    # Entregas por categoría (calculado en Python para evitar problemas con expresiones complejas)
+    cat_dict = {}
+    for e in entregas:
+        cat_name = e.producto.categoria.nombre if e.producto and e.producto.categoria else None
+        if cat_name is None:
+            continue
+        if cat_name not in cat_dict:
+            cat_dict[cat_name] = {'producto__categoria__nombre': cat_name, 'cantidad': 0, 'total_ganancia': Decimal('0')}
+        cat_dict[cat_name]['cantidad'] += 1
+        cat_dict[cat_name]['total_ganancia'] += e.ganancia_total
+    por_categoria = sorted(cat_dict.values(), key=lambda x: x['total_ganancia'], reverse=True)
     
     # Top 5 productos más entregados
-    top_productos = entregas.values('nombre_producto').annotate(
-        total_cant=Sum('cantidad'),
-        total_gan=Sum((F('precio_venta') - F('precio_costo')) * F('cantidad'), output_field=DecimalField())
-    ).order_by('-total_cant')[:5]
+    prod_dict = {}
+    for e in entregas:
+        nombre = e.nombre_producto
+        if nombre not in prod_dict:
+            prod_dict[nombre] = {'nombre_producto': nombre, 'total_cant': 0, 'total_gan': Decimal('0')}
+        prod_dict[nombre]['total_cant'] += e.cantidad
+        prod_dict[nombre]['total_gan'] += e.ganancia_total
+    top_productos = sorted(prod_dict.values(), key=lambda x: x['total_cant'], reverse=True)[:5]
     
     # ==========================================
     # GASTOS EN EL PERÍODO
