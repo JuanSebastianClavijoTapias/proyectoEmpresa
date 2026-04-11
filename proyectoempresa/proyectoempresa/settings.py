@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'proyectoempresa.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'cuirTapiceria',
+        'NAME': 'empresa_cuir',
         'USER': 'postgres',
         'PASSWORD': 'ROTADO',
         'port' : '5432',
