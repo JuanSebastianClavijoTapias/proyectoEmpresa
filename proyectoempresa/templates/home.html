@@ -3,61 +3,66 @@
 {% block title %}Dashboard - Tapicería{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
-    <p class="text-muted">Resumen general del taller</p>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-speedometer2"></i> Dashboard Principal</h1>
+        <p class="text-muted mb-0">Resumen de operaciones y finanzas de tu taller</p>
+    </div>
+    <div>
+        <span class="badge bg-primary fs-6"><i class="bi bi-calendar-event"></i> Hoy: {{ "now"|date:"d/m/Y" }}</span>
+    </div>
 </div>
 
-<!-- Estadísticas -->
+<!-- Estadísticas KPI -->
 <div class="row mb-4">
     <div class="col-md-6 col-lg-3 mb-3">
         <a href="{% url 'tareas:lista' %}?estado=pendiente" class="text-decoration-none">
-            <div class="stat-card pendientes" style="cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+            <div class="stat-card pendientes h-100" style="cursor: pointer; transition: all 0.3s ease; border-radius: 10px;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3>{{ tareas_pendientes }}</h3>
-                        <p class="mb-0">Tareas Pendientes</p>
+                        <p class="small mb-1 text-white-50">Pendientes</p>
+                        <h3 class="mb-0">{{ tareas_pendientes }}</h3>
                     </div>
-                    <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    <i class="bi bi-hourglass-split" style="font-size: 2.5rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-6 col-lg-3 mb-3">
         <a href="{% url 'tareas:lista' %}?estado=en_proceso" class="text-decoration-none">
-            <div class="stat-card proceso" style="cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+            <div class="stat-card proceso h-100" style="cursor: pointer; transition: all 0.3s ease; border-radius: 10px;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3>{{ tareas_en_proceso }}</h3>
-                        <p class="mb-0">En Proceso</p>
+                        <p class="small mb-1 text-white-50">En Proceso</p>
+                        <h3 class="mb-0">{{ tareas_en_proceso }}</h3>
                     </div>
-                    <i class="bi bi-gear-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    <i class="bi bi-gear-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-6 col-lg-3 mb-3">
         <a href="{% url 'tareas:lista' %}?estado=completado" class="text-decoration-none">
-            <div class="stat-card completadas" style="cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+            <div class="stat-card completadas h-100" style="cursor: pointer; transition: all 0.3s ease; border-radius: 10px;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3>{{ tareas_completadas }}</h3>
-                        <p class="mb-0">Completadas</p>
+                        <p class="small mb-1 text-white-50">Completadas</p>
+                        <h3 class="mb-0">{{ tareas_completadas }}</h3>
                     </div>
-                    <i class="bi bi-check-circle-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    <i class="bi bi-check-circle-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </a>
     </div>
     <div class="col-md-6 col-lg-3 mb-3">
         <a href="{% url 'tareas:lista_clientes' %}" class="text-decoration-none">
-            <div class="stat-card clientes" style="cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+            <div class="stat-card clientes h-100" style="cursor: pointer; transition: all 0.3s ease; border-radius: 10px;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h3>{{ total_clientes }}</h3>
-                        <p class="mb-0">Clientes</p>
+                        <p class="small mb-1 text-white-50">Clientes</p>
+                        <h3 class="mb-0">{{ total_clientes }}</h3>
                     </div>
-                    <i class="bi bi-people-fill" style="font-size: 2.5rem; opacity: 0.7;"></i>
+                    <i class="bi bi-people-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
                 </div>
             </div>
         </a>
@@ -65,31 +70,32 @@
 </div>
 
 {% if tareas_urgentes > 0 %}
-<div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
-    <i class="bi bi-exclamation-triangle-fill me-2" style="font-size: 1.5rem;"></i>
+<div class="alert alert-danger d-flex align-items-center mb-4 border-0 rounded-3 shadow-sm" role="alert" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white;">
+    <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.8rem;"></i>
     <div>
-        <strong>¡Atención!</strong> Tienes <strong>{{ tareas_urgentes }}</strong> tarea(s) vencida(s) o por vencer hoy.
-        <a href="{% url 'tareas:lista' %}?estado=pendiente" class="alert-link">Ver tareas</a>
+        <strong>¡Atención urgente!</strong> Tienes <strong>{{ tareas_urgentes }}</strong> tarea(s) vencida(s) o por vencer hoy.
+        <a href="{% url 'tareas:lista' %}?estado=pendiente" class="alert-link text-white fw-bold" style="text-decoration: underline;">Ver tareas →</a>
     </div>
 </div>
 {% endif %}
 
+<!-- Sección Principal: Gráficos y Acciones -->
 <div class="row">
-    <!-- Accesos rápidos -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-lightning-fill text-warning"></i> Acciones Rápidas
+    <!-- Accesos rápidos (Sidebar) -->
+    <div class="col-lg-3 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                <i class="bi bi-lightning-fill"></i> Acciones Rápidas
             </div>
             <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{% url 'tareas:crear' %}" class="btn btn-primary">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'tareas:crear' %}" class="btn btn-primary btn-lg">
                         <i class="bi bi-plus-circle me-2"></i> Nueva Tarea
                     </a>
-                    <a href="{% url 'productividad:crear' %}" class="btn btn-success">
+                    <a href="{% url 'productividad:crear' %}" class="btn btn-success btn-lg">
                         <i class="bi bi-clipboard-plus me-2"></i> Registrar Productividad
                     </a>
-                    <a href="{% url 'tareas:crear_cliente' %}" class="btn btn-info text-white">
+                    <a href="{% url 'tareas:crear_cliente' %}" class="btn btn-info text-white btn-lg">
                         <i class="bi bi-person-plus me-2"></i> Nuevo Cliente
                     </a>
                 </div>
@@ -98,38 +104,38 @@
     </div>
     
     <!-- Próximas entregas -->
-    <div class="col-lg-8 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-calendar-event text-primary"></i> Próximas Entregas</span>
-                <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-outline-primary">Ver todas</a>
+    <div class="col-lg-9 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none; color: white;">
+                <span><i class="bi bi-calendar-event"></i> Próximas Entregas (7 días)</span>
+                <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-light">Ver todas</a>
             </div>
             <div class="card-body">
                 {% if tareas_proximas %}
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
-                            <tr>
-                                <th>Placa</th>
-                                <th>Cliente</th>
-                                <th>Trabajo</th>
-                                <th>Entrega</th>
-                                <th>Estado</th>
+                            <tr class="text-muted">
+                                <th style="border-top: none;">Placa</th>
+                                <th style="border-top: none;">Cliente</th>
+                                <th style="border-top: none;">Trabajo</th>
+                                <th style="border-top: none;">Entrega</th>
+                                <th style="border-top: none;">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for tarea in tareas_proximas %}
-                            <tr style="cursor: pointer;" onclick="window.location='{% url 'tareas:detalle' tarea.pk %}'">
+                            <tr style="cursor: pointer; transition: background 0.15s;" onclick="window.location='{% url 'tareas:detalle' tarea.pk %}'">
                                 <td><strong>{{ tarea.placa }}</strong></td>
                                 <td>{{ tarea.nombre_cliente }}</td>
-                                <td>{{ tarea.get_tipo_trabajo_display }}</td>
+                                <td><small class="text-muted">{{ tarea.get_tipo_trabajo_display }}</small></td>
                                 <td>
                                     {% if tarea.dias_restantes < 0 %}
                                         <span class="text-danger"><i class="bi bi-exclamation-circle"></i> Vencido</span>
                                     {% elif tarea.dias_restantes == 0 %}
-                                        <span class="text-warning"><i class="bi bi-clock"></i> Hoy</span>
+                                        <span class="badge bg-danger">Hoy</span>
                                     {% else %}
-                                        {{ tarea.fecha_entrega|date:"d/m/Y" }}
+                                        <span class="badge bg-info">{{ tarea.fecha_entrega|date:"d/m" }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -143,13 +149,351 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-4 text-muted">
-                    <i class="bi bi-calendar-check" style="font-size: 3rem;"></i>
-                    <p class="mt-2">No hay entregas programadas próximamente</p>
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-check" style="font-size: 3rem; opacity: 0.3;"></i>
+                    <p class="mt-3">No hay entregas programadas próximamente</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Alertas Críticas -->
+{% if alertas_cobranza or trabajadores_sin_registrar %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); border: none; color: white;">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> ⚠️ Alertas Críticas</h5>
+            </div>
+            <div class="card-body">
+                {% if alertas_cobranza %}
+                <div class="mb-3">
+                    <h6 class="text-muted mb-3"><i class="bi bi-credit-card"></i> <strong>Cobranzas Vencidas</strong></h6>
+                    {% for alerta in alertas_cobranza %}
+                    <div class="alert alert-{% if alerta.severidad == 'crítica' %}danger{% elif alerta.severidad == 'alta' %}warning{% else %}info{% endif %} mb-2 py-2" role="alert">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">{{ alerta.cliente }}</strong>
+                                <small>Vencido hace <strong>{{ alerta.dias_vencidos }} días</strong> • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                            </div>
+                            <a href="{% url 'tareas:detalle' alerta.tarea_id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if trabajadores_sin_registrar %}
+                <div>
+                    <h6 class="text-muted mb-3"><i class="bi bi-person-exclamation"></i> <strong>Trabajadores Sin Registrar</strong></h6>
+                    {% for trabajador in trabajadores_sin_registrar %}
+                    <div class="alert alert-info mb-2 py-2" role="alert">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">{{ trabajador.nombre }}</strong>
+                                <small>{{ trabajador.get_especialidad_display }}</small>
+                            </div>
+                            <a href="{% url 'productividad:crear' %}" class="btn btn-sm btn-outline-info">Registrar</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Panel Financiero: Cards + Gráficos -->
+<div class="row mb-4">
+    <!-- Cuentas por Cobrar -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden; border-left: 5px solid #667eea;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                <i class="bi bi-credit-card"></i> Cuentas por Cobrar
+            </div>
+            <div class="card-body">
+                <div style="text-align: center; padding: 1rem 0;">
+                    <h2 style="color: #667eea; font-weight: bold; margin: 0.5rem 0;">${{ saldo_total_pendiente|floatformat:2 }}</h2>
+                    <p class="text-muted mb-3">Saldo Pendiente</p>
+                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                        <div class="progress-bar" style="width: 100%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                        <i class="bi bi-file-earmark"></i> {{ tareas_sin_pagar_total }} tarea(s) sin pagar
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Flujo de Caja (30 días) -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden; border-left: 5px solid #f093fb;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; color: white;">
+                <i class="bi bi-graph-up"></i> Flujo Proyectado (30d)
+            </div>
+            <div class="card-body">
+                <div style="font-size: 0.9rem;">
+                    <div class="d-flex justify-content-between mb-3" style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span class="text-muted">📈 Ingresos Esperados:</span>
+                        <strong style="color: #28a745;">${{ ingresos_esperados|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3" style="padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                        <span class="text-muted">📉 Gastos Proyectados:</span>
+                        <strong style="color: #dc3545;">${{ gastos_proyectados|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between" style="padding: 8px 0;">
+                        <span class="fw-bold">Diferencia Neta:</span>
+                        <strong style="color: {% if flujo_proyectado >= 0 %}#28a745{% else %}#dc3545{% endif %}; font-size: 1.1rem;">${{ flujo_proyectado|floatformat:2 }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gastos este Mes -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden; border-left: 5px solid #fa709a;">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; color: white;">
+                <i class="bi bi-receipt"></i> Gastos Este Mes
+            </div>
+            <div class="card-body">
+                <div style="text-align: center; padding: 1rem 0;">
+                    <h2 style="color: #fa709a; font-weight: bold; margin: 0.5rem 0;">${{ total_gastos_mes|floatformat:2 }}</h2>
+                    <p class="text-muted mb-3">Total</p>
+                    {% if gastos_por_categoria %}
+                    <div style="text-align: left; font-size: 0.85rem; max-height: 150px; overflow-y: auto;">
+                        {% for gasto in gastos_por_categoria %}
+                        <div class="d-flex justify-content-between mb-2" style="padding: 4px 0;">
+                            <small class="text-muted">{{ gasto.categoria }}</small>
+                            <small><strong style="color: #fa709a;">${{ gasto.total|floatformat:0 }}</strong></small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted small">Sin gastos registrados</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row mb-4">
+    <!-- Gráfico de Gastos por Categoría (Doughnut) -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); border: none; color: white;">
+                <i class="bi bi-pie-chart"></i> Distribución de Gastos
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                {% if gastos_por_categoria %}
+                    <canvas id="chartGastos" height="80"></canvas>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Sin gastos registrados este mes</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de Tareas por Estado (Pie) -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: none; color: white;">
+                <i class="bi bi-pie-chart"></i> Tareas por Estado
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="chartEstados" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gráfico de Flujo de Caja -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none; color: white;">
+                <i class="bi bi-graph-up"></i> Flujo de Caja (30d)
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="chartFlujo" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tareas Críticas -->
+{% if tareas_criticas %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+            <div class="card-header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border: none; color: white;">
+                <i class="bi bi-exclamation-circle"></i> Tareas por Vencer (7 días)
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr class="text-muted">
+                                <th style="border-top: none;">Cliente</th>
+                                <th style="border-top: none;">Descripción</th>
+                                <th style="border-top: none;">Fecha Entrega</th>
+                                <th style="border-top: none;">Urgencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tarea in tareas_criticas %}
+                            <tr onclick="window.location='{% url 'tareas:detalle' tarea.id %}'" style="cursor: pointer; transition: background 0.15s;">
+                                <td><strong>{{ tarea.nombre_cliente }}</strong></td>
+                                <td><small class="text-muted">{{ tarea.descripcion_trabajo|truncatewords:5 }}</small></td>
+                                <td><strong>{{ tarea.fecha_entrega|date:"d/m/Y" }}</strong></td>
+                                <td>
+                                    {% if tarea.dias_restantes == 0 %}
+                                        <span class="badge bg-danger" style="animation: pulse 2s infinite;">Hoy</span>
+                                    {% elif tarea.dias_restantes == 1 %}
+                                        <span class="badge bg-danger">Mañana</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">{{ tarea.dias_restantes }} días</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Colores
+const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#27ae60', '#c0392b'];
+
+// Gráfico de Gastos por Categoría (Doughnut)
+const chartGastosCtx = document.getElementById('chartGastos');
+if (chartGastosCtx) {
+    const gastosLabels = {{ gastos_labels|safe }};
+    const gastosData = {{ gastos_data|safe }};
+    
+    if (gastosLabels.length > 0 && gastosData.length > 0) {
+        new Chart(chartGastosCtx, {
+            type: 'doughnut',
+            data: {
+                labels: gastosLabels,
+                datasets: [{
+                    data: gastosData,
+                    backgroundColor: colors.slice(0, gastosLabels.length),
+                    borderColor: '#fff',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Gráfico de Tareas por Estado (Pie)
+const chartEstadosCtx = document.getElementById('chartEstados');
+if (chartEstadosCtx) {
+    new Chart(chartEstadosCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Pendientes', 'En Proceso', 'Completadas'],
+            datasets: [{
+                data: [{{ tareas_pendientes }}, {{ tareas_en_proceso }}, {{ tareas_completadas }}],
+                backgroundColor: ['#f39c12', '#3498db', '#2ecc71'],
+                borderColor: '#fff',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Gráfico de Flujo de Caja
+const chartFlujoCtx = document.getElementById('chartFlujo');
+if (chartFlujoCtx) {
+    new Chart(chartFlujoCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Ingresos', 'Gastos', 'Flujo Neto'],
+            datasets: [{
+                label: 'Proyección (30 días)',
+                data: [{{ ingresos_esperados|floatformat:2 }}, {{ gastos_proyectados|floatformat:2 }}, {{ flujo_proyectado|floatformat:2 }}],
+                backgroundColor: ['#2ecc71', '#e74c3c', '#3498db'],
+                borderColor: ['#27ae60', '#c0392b', '#2980b9'],
+                borderWidth: 2,
+                borderRadius: 5,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+.stat-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+</style>
 {% endblock %}

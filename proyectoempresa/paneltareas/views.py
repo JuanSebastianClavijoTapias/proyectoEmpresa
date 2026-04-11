@@ -60,6 +60,12 @@ def logout_view(request):
 @login_required
 def home(request):
     """Vista principal del dashboard"""
+    from decimal import Decimal
+    from panelfinanzas.models import Gasto
+    from panelproductividad.models import RegistroProductividad, Trabajador
+    from django.db.models import Sum
+    import json
+    
     # Si es trabajador, mostrar solo sus tareas asignadas
     es_trabajador_logueado = hasattr(request.user, 'trabajador')
     
@@ -71,7 +77,7 @@ def home(request):
     
     # Tareas próximas a entregar (próximos 7 días)
     hoy = date.today()
-    proxima_semana = hoy + __import__('datetime').timedelta(days=7)
+    proxima_semana = hoy + timedelta(days=7)
     tareas_proximas = TareaPlanificada.objects.filter(
         estado__in=['pendiente', 'en_proceso'],
         fecha_entrega__lte=proxima_semana
@@ -83,6 +89,101 @@ def home(request):
         fecha_entrega__lte=hoy
     ).count()
     
+    # -------------------------
+    # COBRANZA Y CUENTAS POR COBRAR
+    # -------------------------
+    tareas_completadas_qs = TareaPlanificada.objects.filter(estado='completado')
+    saldo_total_pendiente = Decimal('0')
+    tareas_sin_pagar_total = 0
+    alertas_cobranza = []
+    
+    for tarea in tareas_completadas_qs:
+        saldo = tarea.saldo_pendiente
+        if saldo > 0:
+            saldo_total_pendiente += saldo
+            tareas_sin_pagar_total += 1
+            dias_vencidos_desde_entrega = (hoy - tarea.fecha_entrega).days
+            if dias_vencidos_desde_entrega > 0:
+                alertas_cobranza.append({
+                    'tarea_id': tarea.id,
+                    'cliente': tarea.nombre_cliente,
+                    'saldo': saldo,
+                    'dias_vencidos': dias_vencidos_desde_entrega,
+                    'fecha_entrega': tarea.fecha_entrega,
+                    'severidad': 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media',
+                })
+    
+    alertas_cobranza = sorted(alertas_cobranza, key=lambda x: (x['severidad'] != 'crítica', -x['dias_vencidos']))[:5]
+    
+    # -------------------------
+    # GASTOS Y PRESUPUESTO
+    # -------------------------
+    mes_actual = hoy.replace(day=1)
+    if mes_actual.month == 12:
+        ultimo_dia_mes = date(mes_actual.year, 12, 31)
+    else:
+        ultimo_dia_mes = (mes_actual.replace(month=mes_actual.month + 1, day=1) - timedelta(days=1))
+    
+    gastos_mes = Gasto.objects.filter(
+        fecha__gte=mes_actual,
+        fecha__lte=ultimo_dia_mes
+    )
+    total_gastos_mes = sum(g.monto for g in gastos_mes)
+    
+    gastos_por_categoria = list(gastos_mes.values('categoria').annotate(
+        total=Sum('monto')
+    ).order_by('-total')[:5])
+    
+    # Preparar datos para gráfico de gastos
+    if gastos_por_categoria:
+        gastos_labels = json.dumps([g['categoria'] for g in gastos_por_categoria])
+        gastos_data = json.dumps([float(g['total']) for g in gastos_por_categoria])
+    else:
+        gastos_labels = json.dumps([])
+        gastos_data = json.dumps([])
+    
+    # -------------------------
+    # FLUJO DE CAJA PROYECTADO
+    # -------------------------
+    fecha_futura = hoy + timedelta(days=30)
+    tareas_futuras = TareaPlanificada.objects.filter(
+        fecha_entrega__gte=hoy,
+        fecha_entrega__lte=fecha_futura,
+        estado__in=['pendiente', 'en_proceso']
+    )
+    ingresos_esperados = sum(t.precio_total for t in tareas_futuras)
+    gastos_proyectados = sum(g.monto for g in Gasto.objects.filter(
+        fecha__gte=hoy,
+        fecha__lte=fecha_futura
+    ))
+    
+    # -------------------------
+    # TAREAS CRÍTICAS
+    # -------------------------
+    tareas_criticas_qs = TareaPlanificada.objects.filter(
+        estado__in=['pendiente', 'en_proceso'],
+        fecha_entrega__lte=hoy + timedelta(days=7)
+    ).order_by('fecha_entrega')[:3]
+    
+    tareas_criticas = []
+    for tarea in tareas_criticas_qs:
+        dias_restantes = (tarea.fecha_entrega - hoy).days
+        tareas_criticas.append({
+            'id': tarea.id,
+            'nombre_cliente': tarea.nombre_cliente,
+            'descripcion_trabajo': tarea.descripcion_trabajo,
+            'fecha_entrega': tarea.fecha_entrega,
+            'dias_restantes': max(0, dias_restantes),
+        })
+    
+    # -------------------------
+    # TRABAJADORES SIN REGISTRAR
+    # -------------------------
+    todos_trabajadores = Trabajador.objects.filter(activo=True)
+    registrados_hoy = RegistroProductividad.objects.filter(fecha=hoy).values('trabajador_id').distinct()
+    registrados_hoy_ids = [r['trabajador_id'] for r in registrados_hoy]
+    trabajadores_sin_registrar = todos_trabajadores.exclude(id__in=registrados_hoy_ids)
+    
     context = {
         'tareas_pendientes': tareas_pendientes,
         'tareas_en_proceso': tareas_en_proceso,
@@ -91,6 +192,25 @@ def home(request):
         'tareas_proximas': tareas_proximas,
         'tareas_urgentes': tareas_urgentes,
         'es_trabajador': es_trabajador_logueado,
+        # Cobranza
+        'saldo_total_pendiente': saldo_total_pendiente,
+        'tareas_sin_pagar_total': tareas_sin_pagar_total,
+        'alertas_cobranza': alertas_cobranza,
+        # Gastos
+        'total_gastos_mes': total_gastos_mes,
+        'gastos_por_categoria': gastos_por_categoria,
+        'gastos_labels': gastos_labels,
+        'gastos_data': gastos_data,
+        # Flujo de Caja
+        'ingresos_esperados': ingresos_esperados,
+        'gastos_proyectados': gastos_proyectados,
+        'flujo_proyectado': ingresos_esperados - gastos_proyectados,
+        # Tareas Críticas
+        'tareas_criticas': tareas_criticas,
+        # Trabajadores
+        'trabajadores_sin_registrar': list(trabajadores_sin_registrar),
+        'primer_dia_mes': mes_actual,
+        'ultimo_dia_mes': ultimo_dia_mes,
     }
     return render(request, 'home.html', context)
 

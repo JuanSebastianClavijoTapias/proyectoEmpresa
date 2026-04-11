@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Avg, Count, F, Q, DecimalField, FloatField
-from django.db.models.functions import TruncMonth, TruncWeek, ExtractWeekDay
+from django.db.models.functions import TruncMonth, TruncWeek, ExtractWeekDay, TruncDate
 from functools import wraps
 from datetime import date, timedelta, datetime
 from decimal import Decimal
@@ -13,7 +13,7 @@ from .models import ObjetivoMensual, NotaAnalisis
 from .forms import FiltroAnalisisForm, ObjetivoMensualForm, NotaAnalisisForm
 from paneltareas.models import TareaPlanificada, Cliente, ProductoTarea
 from panelproductividad.models import RegistroProductividad, Trabajador
-from panelfinanzas.models import Producto, PerfilUsuario
+from panelfinanzas.models import Producto, PerfilUsuario, Gasto
 
 
 # =============================================
@@ -218,9 +218,56 @@ def dashboard_analisis(request):
     # DATOS PARA GRÁFICAS
     # -------------------------
     
-    # Gráfica de ingresos por semana/mes
-    entregas_por_mes = ProductoTarea.objects.filter(
+    # Gráfica de ingresos por día (últimos 180 días)
+    entregas_por_dia = ProductoTarea.objects.filter(
         fecha_registro__date__gte=fecha_desde - timedelta(days=180),
+        fecha_registro__date__lte=fecha_hasta
+    ).annotate(
+        dia=TruncDate('fecha_registro')
+    ).values('dia').annotate(
+        total_venta=Sum(F('precio_venta') * F('cantidad'), output_field=DecimalField()),
+        total_costo=Sum(F('precio_costo') * F('cantidad'), output_field=DecimalField()),
+    ).order_by('dia')
+    
+    labels_ingresos = []
+    data_ingresos = []
+    data_costos_chart = []
+    data_ganancia_chart = []
+    for item in entregas_por_dia:
+        labels_ingresos.append(item['dia'].strftime('%d/%m'))
+        venta = float(item['total_venta'] or 0)
+        costo = float(item['total_costo'] or 0)
+        data_ingresos.append(venta)
+        data_costos_chart.append(costo)
+        data_ganancia_chart.append(round(venta - costo, 2))
+    
+    # Datos semanales
+    entregas_por_semana = ProductoTarea.objects.filter(
+        fecha_registro__date__gte=fecha_desde - timedelta(days=180),
+        fecha_registro__date__lte=fecha_hasta
+    ).annotate(
+        semana=TruncWeek('fecha_registro')
+    ).values('semana').annotate(
+        total_venta=Sum(F('precio_venta') * F('cantidad'), output_field=DecimalField()),
+        total_costo=Sum(F('precio_costo') * F('cantidad'), output_field=DecimalField()),
+    ).order_by('semana')
+    
+    labels_semanal = []
+    data_ingresos_semanal = []
+    data_costos_semanal = []
+    data_ganancia_semanal = []
+    for item in entregas_por_semana:
+        if item['semana']:
+            labels_semanal.append(f"Semana {item['semana'].strftime('%d/%m')}")
+            venta = float(item['total_venta'] or 0)
+            costo = float(item['total_costo'] or 0)
+            data_ingresos_semanal.append(venta)
+            data_costos_semanal.append(costo)
+            data_ganancia_semanal.append(round(venta - costo, 2))
+    
+    # Datos mensuales
+    entregas_por_mes = ProductoTarea.objects.filter(
+        fecha_registro__date__gte=fecha_desde.replace(day=1) - timedelta(days=365),
         fecha_registro__date__lte=fecha_hasta
     ).annotate(
         mes=TruncMonth('fecha_registro')
@@ -229,17 +276,18 @@ def dashboard_analisis(request):
         total_costo=Sum(F('precio_costo') * F('cantidad'), output_field=DecimalField()),
     ).order_by('mes')
     
-    labels_ingresos = []
-    data_ingresos = []
-    data_costos_chart = []
-    data_ganancia_chart = []
+    labels_mensual = []
+    data_ingresos_mensual = []
+    data_costos_mensual = []
+    data_ganancia_mensual = []
     for item in entregas_por_mes:
-        labels_ingresos.append(item['mes'].strftime('%b %Y'))
-        venta = float(item['total_venta'] or 0)
-        costo = float(item['total_costo'] or 0)
-        data_ingresos.append(venta)
-        data_costos_chart.append(costo)
-        data_ganancia_chart.append(round(venta - costo, 2))
+        if item['mes']:
+            labels_mensual.append(item['mes'].strftime('%b %Y'))
+            venta = float(item['total_venta'] or 0)
+            costo = float(item['total_costo'] or 0)
+            data_ingresos_mensual.append(venta)
+            data_costos_mensual.append(costo)
+            data_ganancia_mensual.append(round(venta - costo, 2))
     
     # Gráfica de tareas por estado
     tareas_por_estado = TareaPlanificada.objects.values('estado').annotate(
@@ -284,13 +332,13 @@ def dashboard_analisis(request):
     # OBJETIVO MENSUAL (si existe)
     # -------------------------
     mes_actual = hoy.replace(day=1)
+    primer_dia_mes = mes_actual
+    ultimo_dia_mes = (mes_actual.replace(month=mes_actual.month % 12 + 1, day=1) - timedelta(days=1)) if mes_actual.month < 12 else date(mes_actual.year, 12, 31)
+    
     objetivo = ObjetivoMensual.objects.filter(mes=mes_actual).first()
     
     progreso_objetivo = None
     if objetivo:
-        # Datos del mes actual para comparar con objetivo
-        primer_dia_mes = mes_actual
-        ultimo_dia_mes = (mes_actual.replace(month=mes_actual.month % 12 + 1, day=1) - timedelta(days=1)) if mes_actual.month < 12 else date(mes_actual.year, 12, 31)
         
         entregas_mes = ProductoTarea.objects.filter(
             fecha_registro__date__gte=primer_dia_mes,
@@ -343,6 +391,109 @@ def dashboard_analisis(request):
     # Notas activas
     notas_activas = NotaAnalisis.objects.filter(resuelta=False).order_by('-prioridad', '-creado_en')[:5]
     
+    # -------------------------
+    # COBRANZA Y CUENTAS POR COBRAR
+    # -------------------------
+    tareas_completadas_qs = TareaPlanificada.objects.filter(estado='completado')
+    saldo_total_pendiente = Decimal('0')
+    tareas_sin_pagar_total = 0
+    alertas_cobranza = []
+    
+    for tarea in tareas_completadas_qs:
+        saldo = tarea.saldo_pendiente
+        if saldo > 0:
+            saldo_total_pendiente += saldo
+            tareas_sin_pagar_total += 1
+            # Dias vencidos desde entrega
+            dias_vencidos_desde_entrega = (hoy - tarea.fecha_entrega).days
+            if dias_vencidos_desde_entrega > 0:
+                alertas_cobranza.append({
+                    'tarea_id': tarea.id,
+                    'cliente': tarea.nombre_cliente,
+                    'saldo': saldo,
+                    'dias_vencidos': dias_vencidos_desde_entrega,
+                    'fecha_entrega': tarea.fecha_entrega,
+                    'severidad': 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media',
+                })
+    
+    # Ordenar por severidad y días
+    alertas_cobranza = sorted(alertas_cobranza, key=lambda x: (x['severidad'] != 'crítica', -x['dias_vencidos']))[:10]
+    
+    # -------------------------
+    # GASTOS Y PRESUPUESTO
+    # -------------------------
+    gastos_mes = Gasto.objects.filter(
+        fecha__gte=primer_dia_mes,
+        fecha__lte=ultimo_dia_mes
+    )
+    total_gastos_mes = sum(g.monto for g in gastos_mes)
+    
+    gastos_por_categoria = gastos_mes.values('categoria').annotate(
+        total=Sum('monto')
+    ).order_by('-total')[:10]
+    
+    # Forecast de flujo de caja (próximos 30 días)
+    fecha_futura = hoy + timedelta(days=30)
+    tareas_futuras = TareaPlanificada.objects.filter(
+        fecha_entrega__gte=hoy,
+        fecha_entrega__lte=fecha_futura,
+        estado__in=['pendiente', 'en_proceso']
+    )
+    ingresos_esperados = sum(t.precio_total for t in tareas_futuras)
+    gastos_proyectados = sum(g.monto for g in Gasto.objects.filter(
+        fecha__gte=hoy,
+        fecha__lte=fecha_futura
+    ))
+    
+    # -------------------------
+    # TAREAS CRÍTICAS (Próximas a vencer)
+    # -------------------------
+    tareas_criticas_qs = TareaPlanificada.objects.filter(
+        estado__in=['pendiente', 'en_proceso'],
+        fecha_entrega__lte=hoy + timedelta(days=7)
+    ).order_by('fecha_entrega')[:5]
+    
+    # Crear diccionarios con información de tareas críticas
+    tareas_criticas = []
+    for tarea in tareas_criticas_qs:
+        dias_restantes = (tarea.fecha_entrega - hoy).days
+        tareas_criticas.append({
+            'id': tarea.id,
+            'nombre_cliente': tarea.nombre_cliente,
+            'descripcion_trabajo': tarea.descripcion_trabajo,
+            'fecha_entrega': tarea.fecha_entrega,
+            'estado': tarea.estado,
+            'dias_restantes': max(0, dias_restantes),
+        })
+    
+    # -------------------------
+    # TRABAJADORES SIN REGISTRAR HOY
+    # -------------------------
+    todos_trabajadores = Trabajador.objects.filter(activo=True)
+    registrados_hoy = RegistroProductividad.objects.filter(fecha=hoy).values('trabajador_id').distinct()
+    registrados_hoy_ids = [r['trabajador_id'] for r in registrados_hoy]
+    trabajadores_sin_registrar = todos_trabajadores.exclude(id__in=registrados_hoy_ids)
+    
+    # Gráfico de gastos por categoría
+    categoria_labels = []
+    categoria_data = []
+    gastos_con_porcentaje = []
+    for item in gastos_por_categoria:
+        if item['categoria']:
+            categoria_labels.append(item['categoria'])
+            categoria_data.append(float(item['total']))
+            porcentaje = round((float(item['total']) / total_gastos_mes * 100), 1) if total_gastos_mes > 0 else 0
+            gastos_con_porcentaje.append({
+                'categoria': item['categoria'],
+                'total': item['total'],
+                'porcentaje': porcentaje,
+            })
+    
+    notas_activas = NotaAnalisis.objects.filter(resuelta=False).order_by('-prioridad', '-creado_en')[:5]
+    
+    # Calcular ancho de barra para productividad
+    productividad_width = 100 if productividad_hora > 5 else (productividad_hora * 20)
+    
     context = {
         'form_filtro': form_filtro,
         'fecha_desde': fecha_desde,
@@ -377,6 +528,15 @@ def dashboard_analisis(request):
         'data_ingresos': json.dumps(data_ingresos),
         'data_costos_chart': json.dumps(data_costos_chart),
         'data_ganancia_chart': json.dumps(data_ganancia_chart),
+        # Datos semanales y mensuales
+        'labels_semanal': json.dumps(labels_semanal),
+        'data_ingresos_semanal': json.dumps(data_ingresos_semanal),
+        'data_costos_semanal': json.dumps(data_costos_semanal),
+        'data_ganancia_semanal': json.dumps(data_ganancia_semanal),
+        'labels_mensual': json.dumps(labels_mensual),
+        'data_ingresos_mensual': json.dumps(data_ingresos_mensual),
+        'data_costos_mensual': json.dumps(data_costos_mensual),
+        'data_ganancia_mensual': json.dumps(data_ganancia_mensual),
         'estado_labels': json.dumps(estado_labels),
         'estado_data': json.dumps(estado_data),
         'estado_bg': json.dumps(estado_bg),
@@ -389,6 +549,26 @@ def dashboard_analisis(request):
         'progreso_objetivo': progreso_objetivo,
         # Notas
         'notas_activas': notas_activas,
+        # Cobranza
+        'saldo_total_pendiente': saldo_total_pendiente,
+        'tareas_sin_pagar_total': tareas_sin_pagar_total,
+        'alertas_cobranza': alertas_cobranza,
+        # Gastos
+        'total_gastos_mes': total_gastos_mes,
+        'gastos_por_categoria': gastos_con_porcentaje,
+        'categoria_labels': json.dumps(categoria_labels),
+        'categoria_data': json.dumps(categoria_data),
+        # Flujo de Caja Proyectado
+        'ingresos_esperados': ingresos_esperados,
+        'gastos_proyectados': gastos_proyectados,
+        'flujo_proyectado': ingresos_esperados - gastos_proyectados,
+        # Tareas Críticas
+        'tareas_criticas': tareas_criticas,
+        # Productividad
+        'trabajadores_sin_registrar': list(trabajadores_sin_registrar),
+        'primer_dia_mes': primer_dia_mes,
+        'ultimo_dia_mes': ultimo_dia_mes,
+        'productividad_width': productividad_width,
     }
     return render(request, 'panelanalisis/dashboard.html', context)
 

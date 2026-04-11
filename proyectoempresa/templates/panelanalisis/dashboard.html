@@ -87,8 +87,8 @@
         <div class="stat-card urgentes h-100">
             <p class="small mb-1">Margen de Ganancia</p>
             <h3 class="mb-0">{{ margen }}%</h3>
-            <div class="progress mt-2" style="height: 6px; background-color: rgba(255,255,255,0.3);">
-                <div class="progress-bar" style="background-color: rgba(255,255,255,0.7); width: {{ margen }}%"></div>
+            <div class="progress mt-2" style="height: 10px; background-color: rgba(255,255,255,0.3); border-radius: 5px; --progress-value: {{ margen }}%;">
+                <div class="progress-bar" style="width: var(--progress-value); background-color: rgba(255,255,255,0.95); border-radius: 5px;"></div>
             </div>
         </div>
     </div>
@@ -102,8 +102,217 @@
 </div>
 
 <!-- ============================================ -->
-<!-- KPIs OPERATIVOS -->
+<!-- ALERTAS CRÍTICAS Y COBRANZA -->
 <!-- ============================================ -->
+<div class="row mb-4">
+    <!-- Alertas Críticas -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">
+                <i class="bi bi-exclamation-triangle"></i> Alertas Críticas
+            </div>
+            <div class="card-body p-3">
+                <div class="list-group list-group-flush">
+                    {% if alertas_cobranza %}
+                        <strong class="text-muted small d-block mb-2"><i class="bi bi-cash-coin"></i> Cobranzas Vencidas</strong>
+                        {% for alerta in alertas_cobranza|slice:":3" %}
+                        <div class="list-group-item px-0 py-2 border-0 border-bottom {% if alerta.severidad == 'crítica' %}border-danger{% endif %}">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ alerta.cliente }}</strong><br>
+                                    <small class="text-muted">${{ alerta.saldo|floatformat:0 }} pendiente</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge {% if alerta.severidad == 'crítica' %}bg-danger{% elif alerta.severidad == 'alta' %}bg-warning text-dark{% else %}bg-info{% endif %}">
+                                        {{ alerta.dias_vencidos }}d vencido
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if tareas_criticas %}
+                        <strong class="text-muted small d-block mt-2 mb-2"><i class="bi bi-hourglass-split"></i> Tareas Próximas a Vencer</strong>
+                        {% for tarea in tareas_criticas|slice:":3" %}
+                        <div class="list-group-item px-0 py-2 border-0 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ tarea.nombre_cliente }}</strong><br>
+                                    <small class="text-muted">{{ tarea.descripcion_trabajo|truncatewords:5 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-warning text-dark">{{ tarea.dias_restantes }}d</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if trabajadores_sin_registrar %}
+                        <strong class="text-muted small d-block mt-2 mb-2"><i class="bi bi-person-exclamation"></i> Sin Registrar Hoy</strong>
+                        {% for worker in trabajadores_sin_registrar|slice:":3" %}
+                        <div class="list-group-item px-0 py-2 border-0 border-bottom">
+                            <small class="text-danger"><i class="bi bi-exclamation-circle"></i> {{ worker.nombre }}</small>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if not alertas_cobranza and not tareas_criticas and not trabajadores_sin_registrar %}
+                        <p class="text-muted mb-0"><i class="bi bi-check-circle"></i> Sin alertas críticas</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen de Cobranza -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;">
+                <i class="bi bi-wallet2"></i> Cuentas por Cobrar
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block mb-1"><i class="bi bi-cash"></i> Pendiente Total</small>
+                        <h3 class="mb-0" style="color: #e74c3c;">{{ saldo_total_pendiente|floatformat:0|default:"$0" }}</h3>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted d-block mb-1"><i class="bi bi-receipt"></i> Tareas sin Pagar</small>
+                        <h3 class="mb-0" style="color: #f39c12;">{{ tareas_sin_pagar_total }}</h3>
+                    </div>
+                </div>
+                <div class="mt-3 pt-3 border-top">
+                    <small class="text-muted d-block mb-2">Este Mes</small>
+                    <div class="row text-center g-2">
+                        <div class="col-6">
+                            <strong style="color: #27ae60;">${{ ganancia|floatformat:0 }}</strong><br>
+                            <small class="text-muted">Ganancia</small>
+                        </div>
+                        <div class="col-6">
+                            <strong style="color: #3498db;">{{ total_gastos_mes|floatformat:0|default:"$0" }}</strong><br>
+                            <small class="text-muted">Gastos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-arrow-right"></i> Ver todas las tareas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================ -->
+<!-- OPERACIONES Y FLUJO DE CAJA -->
+<!-- ============================================ -->
+<div class="row mb-4">
+    <!-- Flujo de Caja Proyectado -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
+                <i class="bi bi-graph-up-arrow"></i> Flujo de Caja (30d)
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Ingresos Esperados</small>
+                    <h4 style="color: #27ae60;">${{ ingresos_esperados|default:0|floatformat:0 }}</h4>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Gastos Proyectados</small>
+                    <h4 style="color: #e74c3c;">${{ gastos_proyectados|default:0|floatformat:0 }}</h4>
+                </div>
+                <div class="pt-2 border-top">
+                    <small class="text-muted d-block mb-1">Saldo Proyectado</small>
+                    <h3 style="color: {% if flujo_proyectado > 0 %}#27ae60{% else %}#e74c3c{% endif %};">
+                        ${{ flujo_proyectado|default:0|floatformat:0 }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gastos este Mes -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white;">
+                <i class="bi bi-receipt"></i> Gastos {{ primer_dia_mes|date:"M Y" }}
+            </div>
+            <div class="card-body">
+                {% if gastos_por_categoria %}
+                    <div class="list-group list-group-flush">
+                        {% for gasto in gastos_por_categoria|slice:":5" %}
+                        <div class="list-group-item px-0 py-2 border-0 border-bottom d-flex justify-content-between">
+                            <small>{{ gasto.categoria|default:"Sin categoría" }}</small>
+                            <strong>${{ gasto.total|floatformat:0 }}</strong>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 pt-2 border-top">
+                        <div class="d-flex justify-content-between">
+                            <strong>Total</strong>
+                            <h5 class="mb-0">${{ total_gastos_mes|default:0|floatformat:0 }}</h5>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Sin gastos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ratio de Salud -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #229954); color: white;">
+                <i class="bi bi-heart-pulse"></i> Salud del Negocio
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Utilidad Neta</small>
+                        <small class="fw-bold">{{ margen|default:0 }}%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: {{ margen|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Completación Tareas</small>
+                        <small class="fw-bold">{{ tasa_completacion|default:0 }}%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-info" style="width: {{ tasa_completacion|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Puntualidad</small>
+                        <small class="fw-bold">{{ tasa_puntualidad|default:0 }}%</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-warning" style="width: {{ tasa_puntualidad|default:0 }}%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <small>Items/Hora</small>
+                        <small class="fw-bold">{{ productividad_hora|default:0 }}/h</small>
+                    </div>
+                    <div class="progress" style="height: 6px;">
+                        <div class="progress-bar bg-success" style="width: {{ productividad_width|default:0 }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPIs OPERATIVOS -->
 <h5 class="text-muted mb-3"><i class="bi bi-clipboard-data"></i> KPIs Operativos</h5>
 <div class="row mb-4">
     <div class="col-md-2 mb-3">
@@ -125,8 +334,8 @@
         <div class="stat-card clientes h-100 text-center">
             <p class="small mb-1">Tasa Completación</p>
             <h2 class="mb-0">{{ tasa_completacion }}%</h2>
-            <div class="progress mt-1" style="height: 5px; background-color: rgba(255,255,255,0.3);">
-                <div class="progress-bar" style="background-color: rgba(255,255,255,0.7); width: {{ tasa_completacion }}%"></div>
+            <div class="progress mt-1" style="height: 8px; background-color: rgba(255,255,255,0.3); border-radius: 4px; --progress-value: {{ tasa_completacion }}%;">
+                <div class="progress-bar" style="width: var(--progress-value); background-color: rgba(255,255,255,0.95); border-radius: 4px;"></div>
             </div>
         </div>
     </div>
@@ -292,13 +501,35 @@
     <div class="col-md-8 mb-4">
         <div class="card h-100">
             <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
-                <i class="bi bi-graph-up"></i> Tendencia Financiera (últimos 6 meses)
-                <a href="{% url 'analisis:financiero' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light float-end">
-                    Ver detalle
-                </a>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-graph-up"></i> Tendencia Financiera
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-light" onclick="cambiarGranularidad('diaria')" id="btn-diaria" style="font-weight: bold;">Diaria</button>
+                        <button class="btn btn-sm btn-light" onclick="cambiarGranularidad('semanal')" id="btn-semanal">Semanal</button>
+                        <button class="btn btn-sm btn-light" onclick="cambiarGranularidad('mensual')" id="btn-mensual">Mensual</button>
+                        <button class="btn btn-sm btn-light" onclick="toggleTabla()" id="btn-tabla"><i class="bi bi-table"></i> Datos</button>
+                        <a href="{% url 'analisis:financiero' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light">Ver detalle</a>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <canvas id="chartIngresos" height="120"></canvas>
+                <div id="tablaDatos" style="display: none; margin-top: 20px;">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th class="text-end">Ingresos</th>
+                                <th class="text-end">Costos</th>
+                                <th class="text-end">Ganancia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-datos">
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -343,6 +574,50 @@
     </div>
 </div>
 
+<!-- Gráfico de Gastos por Categoría -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #d68910); color: white;">
+                <i class="bi bi-pie-chart"></i> Distribución de Gastos
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                {% if gastos_por_categoria %}
+                    <canvas id="chartGastos" height="200"></canvas>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Sin datos de gastos</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #d68910); color: white;">
+                <i class="bi bi-receipt"></i> Detalle de Gastos
+            </div>
+            <div class="card-body">
+                {% if gastos_por_categoria %}
+                    <div class="list-group list-group-flush">
+                        {% for gasto in gastos_por_categoria|slice:":8" %}
+                        <div class="list-group-item px-0 py-2 border-0 border-bottom d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">{{ gasto.categoria }}</small>
+                            </div>
+                            <div class="text-end">
+                                <strong style="color: #f39c12;">${{ gasto.total|floatformat:0 }}</strong><br>
+                                <small class="text-muted">{{ gasto.porcentaje }}%</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center mb-0">Sin gastos registrados</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Notas Activas -->
 {% if notas_activas %}
 <div class="card mb-4">
@@ -377,56 +652,127 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-// Tendencia Financiera
-const ctxIngresos = document.getElementById('chartIngresos').getContext('2d');
-new Chart(ctxIngresos, {
-    type: 'line',
-    data: {
+// Datos para diferentes granularidades
+const datosGranularidad = {
+    diaria: {
         labels: {{ labels_ingresos|safe }},
-        datasets: [
-            {
-                label: 'Ingresos',
-                data: {{ data_ingresos|safe }},
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                fill: true,
-                tension: 0.3,
-            },
-            {
-                label: 'Costos',
-                data: {{ data_costos_chart|safe }},
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.05)',
-                fill: true,
-                tension: 0.3,
-            },
-            {
-                label: 'Ganancia',
-                data: {{ data_ganancia_chart|safe }},
-                borderColor: '#27ae60',
-                backgroundColor: 'rgba(39, 174, 96, 0.1)',
-                fill: true,
-                tension: 0.3,
-            }
-        ]
+        ingresos: {{ data_ingresos|safe }},
+        costos: {{ data_costos_chart|safe }},
+        ganancia: {{ data_ganancia_chart|safe }},
     },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'top' },
+    semanal: {
+        labels: {{ labels_semanal|safe|default:"[]" }},
+        ingresos: {{ data_ingresos_semanal|safe|default:"[]" }},
+        costos: {{ data_costos_semanal|safe|default:"[]" }},
+        ganancia: {{ data_ganancia_semanal|safe|default:"[]" }},
+    },
+    mensual: {
+        labels: {{ labels_mensual|safe|default:"[]" }},
+        ingresos: {{ data_ingresos_mensual|safe|default:"[]" }},
+        costos: {{ data_costos_mensual|safe|default:"[]" }},
+        ganancia: {{ data_ganancia_mensual|safe|default:"[]" }},
+    }
+};
+
+let chartIngresoInstance = null;
+
+// Función para cambiar granularidad
+function cambiarGranularidad(tipo) {
+    document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+        if (btn.id !== 'btn-tabla') btn.classList.remove('active');
+    });
+    document.getElementById('btn-' + tipo).classList.add('active');
+    
+    actualizarChartIngresos(tipo);
+}
+
+// Función para actualizar gráfico
+function actualizarChartIngresos(tipo) {
+    const datos = datosGranularidad[tipo] || datosGranularidad.diaria;
+    const ctxIngresos = document.getElementById('chartIngresos').getContext('2d');
+    
+    if (chartIngresoInstance) {
+        chartIngresoInstance.destroy();
+    }
+    
+    chartIngresoInstance = new Chart(ctxIngresos, {
+        type: 'line',
+        data: {
+            labels: datos.labels,
+            datasets: [
+                {
+                    label: 'Ingresos',
+                    data: datos.ingresos,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                },
+                {
+                    label: 'Costos',
+                    data: datos.costos,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231, 76, 60, 0.05)',
+                    fill: true,
+                    tension: 0.3,
+                },
+                {
+                    label: 'Ganancia',
+                    data: datos.ganancia,
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                }
+            ]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '$' + value.toLocaleString();
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
                     }
                 }
             }
         }
-    }
-});
+    });
+    
+    actualizarTabla(tipo);
+}
+
+// Función para actualizar tabla de datos
+function actualizarTabla(tipo) {
+    const datos = datosGranularidad[tipo] || datosGranularidad.diaria;
+    const tbody = document.getElementById('tbody-datos');
+    tbody.innerHTML = '';
+    
+    datos.labels.forEach((label, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${label}</strong></td>
+            <td class="text-end text-success"><strong>$${(datos.ingresos[i] || 0).toLocaleString('es-ES', {minimumFractionDigits: 2})}</strong></td>
+            <td class="text-end text-danger">$${(datos.costos[i] || 0).toLocaleString('es-ES', {minimumFractionDigits: 2})}</td>
+            <td class="text-end" style="color: #27ae60;"><strong>$${(datos.ganancia[i] || 0).toLocaleString('es-ES', {minimumFractionDigits: 2})}</strong></td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Función para mostrar/ocultar tabla
+function toggleTabla() {
+    const tabla = document.getElementById('tablaDatos');
+    tabla.style.display = tabla.style.display === 'none' ? 'block' : 'none';
+}
+
+// Inicializar gráfico
+actualizarChartIngresos('diaria');
 
 // Tareas por Estado
 const ctxEstados = document.getElementById('chartEstados').getContext('2d');
@@ -498,5 +844,63 @@ new Chart(ctxTop, {
         }
     }
 });
+
+// Distribución de Gastos por Categoría
+var categoria_labels = {{ categoria_labels|safe }};
+var categoria_data = {{ categoria_data|safe }};
+if (categoria_labels.length > 0 && categoria_data.length > 0 && document.getElementById('chartGastos')) {
+    const ctxGastos = document.getElementById('chartGastos').getContext('2d');
+    new Chart(ctxGastos, {
+        type: 'doughnut',
+        data: {
+            labels: categoria_labels,
+            datasets: [{
+                data: categoria_data,
+                backgroundColor: [
+                    '#f39c12', '#e67e22', '#e74c3c', '#c0392b',
+                    '#9b59b6', '#8e44ad', '#3498db', '#2980b9'
+                ],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = context.parsed;
+                            const percent = ((value / total) * 100).toFixed(1);
+                            return '$' + value.toLocaleString() + ' (' + percent + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 </script>
+
+<style>
+#btn-diaria.active, #btn-semanal.active, #btn-mensual.active {
+    background-color: #3498db !important;
+    color: white !important;
+    border-color: #2980b9 !important;
+}
+
+#btn-tabla {
+    background-color: #f39c12;
+    color: white;
+    border: none;
+}
+
+#btn-tabla:hover {
+    background-color: #d68910;
+}
+
+#tablaDatos table {
+    font-size: 0.9rem;
+}
+</style>
 {% endblock %}
