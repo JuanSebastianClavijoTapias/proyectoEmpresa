@@ -33,14 +33,28 @@
                 </div>
             </div>
             
+            <!-- Toggle Email -->
             <div class="mb-3">
-                <label class="form-label">Correo Electrónico</label>
-                {{ form.email }}
+                <button type="button" class="btn btn-sm btn-outline-info" id="btn-toggle-email">
+                    <i class="bi bi-plus-circle me-1"></i> {% if cliente.email %}Editar correo{% else %}Agregar correo electrónico{% endif %}
+                </button>
+                <div id="email-section" style="display: {% if cliente.email %}block{% else %}none{% endif %}; margin-top: 1rem;">
+                    <label class="form-label">Correo Electrónico</label>
+                    {{ form.email }}
+                    <small class="text-muted d-block mt-1">Opcional</small>
+                </div>
             </div>
             
+            <!-- Toggle Dirección -->
             <div class="mb-3">
-                <label class="form-label">Dirección</label>
-                {{ form.direccion }}
+                <button type="button" class="btn btn-sm btn-outline-info" id="btn-toggle-direccion">
+                    <i class="bi bi-plus-circle me-1"></i> {% if cliente.direccion %}Editar dirección{% else %}Agregar dirección{% endif %}
+                </button>
+                <div id="direccion-section" style="display: {% if cliente.direccion %}block{% else %}none{% endif %}; margin-top: 1rem;">
+                    <label class="form-label">Dirección</label>
+                    {{ form.direccion }}
+                    <small class="text-muted d-block mt-1">Opcional</small>
+                </div>
             </div>
             
             <div class="d-flex gap-2">
@@ -54,4 +68,47 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle Email
+    const btnToggleEmail = document.getElementById('btn-toggle-email');
+    const emailSection = document.getElementById('email-section');
+    const emailInput = document.getElementById('id_email');
+    const hasEmail = '{{ cliente.email }}' ? true : false;
+    
+    btnToggleEmail.addEventListener('click', function(e) {
+        e.preventDefault();
+        const isVisible = emailSection.style.display !== 'none';
+        emailSection.style.display = isVisible ? 'none' : 'block';
+        
+        if (isVisible) {
+            btnToggleEmail.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Agregar correo electrónico';
+            emailInput.value = '';
+        } else {
+            btnToggleEmail.innerHTML = '<i class="bi bi-minus-circle me-1"></i> Ocultar correo';
+            emailInput.focus();
+        }
+    });
+    
+    // Toggle Dirección
+    const btnToggleDireccion = document.getElementById('btn-toggle-direccion');
+    const direccionSection = document.getElementById('direccion-section');
+    const direccionInput = document.getElementById('id_direccion');
+    
+    btnToggleDireccion.addEventListener('click', function(e) {
+        e.preventDefault();
+        const isVisible = direccionSection.style.display !== 'none';
+        direccionSection.style.display = isVisible ? 'none' : 'block';
+        
+        if (isVisible) {
+            btnToggleDireccion.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Agregar dirección';
+            direccionInput.value = '';
+        } else {
+            btnToggleDireccion.innerHTML = '<i class="bi bi-minus-circle me-1"></i> Ocultar dirección';
+            direccionInput.focus();
+        }
+    });
+});
+</script>
 {% endblock %}

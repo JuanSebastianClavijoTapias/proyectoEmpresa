@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Estándares de Trabajo{% endblock %}
 
@@ -9,9 +9,6 @@
         <p class="text-muted mb-0">Procesos y estándares definidos para las tareas</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'estandares:lista_categorias' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-tags"></i> Categorías
-        </a>
         <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Nuevo Estándar
         </a>
@@ -78,10 +75,6 @@
         <div class="text-center py-5">
             <i class="bi bi-card-checklist display-1 text-muted"></i>
             <h4 class="mt-3 text-muted">No hay estándares registrados</h4>
-            <p class="text-muted">Comienza agregando categorías y después los estándares de cada proceso.</p>
-            <a href="{% url 'estandares:crear_categoria' %}" class="btn btn-outline-primary me-2">
-                <i class="bi bi-plus-lg"></i> Crear Categoría
-            </a>
             <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
                 <i class="bi bi-plus-lg"></i> Crear Estándar
             </a>
@@ -92,10 +85,6 @@
 <div class="text-center py-5">
     <i class="bi bi-card-checklist display-1 text-muted"></i>
     <h4 class="mt-3 text-muted">No hay estándares registrados</h4>
-    <p class="text-muted">Comienza agregando categorías y después los estándares de cada proceso.</p>
-    <a href="{% url 'estandares:crear_categoria' %}" class="btn btn-outline-primary me-2">
-        <i class="bi bi-plus-lg"></i> Crear Categoría
-    </a>
     <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Crear Estándar
     </a>

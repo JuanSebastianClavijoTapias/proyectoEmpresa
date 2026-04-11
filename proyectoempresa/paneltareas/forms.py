@@ -8,7 +8,7 @@ class TareaPlanificadaForm(forms.ModelForm):
     class Meta:
         model = TareaPlanificada
         fields = [
-            'nombre_cliente', 'telefono_cliente',
+            'nombre_cliente', 'telefono_cliente', 'placa',
             'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
             'observaciones', 'monto_abonado'
@@ -16,7 +16,8 @@ class TareaPlanificadaForm(forms.ModelForm):
         widgets = {
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
             'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
-            'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer al vehículo...'}),
+            'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
+            'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer...'}),
             'fecha_ingreso': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
@@ -99,10 +100,12 @@ ProductoTareaFormSet = inlineformset_factory(
 class ClienteForm(forms.ModelForm):
     class Meta:
         model = Cliente
-        fields = ['nombre', 'telefono']
+        fields = ['nombre', 'telefono', 'email', 'direccion']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre completo'}),
             'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo (opcional)'}),
+            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección (opcional)'}),
         }
 
 

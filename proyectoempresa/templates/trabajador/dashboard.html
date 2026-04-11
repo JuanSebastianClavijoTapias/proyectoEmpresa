@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Trabajador - {{ trabajador.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h1><i class="bi bi-person-workspace"></i> Bienvenido, {{ trabajador.nombre }}</h1>
+        <p class="text-muted">Aquí puedes registrar y monitorear tu productividad diaria</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'trabajador:registrar' %}" class="btn" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
+            <i class="bi bi-plus-circle me-2"></i> Registrar Hoy
+        </a>
+        <a href="{% url 'trabajador:productividad' %}" class="btn" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; font-weight: 500;">
+            <i class="bi bi-graph-up me-2"></i> Mi Productividad
+        </a>
+        <a href="{% url 'trabajador:logout' %}" class="btn btn-outline-danger">
+            <i class="bi bi-box-arrow-right me-2"></i> Salir
+        </a>
+    </div>
+</div>
+
+<!-- Resumen Rápido -->
+<div class="row g-3 mb-4">
+    <!-- Registro Hoy -->
+    {% if registro_hoy %}
+    <div class="col-md-3">
+        <div class="card" style="border: none; border-left: 4px solid #3498db; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-today"></i> Hoy Registrado</h6>
+                <h4 style="color: #3498db; font-weight: 700;">{{ total_hoy }} items</h4>
+                <small class="text-muted">{{ registro_hoy.duracion|default:'Pendiente' }}</small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-md-3">
+        <div class="card" style="border: none; border-left: 4px solid #95a5a6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-today"></i> Hoy</h6>
+                <h4 style="color: #95a5a6; font-weight: 700;">Sin registro</h4>
+                <small class="text-muted">Registra tu productividad</small>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Promedio Semana -->
+    <div class="col-md-3">
+        <div class="card" style="border: none; border-left: 4px solid #f39c12; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-week"></i> Esta Semana</h6>
+                <h4 style="color: #f39c12; font-weight: 700;">{{ total_semana }} items</h4>
+                <small class="text-muted">{{ registros_semana.count }} registros</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Promedio Mes -->
+    <div class="col-md-3">
+        <div class="card" style="border: none; border-left: 4px solid #27ae60; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="bi bi-calendar-month"></i> Este Mes</h6>
+                <h4 style="color: #27ae60; font-weight: 700;">{{ total_mes }} items</h4>
+                <small class="text-muted">{{ registros_mes.count }} registros</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Promedio Diario -->
+    <div class="col-md-3">
+        <div class="card" style="border: none; border-left: 4px solid #e74c3c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-body">
+                <h6 class="text-muted mb-2"><i class="bi bi-speedometer2"></i> Promedio Diario</h6>
+                {% if registros_mes.count %}
+                    <h4 style="color: #e74c3c; font-weight: 700;">{{ promedio_diario|default:"N/A" }}</h4>
+                {% else %}
+                    <h4 style="color: #95a5a6; font-weight: 700;">N/A</h4>
+                {% endif %}
+                <small class="text-muted">Última 30 días</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Registro Reciente -->
+{% if registro_hoy %}
+<div class="card mb-4" style="border: none; border-left: 4px solid #3498db; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+    <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none;">
+        <i class="bi bi-clock-history"></i> Registro de Hoy
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-2" style="background-color: #f8f9fa; border-radius: 0.4rem;">
+                    <small class="text-muted d-block mb-1">Hora Inicio</small>
+                    <h6 style="color: #34495e; margin: 0;">{{ registro_hoy.hora_inicio }}</h6>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-2" style="background-color: #f8f9fa; border-radius: 0.4rem;">
+                    <small class="text-muted d-block mb-1">Hora Finalización</small>
+                    <h6 style="color: #34495e; margin: 0;">{{ registro_hoy.hora_finalizacion }}</h6>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <h6 style="color: #34495e; margin-bottom: 1rem;">Productos procesados:</h6>
+            <div class="row g-2">
+                {% if registro_hoy.cortado %}
+                <div class="col-md-3">
+                    <span class="badge" style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 0.5rem 0.75rem; display: block; text-align: center;">
+                        Cortado: {{ registro_hoy.cortado }}
+                    </span>
+                </div>
+                {% endif %}
+                {% if registro_hoy.costura %}
+                <div class="col-md-3">
+                    <span class="badge" style="background: linear-gradient(135deg, #27ae60, #229954); padding: 0.5rem 0.75rem; display: block; text-align: center;">
+                        Costura: {{ registro_hoy.costura }}
+                    </span>
+                </div>
+                {% endif %}
+                {% if registro_hoy.armado %}
+                <div class="col-md-3">
+                    <span class="badge" style="background: linear-gradient(135deg, #f39c12, #e67e22); padding: 0.5rem 0.75rem; display: block; text-align: center;">
+                        Armado: {{ registro_hoy.armado }}
+                    </span>
+                </div>
+                {% endif %}
+                {% if registro_hoy.sillas_realizadas %}
+                <div class="col-md-3">
+                    <span class="badge" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); padding: 0.5rem 0.75rem; display: block; text-align: center;">
+                        Sillas: {{ registro_hoy.sillas_realizadas }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Acciones Rápidas -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card" style="border: none; border-left: 4px solid #27ae60; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none;">
+                <i class="bi bi-plus-circle"></i> Nuevo Registro
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Registra tu productividad de hoy o de otro día.</p>
+                <a href="{% url 'trabajador:registrar' %}" class="btn w-100" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
+                    <i class="bi bi-pencil-square me-2"></i> Registrar Productividad
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card" style="border: none; border-left: 4px solid #3498db; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none;">
+                <i class="bi bi-graph-up"></i> Ver Historial
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Revisa todos tus registros de productividad.</p>
+                <a href="{% url 'trabajador:productividad' %}" class="btn w-100" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; font-weight: 500;">
+                    <i class="bi bi-bar-chart me-2"></i> Ver Productividad
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

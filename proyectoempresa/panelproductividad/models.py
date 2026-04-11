@@ -1,10 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Trabajador(models.Model):
     """Modelo para los trabajadores del taller"""
     nombre = models.CharField(max_length=100, verbose_name='Nombre')
     activo = models.BooleanField(default=True, verbose_name='Activo')
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trabajador', null=True, blank=True, verbose_name='Usuario')
     creado_en = models.DateTimeField(auto_now_add=True)
     
     class Meta:

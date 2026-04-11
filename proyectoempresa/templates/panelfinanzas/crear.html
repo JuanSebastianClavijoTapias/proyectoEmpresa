@@ -18,13 +18,9 @@
                     {% csrf_token %}
                     
                     <div class="row mb-3">
-                        <div class="col-md-8">
+                        <div class="col-md-12">
                             <label class="form-label">Nombre del Producto *</label>
                             {{ form.nombre }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Categoría</label>
-                            {{ form.categoria }}
                         </div>
                     </div>
                     
@@ -105,11 +101,6 @@
                 <p><strong>Ganancia:</strong> Se calcula automáticamente restando el costo del precio de venta.</p>
                 <hr>
                 <p class="mb-2"><strong>Nota:</strong> Los productos del catálogo estarán disponibles para que los trabajadores los seleccionen al crear tareas.</p>
-                <p class="mb-0">
-                    <a href="{% url 'finanzas:lista_categorias' %}">
-                        <i class="bi bi-tags me-1"></i>Gestionar Categorías
-                    </a>
-                </p>
             </div>
         </div>
     </div>

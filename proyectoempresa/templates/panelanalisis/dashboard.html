@@ -50,62 +50,53 @@
 <h5 class="text-muted mb-3"><i class="bi bi-currency-dollar"></i> KPIs Financieros</h5>
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-1">Ingresos</p>
-                        <h4 class="mb-0">${{ ingresos|floatformat:0 }}</h4>
-                    </div>
-                    <div class="align-self-center">
-                        <span class="badge bg-{% if var_ingresos >= 0 %}success{% else %}danger{% endif %} fs-6">
-                            <i class="bi bi-{% if var_ingresos >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
-                            {{ var_ingresos }}%
-                        </span>
-                    </div>
+        <div class="stat-card proceso h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <p class="small mb-1">Ingresos</p>
+                    <h3 class="mb-0">${{ ingresos|floatformat:0 }}</h3>
                 </div>
-                <small class="text-muted">vs período anterior</small>
+                <div class="align-self-center">
+                    <span class="badge bg-white bg-opacity-25 fs-6">
+                        <i class="bi bi-{% if var_ingresos >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                        {{ var_ingresos }}%
+                    </span>
+                </div>
+            </div>
+            <small>vs período anterior</small>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card completadas h-100">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <p class="small mb-1">Ganancia Neta</p>
+                    <h3 class="mb-0">${{ ganancia|floatformat:0 }}</h3>
+                </div>
+                <div class="align-self-center">
+                    <span class="badge bg-white bg-opacity-25 fs-6">
+                        <i class="bi bi-{% if var_ganancia >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
+                        {{ var_ganancia }}%
+                    </span>
+                </div>
+            </div>
+            <small>vs período anterior</small>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="stat-card urgentes h-100">
+            <p class="small mb-1">Margen de Ganancia</p>
+            <h3 class="mb-0">{{ margen }}%</h3>
+            <div class="progress mt-2" style="height: 6px; background-color: rgba(255,255,255,0.3);">
+                <div class="progress-bar" style="background-color: rgba(255,255,255,0.7); width: {{ margen }}%"></div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <p class="text-muted small mb-1">Ganancia Neta</p>
-                        <h4 class="mb-0 {% if ganancia >= 0 %}text-success{% else %}text-danger{% endif %}">${{ ganancia|floatformat:0 }}</h4>
-                    </div>
-                    <div class="align-self-center">
-                        <span class="badge bg-{% if var_ganancia >= 0 %}success{% else %}danger{% endif %} fs-6">
-                            <i class="bi bi-{% if var_ganancia >= 0 %}arrow-up{% else %}arrow-down{% endif %}"></i>
-                            {{ var_ganancia }}%
-                        </span>
-                    </div>
-                </div>
-                <small class="text-muted">vs período anterior</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <p class="text-muted small mb-1">Margen de Ganancia</p>
-                <h4 class="mb-0">{{ margen }}%</h4>
-                <div class="progress mt-2" style="height: 6px;">
-                    <div class="progress-bar bg-{% if margen >= 30 %}success{% elif margen >= 15 %}warning{% else %}danger{% endif %}" 
-                         style="width: {{ margen }}%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card h-100">
-            <div class="card-body">
-                <p class="text-muted small mb-1">Ticket Promedio</p>
-                <h4 class="mb-0">${{ ticket_promedio|floatformat:0 }}</h4>
-                <small class="text-muted">por tarea</small>
-            </div>
+        <div class="stat-card clientes h-100">
+            <p class="small mb-1">Ticket Promedio</p>
+            <h3 class="mb-0">${{ ticket_promedio|floatformat:0 }}</h3>
+            <small>por tarea</small>
         </div>
     </div>
 </div>
@@ -116,58 +107,46 @@
 <h5 class="text-muted mb-3"><i class="bi bi-clipboard-data"></i> KPIs Operativos</h5>
 <div class="row mb-4">
     <div class="col-md-2 mb-3">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Tareas Completadas</p>
-                <h3 class="mb-0 text-success">{{ tareas_completadas }}</h3>
-                <span class="badge bg-{% if var_tareas >= 0 %}success{% else %}danger{% endif %}">
-                    {{ var_tareas }}%
-                </span>
+        <div class="stat-card completadas h-100 text-center">
+            <p class="small mb-1">Tareas Completadas</p>
+            <h2 class="mb-0">{{ tareas_completadas }}</h2>
+            <span class="badge bg-white bg-opacity-25">
+                {{ var_tareas }}%
+            </span>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="stat-card proceso h-100 text-center">
+            <p class="small mb-1">Total Tareas</p>
+            <h2 class="mb-0">{{ tareas_total }}</h2>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="stat-card clientes h-100 text-center">
+            <p class="small mb-1">Tasa Completación</p>
+            <h2 class="mb-0">{{ tasa_completacion }}%</h2>
+            <div class="progress mt-1" style="height: 5px; background-color: rgba(255,255,255,0.3);">
+                <div class="progress-bar" style="background-color: rgba(255,255,255,0.7); width: {{ tasa_completacion }}%"></div>
             </div>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Total Tareas</p>
-                <h3 class="mb-0">{{ tareas_total }}</h3>
-            </div>
+        <div class="stat-card pendientes h-100 text-center">
+            <p class="small mb-1">Tiempo Promedio</p>
+            <h2 class="mb-0">{{ tiempo_promedio }}</h2>
+            <small>días</small>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Tasa Completación</p>
-                <h3 class="mb-0">{{ tasa_completacion }}%</h3>
-                <div class="progress mt-1" style="height: 5px;">
-                    <div class="progress-bar bg-info" style="width: {{ tasa_completacion }}%"></div>
-                </div>
-            </div>
+        <div class="stat-card completadas h-100 text-center">
+            <p class="small mb-1">Puntualidad</p>
+            <h2 class="mb-0">{{ tasa_puntualidad }}%</h2>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Tiempo Promedio</p>
-                <h3 class="mb-0">{{ tiempo_promedio }}</h3>
-                <small class="text-muted">días</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 mb-3">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Puntualidad</p>
-                <h3 class="mb-0 {% if tasa_puntualidad >= 80 %}text-success{% elif tasa_puntualidad >= 60 %}text-warning{% else %}text-danger{% endif %}">{{ tasa_puntualidad }}%</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 mb-3">
-        <div class="card h-100 {% if tareas_vencidas > 0 %}border-danger{% endif %}">
-            <div class="card-body text-center">
-                <p class="text-muted small mb-1">Tareas Vencidas</p>
-                <h3 class="mb-0 text-danger">{{ tareas_vencidas }}</h3>
-            </div>
+        <div class="stat-card urgentes h-100 text-center">
+            <p class="small mb-1">Tareas Vencidas</p>
+            <h2 class="mb-0">{{ tareas_vencidas }}</h2>
         </div>
     </div>
 </div>
@@ -180,30 +159,24 @@
         <h5 class="text-muted mb-3"><i class="bi bi-gear"></i> KPIs de Productividad</h5>
         <div class="row">
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Items Producidos</p>
-                        <h3 class="mb-0">{{ total_items_producidos }}</h3>
-                        <span class="badge bg-{% if var_productividad >= 0 %}success{% else %}danger{% endif %}">
-                            {{ var_productividad }}%
-                        </span>
-                    </div>
+                <div class="stat-card proceso h-100 text-center">
+                    <p class="small mb-1">Items Producidos</p>
+                    <h3 class="mb-0">{{ total_items_producidos }}</h3>
+                    <span class="badge bg-white bg-opacity-25">
+                        {{ var_productividad }}%
+                    </span>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Horas Trabajo</p>
-                        <h3 class="mb-0">{{ total_horas_trabajo }}</h3>
-                    </div>
+                <div class="stat-card pendientes h-100 text-center">
+                    <p class="small mb-1">Horas Trabajo</p>
+                    <h3 class="mb-0">{{ total_horas_trabajo }}</h3>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Items/Hora</p>
-                        <h3 class="mb-0 text-primary">{{ productividad_hora }}</h3>
-                    </div>
+                <div class="stat-card completadas h-100 text-center">
+                    <p class="small mb-1">Items/Hora</p>
+                    <h3 class="mb-0">{{ productividad_hora }}</h3>
                 </div>
             </div>
         </div>
@@ -212,32 +185,26 @@
         <h5 class="text-muted mb-3"><i class="bi bi-people"></i> KPIs de Clientes</h5>
         <div class="row">
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Clientes Nuevos</p>
-                        <h3 class="mb-0">{{ clientes_nuevos }}</h3>
-                        <span class="badge bg-{% if var_clientes >= 0 %}success{% else %}danger{% endif %}">
-                            {{ var_clientes }}%
-                        </span>
-                    </div>
+                <div class="stat-card clientes h-100 text-center">
+                    <p class="small mb-1">Clientes Nuevos</p>
+                    <h3 class="mb-0">{{ clientes_nuevos }}</h3>
+                    <span class="badge bg-white bg-opacity-25">
+                        {{ var_clientes }}%
+                    </span>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Total Clientes</p>
-                        <h3 class="mb-0">{{ total_clientes }}</h3>
-                    </div>
+                <div class="stat-card proceso h-100 text-center">
+                    <p class="small mb-1">Total Clientes</p>
+                    <h3 class="mb-0">{{ total_clientes }}</h3>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-body text-center">
-                        <p class="text-muted small mb-1">Más Detalles</p>
-                        <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary mt-1">
-                            <i class="bi bi-person-lines-fill"></i> Ver
-                        </a>
-                    </div>
+                <div class="stat-card completadas h-100 text-center">
+                    <p class="small mb-1">Más Detalles</p>
+                    <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light mt-1">
+                        <i class="bi bi-person-lines-fill"></i> Ver
+                    </a>
                 </div>
             </div>
         </div>
@@ -324,9 +291,9 @@
     <!-- Tendencia de Ingresos -->
     <div class="col-md-8 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-graph-up"></i> Tendencia Financiera (últimos 6 meses)</span>
-                <a href="{% url 'analisis:financiero' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
+                <i class="bi bi-graph-up"></i> Tendencia Financiera (últimos 6 meses)
+                <a href="{% url 'analisis:financiero' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light float-end">
                     Ver detalle
                 </a>
             </div>
@@ -338,7 +305,7 @@
     <!-- Distribución de Tareas por Estado -->
     <div class="col-md-4 mb-4">
         <div class="card h-100">
-            <div class="card-header">
+            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;">
                 <i class="bi bi-pie-chart"></i> Tareas por Estado
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
@@ -352,9 +319,9 @@
     <!-- Producción por Proceso -->
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-bar-chart"></i> Producción por Proceso</span>
-                <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-outline-primary">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #229954); color: white;">
+                <i class="bi bi-bar-chart"></i> Producción por Proceso
+                <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light float-end">
                     Ver trabajadores
                 </a>
             </div>
@@ -366,7 +333,7 @@
     <!-- Top Productos -->
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header">
+            <div class="card-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">
                 <i class="bi bi-trophy"></i> Top Productos Más Vendidos
             </div>
             <div class="card-body">
@@ -379,9 +346,9 @@
 <!-- Notas Activas -->
 {% if notas_activas %}
 <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span><i class="bi bi-sticky"></i> Notas Pendientes</span>
-        <a href="{% url 'analisis:lista_notas' %}" class="btn btn-sm btn-outline-secondary">Ver todas</a>
+    <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white;">
+        <i class="bi bi-sticky"></i> Notas Pendientes
+        <a href="{% url 'analisis:lista_notas' %}" class="btn btn-sm btn-light float-end">Ver todas</a>
     </div>
     <div class="card-body p-0">
         <div class="list-group list-group-flush">

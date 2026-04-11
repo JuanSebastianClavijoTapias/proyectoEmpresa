@@ -139,6 +139,134 @@
             font-weight: 700;
         }
 
+        /* ===== BUTTON STYLING ===== */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            padding: 0.5rem 1rem;
+        }
+
+        .btn-primary, .btn-success, .btn-danger {
+            color: white;
+            border: none;
+        }
+
+        .btn-warning, .btn-info {
+            color: #212529; /* Dark text for light backgrounds to ensure contrast */
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            color: white;
+        }
+
+        .btn-outline-primary, .btn-outline-secondary, .btn-outline-danger {
+            transition: all 0.2s ease;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        /* ===== FORM STYLING ===== */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        p, .text-base {
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: inherit; /* Allow inheritance so it works in dark containers */
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        .text-muted {
+            color: #6c757d !important;
+            font-size: 0.95rem;
+        }
+
+        /* ===== ACCESSIBILITY ===== */
+        .table td, .table th {
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f0f6ff;
+        }
+
+        /* Status badges with good contrast */
+        .badge {
+            padding: 0.4rem 0.8rem;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+
+        /* ===== RESPONSIVE IMPROVEMENTS ===== */
+        @media (max-width: 1024px) {
+            .page-header {
+                margin-bottom: 20px;
+            }
+            
+            .main-content {
+                padding: 15px 20px;
+            }
+        }
+
+        /* ===== SPACING STANDARDS ===== */
+        .card {
+            margin-bottom: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            padding: 1rem 1.5rem;
+        }
+
+        .mb-spacer {
+            margin-bottom: 2rem;
+        }
+
+        /* ===== VISUAL HIERARCHY ===== */
+        .container-fluid {
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -218,11 +346,6 @@
                         <i class="bi bi-cash-coin"></i> Gastos
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'categorias' in request.path %}active{% endif %}" href="{% url 'finanzas:lista_categorias' %}">
-                        <i class="bi bi-tags"></i> Categorías
-                    </a>
-                </li>
                 
                 <li class="nav-item mt-3">
                     <small class="text-white-50 px-3">ANÁLISIS</small>
@@ -263,11 +386,6 @@
             <li class="nav-item">
                 <a class="nav-link {% if 'estandares' in request.path and 'categorias' not in request.path %}active{% endif %}" href="{% url 'estandares:lista' %}">
                     <i class="bi bi-card-checklist"></i> Estándares
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {% if 'estandares' in request.path and 'categorias' in request.path %}active{% endif %}" href="{% url 'estandares:lista_categorias' %}">
-                    <i class="bi bi-tags"></i> Categorías
                 </a>
             </li>
             {% endif %}
@@ -365,6 +483,67 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Filtros de Búsqueda Automáticos Globales -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterForms = document.querySelectorAll('form[method="get" i], form[method="GET"]');
+            
+            filterForms.forEach(form => {
+                let timeout = null;
+                let isSubmitting = false;
+
+                function triggerSubmit() {
+                    if (isSubmitting) return;
+                    isSubmitting = true;
+                    
+                    const activeEl = document.activeElement;
+                    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT')) {
+                        const key = activeEl.id || activeEl.name;
+                        if (key) sessionStorage.setItem('lastFocusedFilterInput', key);
+                    }
+                    
+                    // Manera infalible de hacer submit saltándose bloqueos de nombres en el DOM
+                    HTMLFormElement.prototype.submit.call(form);
+                }
+
+                // Usar event delegation para capturar todos los eventos de los inputs
+                form.addEventListener('input', function(e) {
+                    const type = e.target.type;
+                    if (e.target.tagName === 'INPUT' && !['submit', 'button', 'hidden', 'radio', 'checkbox', 'date'].includes(type)) {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(triggerSubmit, 500); // Medio segundo después de dejar de escribir
+                    }
+                });
+
+                form.addEventListener('change', function(e) {
+                    const type = e.target.type;
+                    if (e.target.tagName === 'SELECT' || ['radio', 'checkbox', 'date'].includes(type)) {
+                        triggerSubmit();
+                    }
+                });
+            });
+
+            // Restaurar el focus y el cursor donde el usuario lo dejó
+            const focusedKey = sessionStorage.getItem('lastFocusedFilterInput');
+            if (focusedKey) {
+                let elToFocus = document.getElementById(focusedKey) || document.querySelector(`[name="${focusedKey}"]`);
+                if (elToFocus) {
+                    try {
+                        elToFocus.focus();
+                        if (elToFocus.tagName === 'INPUT' && (elToFocus.type === 'text' || elToFocus.type === 'search')) {
+                            const valLen = elToFocus.value ? elToFocus.value.length : 0;
+                            elToFocus.setSelectionRange(valLen, valLen);
+                        }
+                    } catch (err) {
+                        console.log('Focus restore handled:', err);
+                    }
+                }
+                sessionStorage.removeItem('lastFocusedFilterInput');
+            }
+        });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

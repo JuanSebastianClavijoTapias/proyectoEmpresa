@@ -44,33 +44,11 @@ def guardar_perfil_usuario(sender, instance, **kwargs):
         instance.perfil.save()
 
 
-class CategoriaProducto(models.Model):
-    """Categorías para organizar productos"""
-    nombre = models.CharField(max_length=100, verbose_name='Nombre')
-    descripcion = models.TextField(blank=True, verbose_name='Descripción')
-    
-    class Meta:
-        verbose_name = 'Categoría de Producto'
-        verbose_name_plural = 'Categorías de Productos'
-        ordering = ['nombre']
-    
-    def __str__(self):
-        return self.nombre
-
-
 class Producto(models.Model):
     """Catálogo de productos con sus precios"""
     
     nombre = models.CharField(max_length=200, verbose_name='Nombre del Producto')
     descripcion = models.TextField(blank=True, verbose_name='Descripción')
-    categoria = models.ForeignKey(
-        CategoriaProducto, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True,
-        related_name='productos',
-        verbose_name='Categoría'
-    )
     
     # Precios
     precio_costo = models.DecimalField(

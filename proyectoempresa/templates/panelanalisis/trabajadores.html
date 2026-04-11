@@ -38,7 +38,7 @@
 <div class="row mb-4">
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
                 <i class="bi bi-bar-chart"></i> Total Items por Trabajador
             </div>
             <div class="card-body">
@@ -48,7 +48,7 @@
     </div>
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #229954); color: white;">
                 <i class="bi bi-speedometer"></i> Productividad (Items/Hora)
             </div>
             <div class="card-body">
@@ -60,9 +60,9 @@
 
 <!-- Ranking de Trabajadores -->
 <div class="card mb-4">
-    <div class="card-header">
+    <div class="card-header" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white;">
         <i class="bi bi-trophy"></i> Ranking de Rendimiento
-        <span class="text-muted small">({{ fecha_desde|date:"d/m/Y" }} - {{ fecha_hasta|date:"d/m/Y" }})</span>
+        <span style="opacity: 0.9;">({{ fecha_desde|date:"d/m/Y" }} - {{ fecha_hasta|date:"d/m/Y" }})</span>
     </div>
     <div class="card-body p-0">
         {% if ranking %}
@@ -129,27 +129,24 @@
 <div class="row">
     {% for r in ranking %}
     <div class="col-md-6 mb-3">
-        <div class="card h-100">
-            <div class="card-header">
-                <strong>{{ r.trabajador.nombre }}</strong>
-                <span class="float-end text-muted small">{{ r.total_items }} items totales</span>
-            </div>
-            <div class="card-body">
-                {% for proceso, cantidad in r.desglose.items %}
-                {% if cantidad > 0 %}
-                <div class="mb-2">
-                    <div class="d-flex justify-content-between small">
-                        <span>{{ proceso|title }}</span>
-                        <span class="fw-bold">{{ cantidad }}</span>
-                    </div>
-                    <div class="progress" style="height: 6px;">
-                        {% widthratio cantidad r.total_items 100 as porcentaje %}
-                        <div class="progress-bar" style="width: {{ porcentaje }}%"></div>
-                    </div>
+        <div class="stat-card {% cycle 'proceso' 'completadas' 'clientes' 'pendientes' %}">
+            <strong>{{ r.trabajador.nombre }}</strong>
+            <span class="float-end small">{{ r.total_items }} items totales</span>
+            <hr style="border-color: rgba(255,255,255,0.3); margin: 0.5rem 0;">
+            {% for proceso, cantidad in r.desglose.items %}
+            {% if cantidad > 0 %}
+            <div class="mb-2">
+                <div class="d-flex justify-content-between small">
+                    <span>{{ proceso|title }}</span>
+                    <span class="fw-bold">{{ cantidad }}</span>
                 </div>
-                {% endif %}
-                {% endfor %}
+                <div class="progress" style="height: 6px; background-color: rgba(255,255,255,0.3);">
+                    {% widthratio cantidad r.total_items 100 as porcentaje %}
+                    <div class="progress-bar" style="background-color: rgba(255,255,255,0.7); width: {{ porcentaje }}%"></div>
+                </div>
             </div>
+            {% endif %}
+            {% endfor %}
         </div>
     </div>
     {% endfor %}

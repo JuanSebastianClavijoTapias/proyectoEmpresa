@@ -10,6 +10,8 @@ class Cliente(models.Model):
     """Modelo para almacenar información de clientes"""
     nombre = models.CharField(max_length=200, verbose_name='Nombre del Cliente')
     telefono = models.CharField(max_length=20, verbose_name='Teléfono')
+    email = models.EmailField(blank=True, null=True, verbose_name='Correo Electrónico')
+    direccion = models.CharField(max_length=300, blank=True, null=True, verbose_name='Dirección')
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     
     class Meta:
@@ -43,7 +45,7 @@ class TareaPlanificada(models.Model):
     telefono_cliente = models.CharField(max_length=20, verbose_name='Teléfono de Contacto')
     
     # Información del vehículo (simplificado)
-    placa = models.CharField(max_length=20, verbose_name='Placa del Vehículo')
+    placa = models.CharField(max_length=20, blank=True, null=True, verbose_name='Placa del Vehículo')
     
     # Información del trabajo
     descripcion_trabajo = models.TextField(verbose_name='Qué se le debe hacer')
@@ -78,7 +80,8 @@ class TareaPlanificada(models.Model):
         ordering = ['fecha_entrega', '-prioridad']
     
     def __str__(self):
-        return f"{self.placa} - {self.nombre_cliente}"
+        placa_str = self.placa if self.placa else 'Sin placa'
+        return f"{placa_str} - {self.nombre_cliente}"
     
     @property
     def dias_restantes(self):
@@ -101,6 +104,13 @@ class TareaPlanificada(models.Model):
     def saldo_pendiente(self):
         """Calcula el saldo pendiente (precio total - monto abonado)"""
         return self.precio_total - self.monto_abonado
+
+    @property
+    def dias_vencidos(self):
+        """Retorna los días vencidos en valor absoluto (solo si está vencida)"""
+        if self.dias_restantes < 0:
+            return abs(self.dias_restantes)
+        return 0
 
 
 def validar_imagen(fieldfile_obj):
@@ -127,7 +137,8 @@ class ImagenTarea(models.Model):
         ordering = ['-fecha_subida']
     
     def __str__(self):
-        return f"Imagen de {self.tarea.placa} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
+        placa_str = self.tarea.placa if self.tarea.placa else 'Sin placa'
+        return f"Imagen de {placa_str} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
 
     def save(self, *args, **kwargs):
         if self.imagen:
@@ -237,8 +248,8 @@ class ProductoTarea(models.Model):
     
     @property
     def total_venta(self):
-        """Total de venta"""
-        return self.precio_venta * self.cantidad
+        """Total de venta (incluye ajuste de precio)"""
+        return (self.precio_venta * self.cantidad) + self.ajuste_precio
     
     @property
     def total_costo(self):

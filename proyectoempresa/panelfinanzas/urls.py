@@ -21,12 +21,6 @@ urlpatterns = [
     # Reportes
     path('reporte/', views.reporte_finanzas, name='reporte'),
     
-    # Categorías
-    path('categorias/', views.lista_categorias, name='lista_categorias'),
-    path('categorias/crear/', views.crear_categoria, name='crear_categoria'),
-    path('categorias/<int:pk>/editar/', views.editar_categoria, name='editar_categoria'),
-    path('categorias/<int:pk>/eliminar/', views.eliminar_categoria, name='eliminar_categoria'),
-    
     # Gastos
     path('gastos/', views.lista_gastos, name='lista_gastos'),
     path('gastos/crear/', views.crear_gasto, name='crear_gasto'),

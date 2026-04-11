@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import PerfilUsuario, Producto, CategoriaProducto, Gasto
+from .models import PerfilUsuario, Producto, Gasto
 
 
 class PerfilUsuarioInline(admin.StackedInline):
@@ -32,23 +32,16 @@ admin.site.register(User, UserAdmin)
 # PerfilUsuario se gestiona como inline dentro del admin de User
 
 
-@admin.register(CategoriaProducto)
-class CategoriaProductoAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'descripcion']
-    search_fields = ['nombre']
-
-
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'categoria', 'precio_costo', 'precio_venta', 
+    list_display = ['nombre', 'precio_costo', 'precio_venta', 
                     'ganancia_unitaria', 'creado_por']
-    list_filter = ['categoria']
     search_fields = ['nombre', 'descripcion']
     readonly_fields = ['ganancia_unitaria', 'porcentaje_ganancia']
     
     fieldsets = (
         ('Información del Producto', {
-            'fields': ('nombre', 'descripcion', 'categoria')
+            'fields': ('nombre', 'descripcion')
         }),
         ('Precios', {
             'fields': ('precio_costo', 'precio_venta')

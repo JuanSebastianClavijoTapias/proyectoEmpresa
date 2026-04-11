@@ -30,19 +30,9 @@
             </div>
             <div class="card-body">
                 <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <label class="text-muted">Nombre</label>
                         <p class="fw-bold fs-5">{{ producto.nombre }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted">Categoría</label>
-                        <p>
-                            {% if producto.categoria %}
-                            <span class="badge bg-secondary">{{ producto.categoria.nombre }}</span>
-                            {% else %}
-                            <span class="text-muted">Sin categoría</span>
-                            {% endif %}
-                        </p>
                     </div>
                 </div>
                 

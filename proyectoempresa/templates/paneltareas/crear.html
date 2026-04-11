@@ -57,6 +57,18 @@
                 {{ form.descripcion_trabajo }}
             </div>
             
+            <!-- Toggle para Placa -->
+            <div class="mb-3">
+                <button type="button" class="btn btn-sm btn-outline-info" id="btn-toggle-placa">
+                    <i class="bi bi-plus-circle me-1"></i> ¿Desea agregar placa?
+                </button>
+                <div id="placa-section" style="display: none; margin-top: 1rem;">
+                    <label class="form-label">Placa del Vehículo</label>
+                    {{ form.placa }}
+                    <small class="text-muted d-block mt-1">Dejar vacío si no aplica</small>
+                </div>
+            </div>
+            
             <hr>
             
             <!-- Productos -->
@@ -84,9 +96,18 @@
                         {% if forloop.first %}
                         <label class="form-label">Placa</label>
                         {% endif %}
-                        <div class="position-relative">
-                            {{ form_producto.placa }}
-                            <div class="placa-suggestions autocomplete-list"></div>
+                        <div class="placa-wrapper">
+                            <button type="button" class="btn btn-outline-secondary w-100 btn-toggle-placa-producto d-flex justify-content-between align-items-center" style="height: 38px; border-style: dashed;">
+                                <span><i class="bi bi-plus-circle"></i> Placa</span>
+                                <span class="badge bg-light text-dark border badge-status">No asigna</span>
+                            </button>
+                            <div class="placa-input-section" style="display: none;">
+                                <div class="input-group" style="height: 38px;">
+                                    {{ form_producto.placa }}
+                                    <button class="btn btn-outline-danger btn-cancel-placa" type="button" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                                <div class="placa-suggestions autocomplete-list"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-1">
@@ -237,6 +258,7 @@
     border-top: none;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 38px;
     display: none;
 }
 .autocomplete-list .autocomplete-item {
@@ -500,9 +522,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="hidden" name="${prefix}-${formNum}-id" id="id_${prefix}-${formNum}-id">
             </div>
             <div class="col-md-2">
-                <div class="position-relative">
-                    <input type="text" name="${prefix}-${formNum}-placa" class="form-control placa-input" placeholder="Placa" id="id_${prefix}-${formNum}-placa" autocomplete="off">
-                    <div class="placa-suggestions autocomplete-list"></div>
+                <div class="placa-wrapper">
+                    <button type="button" class="btn btn-outline-secondary w-100 btn-toggle-placa-producto d-flex justify-content-between align-items-center" style="height: 38px; border-style: dashed;">
+                        <span><i class="bi bi-plus-circle"></i> Placa</span>
+                        <span class="badge bg-light text-dark border badge-status">No asigna</span>
+                    </button>
+                    <div class="placa-input-section" style="display: none;">
+                        <div class="input-group" style="height: 38px;">
+                            <input type="text" name="\${prefix}-\${formNum}-placa" class="form-control placa-input" placeholder="Placa..." id="id_\${prefix}-\${formNum}-placa" autocomplete="off">
+                            <button class="btn btn-outline-danger btn-cancel-placa" type="button" title="Cancelar"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <div class="placa-suggestions autocomplete-list"></div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-1">
@@ -543,6 +574,80 @@ document.addEventListener('DOMContentLoaded', function() {
         totalForms.value = rows.length;
     }
     
+    // ==========================================
+    // TOGGLE PLACA EN PRODUCTOS
+    // ==========================================
+    function setupPlacaToggle(row) {
+        const btnToggle = row.querySelector('.btn-toggle-placa-producto');
+        const btnCancel = row.querySelector('.btn-cancel-placa');
+        const placaInput = row.querySelector('.placa-input-section input[type="text"]');
+        const placaInputSection = row.querySelector('.placa-input-section');
+        const badgeStatus = row.querySelector('.badge-status');
+        
+        if (!btnToggle || !placaInput || !placaInputSection || !btnCancel) return;
+        
+        btnToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            btnToggle.classList.remove('d-flex');
+            btnToggle.style.display = 'none';
+            placaInputSection.style.display = 'block';
+            placaInput.focus();
+        });
+
+        btnCancel.addEventListener('click', function(e) {
+            e.preventDefault();
+            placaInputSection.style.display = 'none';
+            btnToggle.style.display = '';
+            btnToggle.classList.add('d-flex');
+            placaInput.value = '';
+            if (badgeStatus) badgeStatus.textContent = 'No asigna';
+        });
+        
+        // Actualizar badge si el usuario escribe algo (para cuando se muestra el botón nuevamente en futuras ediciones p.ej si se guardara)
+        placaInput.addEventListener('input', function() {
+            if (badgeStatus) {
+                badgeStatus.textContent = this.value.trim() ? this.value.toUpperCase() : 'No asigna';
+            }
+        });
+    }
+    
+    // Inicializar toggles para filas existentes
+    container.querySelectorAll('.producto-row').forEach(row => {
+        setupPlacaToggle(row);
+    });
+    
+    // Re-inicializar toggles cuando se agrega una nueva fila
+    const originalAddClick = btnAdd.onclick;
+    btnAdd.addEventListener('click', function() {
+        setTimeout(() => {
+            const newRow = container.lastElementChild;
+            if (newRow) setupPlacaToggle(newRow);
+        }, 0);
+    });
+    
+    // ==========================================
+    // TOGGLE PLACA GENERAL
+    // ==========================================
+    const btnTogglePlaca = document.getElementById('btn-toggle-placa');
+    const placaSection = document.getElementById('placa-section');
+    const placaInput = document.getElementById('id_placa');
+    
+    btnTogglePlaca.addEventListener('click', function(e) {
+        e.preventDefault();
+        const isVisible = placaSection.style.display !== 'none';
+        placaSection.style.display = isVisible ? 'none' : 'block';
+        
+        // Cambiar texto del botón
+        const icon = btnTogglePlaca.querySelector('i');
+        if (isVisible) {
+            btnTogglePlaca.innerHTML = '<i class="bi bi-plus-circle me-1"></i> ¿Desea agregar placa?';
+            placaInput.value = '';
+        } else {
+            btnTogglePlaca.innerHTML = '<i class="bi bi-minus-circle me-1"></i> Ocultar placa';
+            placaInput.focus();
+        }
+    });
+
     // Initialize totals
     updateTotal();
 });

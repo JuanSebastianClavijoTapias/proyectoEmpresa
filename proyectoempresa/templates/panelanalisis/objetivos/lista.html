@@ -24,50 +24,48 @@
 <div class="row">
     {% for obj in objetivos %}
     <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between">
+        <div class="stat-card proceso h-100">
+            <div class="d-flex justify-content-between mb-3">
                 <strong><i class="bi bi-calendar-month"></i> {{ obj.mes|date:"F Y" }}</strong>
                 {% if es_jefe %}
                 <div>
-                    <a href="{% url 'analisis:editar_objetivo' obj.pk %}" class="btn btn-sm btn-outline-primary">
+                    <a href="{% url 'analisis:editar_objetivo' obj.pk %}" class="btn btn-sm btn-light" style="padding: 0.25rem 0.5rem;">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="{% url 'analisis:eliminar_objetivo' obj.pk %}" class="btn btn-sm btn-outline-danger">
+                    <a href="{% url 'analisis:eliminar_objetivo' obj.pk %}" class="btn btn-sm btn-light" style="padding: 0.25rem 0.5rem;">
                         <i class="bi bi-trash"></i>
                     </a>
                 </div>
                 {% endif %}
             </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    {% if es_jefe %}
-                    <div class="col">
-                        <p class="small text-muted mb-0">Ingresos</p>
-                        <strong>${{ obj.meta_ingresos|floatformat:0 }}</strong>
-                    </div>
-                    <div class="col">
-                        <p class="small text-muted mb-0">Ganancia</p>
-                        <strong>${{ obj.meta_ganancia|floatformat:0 }}</strong>
-                    </div>
-                    {% endif %}
-                    <div class="col">
-                        <p class="small text-muted mb-0">Tareas</p>
-                        <strong>{{ obj.meta_tareas_completadas }}</strong>
-                    </div>
-                    <div class="col">
-                        <p class="small text-muted mb-0">Clientes</p>
-                        <strong>{{ obj.meta_clientes_nuevos }}</strong>
-                    </div>
-                    <div class="col">
-                        <p class="small text-muted mb-0">Items</p>
-                        <strong>{{ obj.meta_items_producidos }}</strong>
-                    </div>
+            <div class="row text-center small">
+                {% if es_jefe %}
+                <div class="col">
+                    <p class="mb-0">Ingresos</p>
+                    <strong>${{ obj.meta_ingresos|floatformat:0 }}</strong>
                 </div>
-                {% if obj.notas %}
-                <hr>
-                <p class="small text-muted mb-0">{{ obj.notas|truncatewords:30 }}</p>
+                <div class="col">
+                    <p class="mb-0">Ganancia</p>
+                    <strong>${{ obj.meta_ganancia|floatformat:0 }}</strong>
+                </div>
                 {% endif %}
+                <div class="col">
+                    <p class="mb-0">Tareas</p>
+                    <strong>{{ obj.meta_tareas_completadas }}</strong>
+                </div>
+                <div class="col">
+                    <p class="mb-0">Clientes</p>
+                    <strong>{{ obj.meta_clientes_nuevos }}</strong>
+                </div>
+                <div class="col">
+                    <p class="mb-0">Items</p>
+                    <strong>{{ obj.meta_items_producidos }}</strong>
+                </div>
             </div>
+            {% if obj.notas %}
+            <hr style="border-color: rgba(255,255,255,0.3);">
+            <p class="small mb-0">{{ obj.notas|truncatewords:30 }}</p>
+            {% endif %}
         </div>
     </div>
     {% endfor %}

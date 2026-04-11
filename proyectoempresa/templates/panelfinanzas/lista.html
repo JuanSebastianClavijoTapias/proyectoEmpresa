@@ -20,13 +20,41 @@
 <!-- Resumen -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="stat-card proceso">
+        <div class="stat-card proceso h-100">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 opacity-75">Total Productos</h6>
+                    <h6 class="mb-1 opacity-75">Total de Productos</h6>
                     <h3>{{ productos.count }}</h3>
                 </div>
                 <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card completadas h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Ganancia Histórica Total</h6>
+                    <h3>${{ ganancia_total_historica|floatformat:0|default:"0" }}</h3>
+                </div>
+                <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card urgentes h-100" {% if mas_vendido %}style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modalMasVendido"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Producto más vendido</h6>
+                    {% if mas_vendido %}
+                        <h4 class="mb-0 fw-bold">{{ mas_vendido.producto__nombre|truncatechars:18 }}</h4>
+                        <small class="opacity-75">{{ mas_vendido.total }} vendidos</small>
+                    {% else %}
+                        <h4 class="mb-0 fw-bold">Ninguno</h4>
+                        <small class="opacity-75">Sin ventas registradas</small>
+                    {% endif %}
+                </div>
+                <i class="bi bi-trophy" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
         </div>
     </div>
@@ -39,10 +67,6 @@
             <div class="col-md-4">
                 <label class="form-label">Buscar</label>
                 {{ form_filtro.buscar }}
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Categoría</label>
-                {{ form_filtro.categoria }}
             </div>
             <div class="col-md-4">
                 <button type="submit" class="btn btn-primary me-2">
@@ -68,7 +92,6 @@
                 <thead>
                     <tr>
                         <th>Producto</th>
-                        <th>Categoría</th>
                         <th class="text-end">P. Costo</th>
                         <th class="text-end">P. Venta</th>
                         <th class="text-end">Ganancia Unit.</th>
@@ -84,13 +107,6 @@
                             </a>
                             {% if producto.descripcion %}
                             <br><small class="text-muted">{{ producto.descripcion|truncatewords:8 }}</small>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if producto.categoria %}
-                            <span class="badge bg-secondary">{{ producto.categoria.nombre }}</span>
-                            {% else %}
-                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         <td class="text-end">${{ producto.precio_costo|floatformat:0 }}</td>
@@ -128,4 +144,86 @@
         {% endif %}
     </div>
 </div>
+
+{% if mas_vendido %}
+<!-- Modal Producto Más Vendido -->
+<div class="modal fade" id="modalMasVendido" tabindex="-1" aria-labelledby="modalMasVendidoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalMasVendidoLabel">
+                    <i class="bi bi-trophy me-2 text-warning"></i>Historial de Tareas: {{ mas_vendido.producto__nombre }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha Ingreso</th>
+                                <th>Tarea / Cliente</th>
+                                <th>Estado</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-end">Cobrado Tarea</th>
+                                <th class="text-end">Abonado Tarea</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p_tarea in tareas_mas_vendido %}
+                            <tr>
+                                <td class="align-middle text-nowrap">
+                                    <i class="bi bi-calendar-event me-1 text-muted"></i>
+                                    {{ p_tarea.tarea.fecha_ingreso|date:"d M Y" }}
+                                </td>
+                                <td>
+                                    <strong>{{ p_tarea.tarea.descripcion_trabajo|truncatechars:35 }}</strong>
+                                    {% if p_tarea.tarea.nombre_cliente %}
+                                    <br><small class="text-muted"><i class="bi bi-person me-1"></i>{{ p_tarea.tarea.nombre_cliente }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="align-middle">
+                                    {% if p_tarea.tarea.estado == 'completado' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">Completado</span>
+                                    {% elif p_tarea.tarea.estado == 'en_proceso' %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">En Proceso</span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">Pendiente</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center align-middle fw-bold">
+                                    {{ p_tarea.cantidad }}
+                                </td>
+                                <td class="text-end align-middle">
+                                    {% if p_tarea.precio_cobrado %}
+                                    <span class="text-success fw-bold">${{ p_tarea.precio_cobrado|floatformat:0 }}</span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end align-middle">
+                                    {% if p_tarea.tarea.monto_abonado %}
+                                    <span class="text-primary fw-bold">${{ p_tarea.tarea.monto_abonado|floatformat:0 }}</span>
+                                    {% else %}
+                                    <span class="text-muted">$0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No se encontraron tareas vinculadas a este producto.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

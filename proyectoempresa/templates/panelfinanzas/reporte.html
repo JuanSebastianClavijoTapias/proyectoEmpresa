@@ -87,49 +87,12 @@
     </div>
 </div>
 
-<div class="row">
-    <!-- Productos por Categoría -->
-    <div class="col-md-6">
-        <div class="card mb-4">
-            <div class="card-header">
-                <i class="bi bi-pie-chart me-2"></i>Ganancia por Categoría
-            </div>
-            <div class="card-body p-0">
-                {% if por_categoria %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Categoría</th>
-                                <th class="text-center">Productos</th>
-                                <th class="text-end">Ganancia</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for cat in por_categoria %}
-                            <tr>
-                                <td>{{ cat.categoria__nombre|default:"Sin categoría" }}</td>
-                                <td class="text-center">{{ cat.cantidad }}</td>
-                                <td class="text-end text-success fw-bold">${{ cat.total_ganancia|floatformat:2 }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4 text-muted">
-                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                    <p class="mb-0 mt-2">No hay datos para mostrar</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+<div class="row w-100 justify-content-center">
     
     <!-- Top Productos más Rentables -->
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header">
+            <div class="card-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white;">
                 <i class="bi bi-trophy me-2"></i>Top 5 Productos Más Entregados
             </div>
             <div class="card-body p-0">
@@ -175,7 +138,7 @@
 
 <!-- Gastos por Categoría -->
 <div class="card mb-4">
-    <div class="card-header">
+    <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white;">
         <i class="bi bi-cash-coin me-2"></i>Gastos por Categoría
     </div>
     <div class="card-body p-0">

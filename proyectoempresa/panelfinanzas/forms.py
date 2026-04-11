@@ -1,5 +1,5 @@
 from django import forms
-from .models import Producto, CategoriaProducto, Gasto
+from .models import Producto, Gasto
 
 
 class ProductoForm(forms.ModelForm):
@@ -8,7 +8,7 @@ class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = [
-            'nombre', 'descripcion', 'categoria', 
+            'nombre', 'descripcion', 
             'precio_costo', 'precio_venta', 'es_precio_variable',
         ]
         widgets = {
@@ -20,9 +20,6 @@ class ProductoForm(forms.ModelForm):
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Descripción del producto (opcional)'
-            }),
-            'categoria': forms.Select(attrs={
-                'class': 'form-select'
             }),
             'precio_costo': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -41,37 +38,9 @@ class ProductoForm(forms.ModelForm):
             }),
         }
 
-
-class CategoriaProductoForm(forms.ModelForm):
-    """Formulario para crear/editar categorías"""
-    
-    class Meta:
-        model = CategoriaProducto
-        fields = ['nombre', 'descripcion']
-        widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Nombre de la categoría'
-            }),
-            'descripcion': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 2,
-                'placeholder': 'Descripción (opcional)'
-            }),
-        }
-
-
 class FiltroProductoForm(forms.Form):
     """Formulario para filtrar productos del catálogo"""
     
-    categoria = forms.ModelChoiceField(
-        queryset=CategoriaProducto.objects.all(),
-        required=False,
-        empty_label='Todas las categorías',
-        widget=forms.Select(attrs={
-            'class': 'form-select'
-        })
-    )
     buscar = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -96,14 +65,6 @@ class FiltroHistorialForm(forms.Form):
         widget=forms.DateInput(attrs={
             'class': 'form-control',
             'type': 'date'
-        })
-    )
-    categoria = forms.ModelChoiceField(
-        queryset=CategoriaProducto.objects.all(),
-        required=False,
-        empty_label='Todas las categorías',
-        widget=forms.Select(attrs={
-            'class': 'form-select'
         })
     )
 

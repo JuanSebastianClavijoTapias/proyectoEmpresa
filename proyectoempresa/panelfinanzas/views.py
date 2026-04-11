@@ -9,8 +9,8 @@ from functools import wraps
 from datetime import date, timedelta
 from decimal import Decimal
 
-from .models import Producto, CategoriaProducto, PerfilUsuario, Gasto
-from .forms import ProductoForm, CategoriaProductoForm, FiltroProductoForm, FiltroHistorialForm, GastoForm
+from .models import Producto, PerfilUsuario, Gasto
+from .forms import ProductoForm, FiltroProductoForm, FiltroHistorialForm, GastoForm
 from paneltareas.models import ProductoTarea
 
 
@@ -90,17 +90,29 @@ def lista_productos(request):
     
     # Aplicar filtros
     if form_filtro.is_valid():
-        categoria = form_filtro.cleaned_data.get('categoria')
         buscar = form_filtro.cleaned_data.get('buscar')
         
-        if categoria:
-            productos = productos.filter(categoria=categoria)
         if buscar:
             productos = productos.filter(nombre__icontains=buscar)
+    
+    # Producto Más Vendido
+    mas_vendido = ProductoTarea.objects.filter(producto__isnull=False).values('producto_id', 'producto__nombre').annotate(total=Sum('cantidad')).order_by('-total').first()
+    
+    tareas_mas_vendido = []
+    if mas_vendido and mas_vendido.get('producto_id'):
+        tareas_mas_vendido = ProductoTarea.objects.filter(
+            producto_id=mas_vendido['producto_id']
+        ).select_related('tarea').order_by('-tarea__fecha_ingreso')
+    
+    # Ganancia total histórica de todos los productos vendidos
+    ganancia_total_historica = sum(pt.ganancia_total for pt in ProductoTarea.objects.all())
     
     context = {
         'productos': productos,
         'form_filtro': form_filtro,
+        'mas_vendido': mas_vendido,
+        'tareas_mas_vendido': tareas_mas_vendido,
+        'ganancia_total_historica': ganancia_total_historica,
     }
     return render(request, 'panelfinanzas/lista.html', context)
 
@@ -183,14 +195,11 @@ def historial_entregas(request):
     if form_filtro.is_valid():
         fecha_desde = form_filtro.cleaned_data.get('fecha_desde')
         fecha_hasta = form_filtro.cleaned_data.get('fecha_hasta')
-        categoria = form_filtro.cleaned_data.get('categoria')
         
         if fecha_desde:
             entregas = entregas.filter(fecha_registro__date__gte=fecha_desde)
         if fecha_hasta:
             entregas = entregas.filter(fecha_registro__date__lte=fecha_hasta)
-        if categoria:
-            entregas = entregas.filter(producto__categoria=categoria)
     
     # Calcular totales
     total_costo = Decimal('0')
@@ -229,7 +238,8 @@ def reporte_finanzas(request):
     if fecha_desde:
         fecha_desde = date.fromisoformat(fecha_desde)
     else:
-        fecha_desde = hoy.replace(day=1)
+        # Por defecto muestra todo el año si no hay filtro activo
+        fecha_desde = hoy.replace(month=1, day=1)
     
     if fecha_hasta:
         fecha_hasta = date.fromisoformat(fecha_hasta)
@@ -261,18 +271,6 @@ def reporte_finanzas(request):
     porcentaje_ganancia = 0
     if total_costos > 0:
         porcentaje_ganancia = ((total_ventas - total_costos) / total_costos) * 100
-    
-    # Entregas por categoría (calculado en Python para evitar problemas con expresiones complejas)
-    cat_dict = {}
-    for e in entregas:
-        cat_name = e.producto.categoria.nombre if e.producto and e.producto.categoria else None
-        if cat_name is None:
-            continue
-        if cat_name not in cat_dict:
-            cat_dict[cat_name] = {'producto__categoria__nombre': cat_name, 'cantidad': 0, 'total_ganancia': Decimal('0')}
-        cat_dict[cat_name]['cantidad'] += 1
-        cat_dict[cat_name]['total_ganancia'] += e.ganancia_total
-    por_categoria = sorted(cat_dict.values(), key=lambda x: x['total_ganancia'], reverse=True)
     
     # Top 5 productos más entregados
     prod_dict = {}
@@ -317,7 +315,6 @@ def reporte_finanzas(request):
         'total_ventas': total_ventas,
         'total_ganancias': total_ganancias,
         'porcentaje_ganancia': porcentaje_ganancia,
-        'por_categoria': por_categoria,
         'top_productos': top_productos,
         'total_gastos': total_gastos,
         'gastos_por_categoria': gastos_por_categoria,
@@ -326,67 +323,6 @@ def reporte_finanzas(request):
     }
     
     return render(request, 'panelfinanzas/reporte.html', context)
-
-
-# =============================================
-# VISTAS DE CATEGORÍAS (SOLO JEFES)
-# =============================================
-
-@solo_jefes
-def lista_categorias(request):
-    """Lista de categorías de productos"""
-    categorias = CategoriaProducto.objects.annotate(
-        num_productos=Count('productos')
-    )
-    return render(request, 'panelfinanzas/categorias/lista.html', {'categorias': categorias})
-
-
-@solo_jefes
-def crear_categoria(request):
-    """Crear una nueva categoría"""
-    if request.method == 'POST':
-        form = CategoriaProductoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Categoría creada correctamente.')
-            return redirect('finanzas:lista_categorias')
-    else:
-        form = CategoriaProductoForm()
-    
-    return render(request, 'panelfinanzas/categorias/crear.html', {'form': form})
-
-
-@solo_jefes
-def editar_categoria(request, pk):
-    """Editar una categoría"""
-    categoria = get_object_or_404(CategoriaProducto, pk=pk)
-    
-    if request.method == 'POST':
-        form = CategoriaProductoForm(request.POST, instance=categoria)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Categoría actualizada correctamente.')
-            return redirect('finanzas:lista_categorias')
-    else:
-        form = CategoriaProductoForm(instance=categoria)
-    
-    return render(request, 'panelfinanzas/categorias/editar.html', {
-        'form': form, 
-        'categoria': categoria
-    })
-
-
-@solo_jefes
-def eliminar_categoria(request, pk):
-    """Eliminar una categoría"""
-    categoria = get_object_or_404(CategoriaProducto, pk=pk)
-    
-    if request.method == 'POST':
-        categoria.delete()
-        messages.success(request, 'Categoría eliminada correctamente.')
-        return redirect('finanzas:lista_categorias')
-    
-    return render(request, 'panelfinanzas/categorias/eliminar.html', {'categoria': categoria})
 
 
 # =============================================

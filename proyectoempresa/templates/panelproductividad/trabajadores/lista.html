@@ -17,56 +17,53 @@
 <div class="row">
     {% for trabajador in trabajadores %}
     <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 {% if not trabajador.activo %}border-secondary{% endif %}">
-            <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="stat-card {% cycle 'proceso' 'completadas' 'clientes' 'pendientes' 'urgentes' 'completadas' %} h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
                 <span>
                     <i class="bi bi-person-circle me-2"></i>
                     <strong>{{ trabajador.nombre }}</strong>
                 </span>
                 {% if trabajador.activo %}
-                    <span class="badge bg-success">Activo</span>
+                    <span class="badge bg-white bg-opacity-25">Activo</span>
                 {% else %}
-                    <span class="badge bg-secondary">Inactivo</span>
+                    <span class="badge bg-white bg-opacity-25">Inactivo</span>
                 {% endif %}
             </div>
-            <div class="card-body">
-                <h6 class="text-muted mb-3">Producción de Hoy</h6>
-                <div class="row text-center mb-3">
-                    <div class="col-4">
-                        <div class="bg-light rounded p-2">
-                            <h5 class="mb-0">{{ trabajador.stats_hoy.cortado|default:0 }}</h5>
-                            <small class="text-muted">Cortado</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="bg-light rounded p-2">
-                            <h5 class="mb-0">{{ trabajador.stats_hoy.costura|default:0 }}</h5>
-                            <small class="text-muted">Costura</small>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="bg-light rounded p-2">
-                            <h5 class="mb-0">{{ trabajador.stats_hoy.sillas|default:0 }}</h5>
-                            <small class="text-muted">Sillas</small>
-                        </div>
+            <h6 class="small mb-2">Producción de Hoy</h6>
+            <div class="row text-center small mb-2">
+                <div class="col-4">
+                    <div style="background-color: rgba(255,255,255,0.2); border-radius: 0.25rem; padding: 0.5rem;">
+                        <h5 class="mb-0">{{ trabajador.stats_hoy.cortado|default:0 }}</h5>
+                        <small>Cortado</small>
                     </div>
                 </div>
-                
-                <h6 class="text-muted mb-2">Este Mes</h6>
-                <div class="d-flex justify-content-between text-sm">
-                    <span>Cortado total: <strong>{{ trabajador.total_cortado_mes }}</strong></span>
-                    <span>Sillas total: <strong>{{ trabajador.total_sillas_mes }}</strong></span>
+                <div class="col-4">
+                    <div style="background-color: rgba(255,255,255,0.2); border-radius: 0.25rem; padding: 0.5rem;">
+                        <h5 class="mb-0">{{ trabajador.stats_hoy.costura|default:0 }}</h5>
+                        <small>Costura</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div style="background-color: rgba(255,255,255,0.2); border-radius: 0.25rem; padding: 0.5rem;">
+                        <h5 class="mb-0">{{ trabajador.stats_hoy.sillas|default:0 }}</h5>
+                        <small>Sillas</small>
+                    </div>
                 </div>
             </div>
-            <div class="card-footer bg-white">
-                <div class="d-flex gap-2">
-                    <a href="{% url 'productividad:detalle_trabajador' trabajador.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                        <i class="bi bi-bar-chart"></i> Ver Estadísticas
-                    </a>
-                    <a href="{% url 'productividad:editar_trabajador' trabajador.pk %}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                </div>
+            
+            <h6 class="small mb-1">Este Mes</h6>
+            <div class="d-flex justify-content-between small">
+                <span>Cortado total: <strong>{{ trabajador.total_cortado_mes }}</strong></span>
+                <span>Sillas total: <strong>{{ trabajador.total_sillas_mes }}</strong></span>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.3); margin: 0.5rem 0;">
+            <div class="d-flex gap-2" style="font-size: 0.875rem;">
+                <a href="{% url 'productividad:detalle_trabajador' trabajador.pk %}" class="btn btn-light btn-sm flex-grow-1">
+                    <i class="bi bi-bar-chart"></i> Ver Estadísticas
+                </a>
+                <a href="{% url 'productividad:editar_trabajador' trabajador.pk %}" class="btn btn-light btn-sm">
+                    <i class="bi bi-pencil"></i>
+                </a>
             </div>
         </div>
     </div>

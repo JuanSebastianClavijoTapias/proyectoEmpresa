@@ -13,7 +13,7 @@ from .models import ObjetivoMensual, NotaAnalisis
 from .forms import FiltroAnalisisForm, ObjetivoMensualForm, NotaAnalisisForm
 from paneltareas.models import TareaPlanificada, Cliente, ProductoTarea
 from panelproductividad.models import RegistroProductividad, Trabajador
-from panelfinanzas.models import Producto, CategoriaProducto, PerfilUsuario
+from panelfinanzas.models import Producto, PerfilUsuario
 
 
 # =============================================
@@ -40,7 +40,7 @@ def solo_jefes(view_func):
 
 
 def _obtener_rango_fechas(request):
-    """Obtiene el rango de fechas del request o usa valores por defecto (mes actual)"""
+    """Obtiene el rango de fechas del request o usa valores por defecto (todo el año si no hay filtro)"""
     hoy = date.today()
     fecha_desde = request.GET.get('fecha_desde')
     fecha_hasta = request.GET.get('fecha_hasta')
@@ -48,7 +48,8 @@ def _obtener_rango_fechas(request):
     if fecha_desde:
         fecha_desde = date.fromisoformat(fecha_desde)
     else:
-        fecha_desde = hoy.replace(day=1)
+        # Por defecto muestra de todo el año para no ver las métricas en 0
+        fecha_desde = hoy.replace(month=1, day=1)
     
     if fecha_hasta:
         fecha_hasta = date.fromisoformat(fecha_hasta)
@@ -508,26 +509,6 @@ def analisis_financiero(request):
     total_ganancia = total_ingresos - total_costos
     margen_promedio = round(float(total_ganancia / total_ingresos * 100), 1) if total_ingresos > 0 else 0
     
-    # Rentabilidad por categoría
-    por_categoria = []
-    categorias = CategoriaProducto.objects.all()
-    for cat in categorias:
-        entregas_cat = entregas.filter(producto__categoria=cat)
-        if entregas_cat.exists():
-            ing = sum(e.total_venta for e in entregas_cat)
-            cos = sum(e.total_costo for e in entregas_cat)
-            gan = ing - cos
-            cant = sum(e.cantidad for e in entregas_cat)
-            por_categoria.append({
-                'nombre': cat.nombre,
-                'ingresos': ing,
-                'costos': cos,
-                'ganancia': gan,
-                'cantidad': cant,
-                'margen': round(float(gan / ing * 100), 1) if ing > 0 else 0,
-            })
-    por_categoria.sort(key=lambda x: x['ganancia'], reverse=True)
-    
     # Productos más rentables
     productos_rentabilidad = []
     productos_unicos = entregas.values('nombre_producto').distinct()
@@ -572,11 +553,6 @@ def analisis_financiero(request):
             })
     morosos.sort(key=lambda x: x['saldo'], reverse=True)
     
-    # Datos para gráfica de categorías
-    cat_labels = [c['nombre'] for c in por_categoria]
-    cat_ingresos = [float(c['ingresos']) for c in por_categoria]
-    cat_ganancia = [float(c['ganancia']) for c in por_categoria]
-    
     context = {
         'form_filtro': form_filtro,
         'fecha_desde': fecha_desde,
@@ -586,16 +562,12 @@ def analisis_financiero(request):
         'total_ganancia': total_ganancia,
         'total_cantidad': total_cantidad,
         'margen_promedio': margen_promedio,
-        'por_categoria': por_categoria,
         'productos_rentabilidad': productos_rentabilidad[:15],
         'total_facturado': total_facturado,
         'total_abonado': total_abonado,
         'saldo_pendiente': saldo_pendiente,
         'tasa_cobro': tasa_cobro,
         'morosos': morosos,
-        'cat_labels': json.dumps(cat_labels),
-        'cat_ingresos': json.dumps(cat_ingresos),
-        'cat_ganancia': json.dumps(cat_ganancia),
     }
     return render(request, 'panelanalisis/financiero.html', context)
 

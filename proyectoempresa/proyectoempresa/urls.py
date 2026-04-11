@@ -29,6 +29,7 @@ urlpatterns = [
     path('dashboard/', home, name='dashboard'),
     path('home/', home, name='home'),  # Alias para compatibilidad
     # Apps
+    path('trabajador/', include('panelproductividad.urls_trabajador')),
     path('productividad/', include('panelproductividad.urls')),
     path('tareas/', include('paneltareas.urls')),
     path('finanzas/', include('panelfinanzas.urls')),
