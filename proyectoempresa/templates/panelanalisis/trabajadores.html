@@ -6,11 +6,13 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1><i class="bi bi-person-lines-fill"></i> Rendimiento por Trabajador</h1>
-        <p class="text-muted mb-0">Análisis detallado de productividad individual</p>
+        <p class="text-white mb-0">Análisis detallado de productividad individual</p>
     </div>
+    {% if not request.user.trabajador %}
     <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Volver al Dashboard
     </a>
+    {% endif %}
 </div>
 
 <!-- Filtro de Fechas -->
@@ -91,7 +93,7 @@
                             {% elif forloop.counter == 3 %}
                                 <span class="badge bg-info">3°</span>
                             {% else %}
-                                <span class="text-muted">{{ forloop.counter }}°</span>
+                                <span class="text-white mb-0">{{ forloop.counter }}°</span>
                             {% endif %}
                         </td>
                         <td><strong>{{ r.trabajador.nombre }}</strong></td>
@@ -199,3 +201,5 @@ new Chart(ctxProd, {
 });
 </script>
 {% endblock %}
+
+

@@ -6,7 +6,7 @@
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap">
     <div>
         <h1><i class="bi bi-graph-up"></i> Panel de Productividad</h1>
-        <p class="text-muted">Registro de procesos realizados por trabajador</p>
+        <p class="text-white mb-0">Registro de procesos realizados por trabajador</p>
     </div>
     <a href="{% url 'productividad:crear' %}" class="btn btn-primary">
         <i class="bi bi-plus-circle me-2"></i> Nuevo Registro
@@ -55,7 +55,12 @@
         <form method="get" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Fecha</label>
-                <input type="date" name="fecha" class="form-control" value="{{ request.GET.fecha }}">
+                <div class="input-group">
+                    <input type="date" name="fecha" class="form-control" value="{{ request.GET.fecha }}">
+                    <button type="button" class="btn btn-outline-primary btn-fecha-hoy" style="border-radius: 0 8px 8px 0;" title="Establecer fecha de hoy">
+                        <i class="bi bi-calendar-check"></i> Hoy
+                    </button>
+                </div>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Trabajador</label>
@@ -141,3 +146,33 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<style>
+    .input-group .form-control,
+    .input-group .form-select,
+    .input-group .btn {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .input-group .form-control,
+    .input-group .form-select {
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .input-group .btn {
+        border-radius: 0 8px 8px 0;
+        border-left: none;
+        border-color: #e0e0e0;
+    }
+    
+    .input-group .btn:hover {
+        background-color: #667eea;
+        color: white;
+    }
+</style>
+<script src="{% static 'js/date-today-button.js' %}"></script>
+{% endblock %}
+

@@ -1,0 +1,351 @@
+<!-- 
+TAPICERÍA CUIR - EJEMPLO DE TEMPLATE CON PALETA DE LUJO
+Demuestra cómo aplicar correctamente la paleta de colores #2B1B17
+en nuevos templates o actualizaciones existentes.
+-->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ejemplo - Paleta de Lujo{% endblock %}
+
+{% block content %}
+
+<!-- ===== PAGE HEADER (Automático con paleta) ===== -->
+<div class="page-header">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb" style="background: transparent;">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" style="color: var(--gold-sand);">Dashboard</a></li>
+            <li class="breadcrumb-item active" style="color: var(--light-cream);">Ejemplo</li>
+        </ol>
+    </nav>
+    <h1>
+        <i class="bi bi-palette"></i> Ejemplo de Paleta de Lujo
+    </h1>
+    <p>Demuestra cómo usar correctamente los colores y componentes</p>
+</div>
+
+<!-- ===== SECTION 1: STATISTICS CARDS ===== -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card pendientes">
+            <h3>42</h3>
+            <small>Tareas Pendientes</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card proceso">
+            <h3>18</h3>
+            <small>En Proceso</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card completadas">
+            <h3>156</h3>
+            <small>Completadas</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card clientes">
+            <h3>23</h3>
+            <small>Clientes Activos</small>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 2: CARDS CON CONTENIDO ===== -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-award me-2" style="color: var(--gold-sand);"></i>
+                Tarjeta Principal
+            </div>
+            <div class="card-body">
+                <p>Esta es una tarjeta con los estilos de lujo aplicados automáticamente.</p>
+                <p class="text-secondary">Texto en oro viejo para elementos secundarios.</p>
+                <p class="text-white mb-0">Texto en gris para contenido terciario.</p>
+                
+                <div class="mt-3">
+                    <span class="badge badge-primary me-2">Activo</span>
+                    <span class="badge badge-secondary">Categoría</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-exclamation-triangle me-2" style="color: var(--warning);"></i>
+                Alertas y Estados
+            </div>
+            <div class="card-body">
+                <!-- Alerta de éxito -->
+                <div class="alert alert-success mb-3">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong>Éxito:</strong> Operación completada correctamente.
+                </div>
+                
+                <!-- Alerta de advertencia -->
+                <div class="alert alert-warning mb-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Advertencia:</strong> Requiere tu atención.
+                </div>
+                
+                <!-- Alerta de error -->
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>Error:</strong> Ha ocurrido un problema.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 3: BOTONES ===== -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-cursor-fill me-2" style="color: var(--gold-sand);"></i>
+                Botones Principales
+            </div>
+            <div class="card-body">
+                <button class="btn btn-primary me-2 mb-2">
+                    <i class="bi bi-plus-circle me-1"></i> Botón Primario
+                </button>
+                <button class="btn btn-secondary me-2 mb-2">
+                    <i class="bi bi-pencil me-1"></i> Botón Secundario
+                </button>
+                <button class="btn btn-outline-primary me-2 mb-2">
+                    <i class="bi bi-star me-1"></i> Botón Outline
+                </button>
+                <br>
+                <button class="btn btn-danger me-2 mb-2">
+                    <i class="bi bi-trash me-1"></i> Eliminar
+                </button>
+                <button class="btn btn-success me-2 mb-2">
+                    <i class="bi bi-check me-1"></i> Confirmar
+                </button>
+                <button class="btn btn-warning me-2 mb-2">
+                    <i class="bi bi-exclamation me-1"></i> Acción
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-input-cursor me-2" style="color: var(--gold-sand);"></i>
+                Tamaños de Botones
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Botones en diferentes tamaños:</p>
+                <button class="btn btn-primary mb-2">Botón Normal</button><br>
+                <button class="btn btn-primary btn-sm">Botón Pequeño</button><br>
+                <button class="btn btn-primary btn-lg">Botón Grande</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 4: FORMULARIOS ===== -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-form-check me-2" style="color: var(--gold-sand);"></i>
+                Formulario Ejemplo
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" placeholder="Ingresa tu nombre completo">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" placeholder="tu@email.com">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Categoría *</label>
+                            <select class="form-select">
+                                <option selected>Selecciona una categoría</option>
+                                <option value="1">Opción 1</option>
+                                <option value="2">Opción 2</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Fecha *</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" rows="4" placeholder="Ingresa detalles..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="checkbox1">
+                        <label class="form-check-label" for="checkbox1">
+                            Acepto los términos y condiciones
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Enviar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2" style="color: var(--gold-sand);"></i>
+                Información Importante
+            </div>
+            <div class="card-body">
+                <p class="text-leather mb-2">
+                    <strong>Color Principal:</strong><br>
+                    <code>#2B1B17</code> (Marrón Cuero Oscuro)
+                </p>
+                <p class="text-gold mb-2">
+                    <strong>Color de Realce:</strong><br>
+                    <code>#B88A4D</code> (Dorado Arena)
+                </p>
+                <p class="text-white mb-0">
+                    <strong>Color Secundario:</strong><br>
+                    <code>#D4A373</code> (Oro Viejo)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 5: TABLAS ===== -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-table me-2" style="color: var(--gold-sand);"></i>
+                Tabla Ejemplo
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Tarea Principal</td>
+                                <td><span class="badge badge-success">Completado</span></td>
+                                <td><span class="badge badge-danger">Alta</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Tarea Secundaria</td>
+                                <td><span class="badge badge-warning">En Proceso</span></td>
+                                <td><span class="badge badge-secondary">Media</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Tarea Nueva</td>
+                                <td><span class="badge badge-info">Pendiente</span></td>
+                                <td><span class="badge badge-secondary">Baja</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SECTION 6: COLORES UTILIDAD ===== -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-palette me-2" style="color: var(--gold-sand);"></i>
+                Clases de Texto
+            </div>
+            <div class="card-body">
+                <p class="text-gold"><strong>text-gold:</strong> Dorado Arena</p>
+                <p class="text-leather"><strong>text-leather:</strong> Cuero Oscuro</p>
+                <p class="text-secondary"><strong>text-secondary:</strong> Oro Viejo</p>
+                <p class="text-white mb-0"><strong>text-muted:</strong> Gris Medio</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-palette me-2" style="color: var(--gold-sand);"></i>
+                Clases de Fondo
+            </div>
+            <div class="card-body">
+                <div class="bg-leather text-white p-2 mb-2 rounded">
+                    <strong>bg-leather:</strong> Fondo Cuero Oscuro
+                </div>
+                <div class="bg-leather-light text-dark p-2 mb-2 rounded">
+                    <strong>bg-leather-light:</strong> Fondo Cuero Ligero
+                </div>
+                <div class="bg-gold text-white p-2 rounded">
+                    <strong>bg-gold:</strong> Fondo Dorado Arena
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FOOTER NOTE ===== -->
+<div class="alert alert-info mb-0">
+    <i class="bi bi-lightbulb me-2"></i>
+    <strong>Tip:</strong> Para agregar estas clases a un nuevo template, asegúrate de heredar de 
+    <code>base.html</code> y el archivo <code>luxury-palette.css</code> se cargará automáticamente.
+</div>
+
+{% endblock %}
+
+

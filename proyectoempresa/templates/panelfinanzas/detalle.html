@@ -31,14 +31,14 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <label class="text-muted">Nombre</label>
+                        <label class="text-white mb-0">Nombre</label>
                         <p class="fw-bold fs-5">{{ producto.nombre }}</p>
                     </div>
                 </div>
                 
                 {% if producto.descripcion %}
                 <div class="mb-3">
-                    <label class="text-muted">Descripción</label>
+                    <label class="text-white mb-0">Descripción</label>
                     <p>{{ producto.descripcion }}</p>
                 </div>
                 {% endif %}
@@ -98,22 +98,22 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Precio de Costo:</span>
+                    <span class="text-white mb-0">Precio de Costo:</span>
                     <span class="fw-bold">${{ producto.precio_costo|floatformat:0 }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Precio de Venta:</span>
+                    <span class="text-white mb-0">Precio de Venta:</span>
                     <span class="fw-bold">${{ producto.precio_venta|floatformat:0 }}</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Ganancia Unitaria:</span>
+                    <span class="text-white mb-0">Ganancia Unitaria:</span>
                     <span class="fw-bold {% if producto.ganancia_unitaria > 0 %}text-success{% else %}text-danger{% endif %}">
                         ${{ producto.ganancia_unitaria|floatformat:0 }}
                     </span>
                 </div>
                 <div class="d-flex justify-content-between">
-                    <span class="text-muted">% Ganancia:</span>
+                    <span class="text-white mb-0">% Ganancia:</span>
                     <span class="fw-bold">{{ producto.porcentaje_ganancia|floatformat:1 }}%</span>
                 </div>
             </div>
@@ -126,16 +126,16 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Creado:</span>
+                    <span class="text-white mb-0">Creado:</span>
                     <span>{{ producto.creado_en|date:"d/m/Y H:i" }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Actualizado:</span>
+                    <span class="text-white mb-0">Actualizado:</span>
                     <span>{{ producto.actualizado_en|date:"d/m/Y H:i" }}</span>
                 </div>
                 {% if producto.creado_por %}
                 <div class="d-flex justify-content-between">
-                    <span class="text-muted">Registrado por:</span>
+                    <span class="text-white mb-0">Registrado por:</span>
                     <span>{{ producto.creado_por.username }}</span>
                 </div>
                 {% endif %}
@@ -150,3 +150,4 @@
     </a>
 </div>
 {% endblock %}
+

@@ -1,0 +1,1122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tablero Kanban - Tareas{% endblock %}
+
+{% block content %}
+<!-- Header con Gradiente -->
+<div class="page-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2.5rem 0; margin: -1rem -1rem 2rem -1rem; border-radius: 10px;">
+    <div style="padding: 0 1rem;">
+        <h1 style="color: white; margin-bottom: 0.5rem;">
+            <i class="bi bi-kanban me-2"></i>Tablero Kanban
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0;">Organiza tus tareas arrastrándolas entre columnas</p>
+    </div>
+</div>
+
+<!-- Barra de Controles -->
+<div class="mb-4">
+    <div class="card shadow-sm border-0" style="border-radius: 10px;">
+        <div class="card-body" style="padding: 1.5rem;">
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label class="form-label fw-bold" style="color: #333;">
+                        <i class="bi bi-person me-2" style="color: #667eea;"></i>Filtrar por Cliente
+                    </label>
+                    <input type="text" id="filtro-cliente" class="form-control" placeholder="Ej: Juan García" style="border-radius: 8px; border: 2px solid #e0e0e0;">
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label class="form-label fw-bold" style="color: #333;">
+                        <i class="bi bi-car-front-fill me-2" style="color: #667eea;"></i>Filtrar por Placa
+                    </label>
+                    <input type="text" id="filtro-placa" class="form-control" placeholder="Ej: ABC-123" style="border-radius: 8px; border: 2px solid #e0e0e0;">
+                </div>
+                <div class="col-md-3 mb-3 mb-md-0">
+                    <label class="form-label fw-bold" style="color: #333;">
+                        <i class="bi bi-exclamation-triangle me-2" style="color: #667eea;"></i>Prioridad
+                    </label>
+                    <select id="filtro-prioridad" class="form-select" style="border-radius: 8px; border: 2px solid #e0e0e0;">
+                        <option value="">Todas</option>
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                        <option value="urgente">Urgente</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button id="btn-filtrar" class="btn btn-primary w-100" style="border-radius: 8px; font-weight: 600;">
+                        <i class="bi bi-funnel me-2"></i>Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas Rápidas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 10px; border-left: 5px solid #f39c12;">
+            <div class="card-body" style="padding: 1.25rem;">
+                <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-hourglass-split me-1" style="color: #f39c12;"></i>Pendientes
+                </p>
+                <h3 class="mb-0" style="color: #f39c12; font-weight: bold;">
+                    <span class="stat-pendiente">0</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 10px; border-left: 5px solid #3498db;">
+            <div class="card-body" style="padding: 1.25rem;">
+                <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-gear-fill me-1" style="color: #3498db;"></i>En Proceso
+                </p>
+                <h3 class="mb-0" style="color: #3498db; font-weight: bold;">
+                    <span class="stat-en_proceso">0</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 10px; border-left: 5px solid #2ecc71;">
+            <div class="card-body" style="padding: 1.25rem;">
+                <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-check-circle-fill me-1" style="color: #2ecc71;"></i>Completadas
+                </p>
+                <h3 class="mb-0" style="color: #2ecc71; font-weight: bold;">
+                    <span class="stat-completado">0</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm" style="border-radius: 10px; border-left: 5px solid #e74c3c;">
+            <div class="card-body" style="padding: 1.25rem;">
+                <p class="text-muted mb-2" style="font-size: 0.85rem;">
+                    <i class="bi bi-x-circle-fill me-1" style="color: #e74c3c;"></i>Canceladas
+                </p>
+                <h3 class="mb-0" style="color: #e74c3c; font-weight: bold;">
+                    <span class="stat-cancelado">0</span>
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Paginación -->
+<div class="card shadow-sm border-0 mb-4" style="border-radius: 10px;">
+    <div class="card-body" style="padding: 1rem 1.5rem;">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0" style="color: #666; font-size: 0.95rem;">
+                    <i class="bi bi-list-ul me-2" style="color: #667eea;"></i>
+                    Mostrando <strong class="pagina-inicio">1</strong> a <strong class="pagina-fin">10</strong> de <strong class="total-tareas">0</strong> tareas
+                </p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="btn-group" role="group">
+                    <button type="button" id="btn-pagina-anterior" class="btn btn-sm btn-outline-primary" style="border-radius: 6px 0 0 6px;">
+                        <i class="bi bi-chevron-left me-1"></i>Anterior
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" style="cursor: default; border-color: #dee2e6; pointer-events: none;">
+                        <span class="pagina-actual">1</span> / <span class="total-paginas">1</span>
+                    </button>
+                    <button type="button" id="btn-pagina-siguiente" class="btn btn-sm btn-outline-primary" style="border-radius: 0 6px 6px 0;">
+                        Siguiente<i class="bi bi-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tablero Kanban -->
+<div class="kanban-board" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+    
+    <!-- Columna: Pendiente -->
+    <div class="kanban-column" data-estado="pendiente">
+        <div class="column-header" style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; padding: 1.25rem; border-radius: 10px 10px 0 0; border-bottom: 3px solid #d68910;">
+            <h5 class="mb-0" style="font-weight: 600;">
+                <i class="bi bi-hourglass-split me-2"></i>Pendiente
+                <span class="badge bg-light text-dark ms-2" style="font-weight: 600;">
+                    <span class="column-count">0</span>
+                </span>
+            </h5>
+        </div>
+        <div class="column-content droppable-zone" data-estado="pendiente" style="background: #fff9f5; padding: 1rem; border-radius: 0 0 10px 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(243, 156, 18, 0.1);">
+            <div class="empty-state text-center text-muted" style="padding: 2rem 1rem;">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0" style="font-size: 0.9rem;">Sin tareas pendientes</p>
+            </div>
+        </div>
+        <div class="column-pagination" data-estado="pendiente" style="background: #fff9f5; padding: 0.75rem 1rem; border-radius: 0 0 10px 10px; display: none; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid rgba(243, 156, 18, 0.2);">
+            <button class="btn-column-prev btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="column-page-info" style="font-size: 0.8rem; color: #666; min-width: 60px; text-align: center;">
+                1<span class="column-total-pages">/ 1</span>
+            </span>
+            <button class="btn-column-next btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Columna: En Proceso -->
+    <div class="kanban-column" data-estado="en_proceso">
+        <div class="column-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; padding: 1.25rem; border-radius: 10px 10px 0 0; border-bottom: 3px solid #2980b9;">
+            <h5 class="mb-0" style="font-weight: 600;">
+                <i class="bi bi-gear-fill me-2"></i>En Proceso
+                <span class="badge bg-light text-dark ms-2" style="font-weight: 600;">
+                    <span class="column-count">0</span>
+                </span>
+            </h5>
+        </div>
+        <div class="column-content droppable-zone" data-estado="en_proceso" style="background: #f0f7ff; padding: 1rem; border-radius: 0 0 10px 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);">
+            <div class="empty-state text-center text-muted" style="padding: 2rem 1rem;">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0" style="font-size: 0.9rem;">Sin tareas en proceso</p>
+            </div>
+        </div>
+        <div class="column-pagination" data-estado="en_proceso" style="background: #f0f7ff; padding: 0.75rem 1rem; border-radius: 0 0 10px 10px; display: none; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid rgba(52, 152, 219, 0.2);">
+            <button class="btn-column-prev btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="column-page-info" style="font-size: 0.8rem; color: #666; min-width: 60px; text-align: center;">
+                1<span class="column-total-pages">/ 1</span>
+            </span>
+            <button class="btn-column-next btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Columna: Completado -->
+    <div class="kanban-column" data-estado="completado">
+        <div class="column-header" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; padding: 1.25rem; border-radius: 10px 10px 0 0; border-bottom: 3px solid #27ae60;">
+            <h5 class="mb-0" style="font-weight: 600;">
+                <i class="bi bi-check-circle-fill me-2"></i>Completado
+                <span class="badge bg-light text-dark ms-2" style="font-weight: 600;">
+                    <span class="column-count">0</span>
+                </span>
+            </h5>
+        </div>
+        <div class="column-content droppable-zone" data-estado="completado" style="background: #f0fff4; padding: 1rem; border-radius: 0 0 10px 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(46, 204, 113, 0.1);">
+            <div class="empty-state text-center text-muted" style="padding: 2rem 1rem;">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0" style="font-size: 0.9rem;">Sin tareas completadas</p>
+            </div>
+        </div>
+        <div class="column-pagination" data-estado="completado" style="background: #f0fff4; padding: 0.75rem 1rem; border-radius: 0 0 10px 10px; display: none; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid rgba(46, 204, 113, 0.2);">
+            <button class="btn-column-prev btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="column-page-info" style="font-size: 0.8rem; color: #666; min-width: 60px; text-align: center;">
+                1<span class="column-total-pages">/ 1</span>
+            </span>
+            <button class="btn-column-next btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Columna: Cancelado -->
+    <div class="kanban-column" data-estado="cancelado">
+        <div class="column-header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 1.25rem; border-radius: 10px 10px 0 0; border-bottom: 3px solid #c0392b;">
+            <h5 class="mb-0" style="font-weight: 600;">
+                <i class="bi bi-x-circle-fill me-2"></i>Cancelado
+                <span class="badge bg-light text-dark ms-2" style="font-weight: 600;">
+                    <span class="column-count">0</span>
+                </span>
+            </h5>
+        </div>
+        <div class="column-content droppable-zone" data-estado="cancelado" style="background: #fff5f5; padding: 1rem; border-radius: 0 0 10px 10px; min-height: 500px; box-shadow: 0 2px 8px rgba(231, 76, 60, 0.1);">
+            <div class="empty-state text-center text-muted" style="padding: 2rem 1rem;">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                <p class="mt-2 mb-0" style="font-size: 0.9rem;">Sin tareas canceladas</p>
+            </div>
+        </div>
+        <div class="column-pagination" data-estado="cancelado" style="background: #fff5f5; padding: 0.75rem 1rem; border-radius: 0 0 10px 10px; display: none; gap: 0.5rem; justify-content: center; align-items: center; border-top: 1px solid rgba(231, 76, 60, 0.2);">
+            <button class="btn-column-prev btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="column-page-info" style="font-size: 0.8rem; color: #666; min-width: 60px; text-align: center;">
+                1<span class="column-total-pages">/ 1</span>
+            </span>
+            <button class="btn-column-next btn btn-sm btn-light" style="border-radius: 4px; padding: 0.5rem 0.75rem; font-size: 0.8rem;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilos generales del Kanban */
+    .kanban-board {
+        margin-bottom: 2rem;
+    }
+
+    .kanban-column {
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .column-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .column-header h5 {
+        display: flex;
+        align-items: center;
+        margin: 0;
+    }
+
+    .column-content {
+        flex: 1;
+        padding: 1rem;
+        overflow: visible;
+    }
+
+    /* Zona de Drop */
+    .droppable-zone {
+        transition: background-color 0.3s ease;
+    }
+
+    .droppable-zone.drag-over {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+        border: 2px dashed #667eea;
+    }
+
+    /* Tarjetas de Tareas */
+    .kanban-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        cursor: move;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        border-left: 4px solid;
+        user-select: none;
+    }
+
+    .kanban-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .kanban-card.dragging {
+        opacity: 0.5;
+        background-color: #f5f5f5;
+    }
+
+    .kanban-card.drag-preview {
+        position: fixed;
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0.9;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Encabezado de Tarjeta */
+    .card-header-kanban {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .card-cliente {
+        font-size: 0.85rem;
+        color: #667eea;
+        font-weight: 500;
+        margin-bottom: 0.35rem;
+    }
+
+    .card-placa {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-description {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    /* Badge de Urgencia */
+    .urgencia-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        margin-right: 0.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .urgencia-vencida {
+        background: #ffebee;
+        color: #c62828;
+    }
+
+    .urgencia-hoy {
+        background: #ffe0b2;
+        color: #e65100;
+    }
+
+    .urgencia-proxima {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .urgencia-normal {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    /* Indicadores de Tarjeta */
+    .card-footer-kanban {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e0e0e0;
+        font-size: 0.8rem;
+    }
+
+    .card-prioridad {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 0.25rem;
+    }
+
+    .card-fecha {
+        color: #999;
+        font-size: 0.75rem;
+    }
+
+    .card-progress-bar {
+        width: 100%;
+        height: 6px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 0.5rem;
+    }
+
+    .card-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2ecc71, #27ae60);
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Animaciones */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .kanban-card {
+        animation: slideIn 0.3s ease;
+    }
+
+    /* Responsiva */
+    @media (max-width: 768px) {
+        .kanban-board {
+            grid-template-columns: 1fr !important;
+        }
+
+        .column-content {
+            min-height: 300px !important;
+        }
+    }
+
+    /* Loading state */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SortableJS para drag-and-drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<!-- Money formatting utilities -->
+<script>
+/**
+ * Formatea un número como dinero con separadores de miles
+ * @param {number|string} valor - El valor a formatear
+ * @param {number} decimales - Cantidad de decimales a mostrar (default: 0)
+ * @returns {string} Valor formateado
+ * 
+ * Ejemplos:
+ *   formatoDinero(1234567.89)      --> "1.234.567"
+ *   formatoDinero(1234567.89, 2)   --> "1.234.567,89"
+ *   formatoDinero(5000)             --> "5.000"
+ */
+function formatoDinero(valor, decimales = 0) {
+    if (valor === null || valor === undefined) {
+        return '0';
+    }
+    
+    try {
+        // Convertir a número
+        let num = parseFloat(String(valor).replace('.', '').replace(',', '.'));
+        
+        if (isNaN(num)) {
+            return String(valor);
+        }
+        
+        // Redondear si es necesario
+        num = Math.round(num * Math.pow(10, decimales)) / Math.pow(10, decimales);
+        
+        // Separar parte entera y decimal
+        let partes = num.toFixed(decimales).split('.');
+        let parteEntera = partes[0];
+        let parteDecimal = partes[1] || '';
+        
+        // Formatear parte entera con puntos como separadores
+        parteEntera = parteEntera.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        
+        // Reconstruir
+        if (decimales > 0 && parteDecimal) {
+            return parteEntera + ',' + parteDecimal;
+        }
+        return parteEntera;
+    } catch (e) {
+        console.warn('Error formateando dinero:', e);
+        return String(valor);
+    }
+}
+</script>
+
+<script>
+// ============================================================================
+// KANBAN BOARD - JavaScript Implementation
+// ============================================================================
+
+class KanbanBoard {
+    constructor() {
+        this.apiBaseUrl = '{% url "tareas:api_get_tareas_kanban" %}';
+        this.apiUpdateUrl = '{% url "tareas:api_actualizar_estado_tarea" tarea_id=0 %}';
+        this.apiReorderUrl = '{% url "tareas:api_reordenar_tareas" %}';
+        this.tareas = {};
+        
+        // Propiedades de paginación
+        this.paginaActual = 1;
+        this.totalPaginas = 1;
+        this.itemsPorPagina = 50;
+        this.totalTareas = 0;
+        this.paginaInicio = 1;
+        this.paginaFin = 50;
+        
+        // Paginación por columna
+        this.columnPaginacion = {
+            'pendiente': { pagina: 1, total: 0, tarjetas: [] },
+            'en_proceso': { pagina: 1, total: 0, tarjetas: [] },
+            'completado': { pagina: 1, total: 0, tarjetas: [] },
+            'cancelado': { pagina: 1, total: 0, tarjetas: [] }
+        };
+        this.tarjetasPorPagina = 3; // 3 tarjetas por página en cada columna
+        
+        this.init();
+    }
+
+    /**
+     * Inicializa el tablero Kanban
+     */
+    init() {
+        this.setupSortable();
+        this.loadTareas();
+        this.setupEventListeners();
+        console.log('✅ Kanban Board inicializado');
+    }
+
+    /**
+     * Configura las zonas de drop con SortableJS
+     */
+    setupSortable() {
+        const droppableZones = document.querySelectorAll('.droppable-zone');
+        
+        droppableZones.forEach(zona => {
+            Sortable.create(zona, {
+                group: 'tareas',
+                animation: 150,
+                ghostClass: 'dragging',
+                dragClass: 'drag-preview',
+                handle: '.kanban-card',
+                onEnd: (event) => this.onDragEnd(event),
+                onMove: (event) => this.onDragMove(event),
+                onAdd: (event) => this.onDragAdd(event),
+                scrollSpeed: 50,
+                scrollSensitivity: 30,
+            });
+        });
+    }
+
+    /**
+     * Carga las tareas desde la API
+     */
+    loadTareas() {
+        const filtroCliente = document.getElementById('filtro-cliente').value;
+        const filtroPlaca = document.getElementById('filtro-placa').value;
+        const filtroProioridad = document.getElementById('filtro-prioridad').value;
+
+        const params = new URLSearchParams();
+        if (filtroCliente) params.append('filtro_cliente', filtroCliente);
+        if (filtroPlaca) params.append('filtro_placa', filtroPlaca);
+        if (filtroProioridad) params.append('filtro_prioridad', filtroProioridad);
+        params.append('page', this.paginaActual);
+        params.append('items_per_page', this.itemsPorPagina);
+
+        const url = `${this.apiBaseUrl}?${params.toString()}`;
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    console.error(`❌ Error HTTP ${response.status}: ${response.statusText}`);
+                    return response.json().then(json => {
+                        throw new Error(json.error || `HTTP ${response.status}`);
+                    }).catch(() => {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    this.renderizarTareas(data.data);
+                    this.actualizarEstadisticas(data.stats);
+                    
+                    // Actualizar información de paginación
+                    if (data.pagination) {
+                        this.paginaActual = data.pagination.pagina_actual;
+                        this.totalPaginas = data.pagination.total_paginas;
+                        this.totalTareas = data.pagination.total_tareas;
+                        this.itemsPorPagina = data.pagination.items_por_pagina;
+                        this.paginaInicio = data.pagination.pagina_inicio;
+                        this.paginaFin = data.pagination.pagina_fin;
+                        this.actualizarControlesPaginacion();
+                    }
+                    
+                    console.log('✅ Tareas cargadas:', data.data);
+                } else {
+                    this.mostrarError('Error al cargar las tareas: ' + (data.error || 'Desconocido'));
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error en fetch:', error);
+                this.mostrarError('Error de conexión con el servidor: ' + error.message);
+            });
+    }
+
+    /**
+     * Renderiza las tareas en las columnas
+     */
+    renderizarTareas(tareasPorEstado) {
+        // Almacenar todas las tarjetas por estado
+        Object.entries(tareasPorEstado).forEach(([estado, tareas]) => {
+            this.columnPaginacion[estado].tarjetas = tareas;
+            this.columnPaginacion[estado].total = tareas.length;
+            this.columnPaginacion[estado].pagina = 1; // Resetear a página 1
+        });
+
+        // Renderizar cada columna
+        Object.keys(tareasPorEstado).forEach(estado => {
+            this.renderizarColumna(estado);
+        });
+
+        // Reinicializar Sortable después de renderizar
+        this.setupSortable();
+        this.setupColumnPaginacionEventListeners();
+    }
+
+    /**
+     * Renderiza una columna específica con paginación
+     */
+    renderizarColumna(estado) {
+        const zona = document.querySelector(`.droppable-zone[data-estado="${estado}"]`);
+        const paginacion = this.columnPaginacion[estado];
+        const tareas = paginacion.tarjetas;
+        
+        // Calcular paginación
+        const totalPaginas = Math.ceil(tareas.length / this.tarjetasPorPagina);
+        const paginaActual = Math.min(paginacion.pagina, totalPaginas || 1);
+        
+        // Actualizar paginación
+        this.columnPaginacion[estado].pagina = paginaActual;
+        
+        // Calcular índices
+        const inicio = (paginaActual - 1) * this.tarjetasPorPagina;
+        const fin = inicio + this.tarjetasPorPagina;
+        const tarjetasPagina = tareas.slice(inicio, fin);
+
+        // Limpiar zona
+        zona.innerHTML = '';
+
+        if (tareas.length === 0) {
+            zona.innerHTML = `
+                <div class="empty-state text-center text-muted" style="padding: 2rem 1rem;">
+                    <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.3;"></i>
+                    <p class="mt-2 mb-0" style="font-size: 0.9rem;">Sin tareas en este estado</p>
+                </div>
+            `;
+        } else {
+            tarjetasPagina.forEach((tarea) => {
+                zona.appendChild(this.crearTarjeta(tarea));
+            });
+        }
+
+        // Actualizar contador
+        const columna = document.querySelector(`.kanban-column[data-estado="${estado}"]`);
+        const contador = columna.querySelector('.column-count');
+        contador.textContent = tareas.length;
+
+        // Actualizar controles de paginación
+        const paginador = columna.querySelector(`.column-pagination[data-estado="${estado}"]`);
+        if (paginador) {
+            if (totalPaginas > 1) {
+                paginador.style.display = 'flex';
+                const pageInfo = paginador.querySelector('.column-page-info');
+                pageInfo.innerHTML = `${paginaActual}<span class="column-total-pages">/ ${totalPaginas}</span>`;
+                
+                const btnPrev = paginador.querySelector('.btn-column-prev');
+                const btnNext = paginador.querySelector('.btn-column-next');
+                
+                btnPrev.disabled = paginaActual <= 1;
+                btnNext.disabled = paginaActual >= totalPaginas;
+            } else {
+                paginador.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Configura los event listeners para paginación por columna
+     */
+    setupColumnPaginacionEventListeners() {
+        document.querySelectorAll('.column-pagination').forEach(paginador => {
+            const estado = paginador.dataset.estado;
+            
+            const btnPrev = paginador.querySelector('.btn-column-prev');
+            const btnNext = paginador.querySelector('.btn-column-next');
+            
+            if (btnPrev && btnNext) {
+                // Remover listeners anteriores
+                const btnPrevNuevo = btnPrev.cloneNode(true);
+                const btnSiguienteNuevo = btnNext.cloneNode(true);
+                btnPrev.parentNode.replaceChild(btnPrevNuevo, btnPrev);
+                btnNext.parentNode.replaceChild(btnSiguienteNuevo, btnNext);
+                
+                // Agregar nuevos listeners
+                paginador.querySelector('.btn-column-prev').addEventListener('click', () => {
+                    this.columnPaginacionAnterior(estado);
+                });
+                paginador.querySelector('.btn-column-next').addEventListener('click', () => {
+                    this.columnPaginacionSiguiente(estado);
+                });
+            }
+        });
+    }
+    
+    /**
+     * Navega a la página anterior en una columna
+     */
+    columnPaginacionAnterior(estado) {
+        const paginacion = this.columnPaginacion[estado];
+        if (paginacion.pagina > 1) {
+            paginacion.pagina--;
+            this.renderizarColumna(estado);
+        }
+    }
+    
+    /**
+     * Navega a la página siguiente en una columna
+     */
+    columnPaginacionSiguiente(estado) {
+        const paginacion = this.columnPaginacion[estado];
+        const totalPaginas = Math.ceil(paginacion.total / this.tarjetasPorPagina);
+        if (paginacion.pagina < totalPaginas) {
+            paginacion.pagina++;
+            this.renderizarColumna(estado);
+        }
+    }
+
+    /**
+     * Crea una tarjeta HTML para una tarea
+     */
+    crearTarjeta(tarea) {
+        const card = document.createElement('div');
+        card.className = 'kanban-card';
+        card.draggable = true;
+        card.id = `tarea-${tarea.id}`;
+        card.dataset.tareaId = tarea.id;
+        card.dataset.estado = tarea.estado;
+        card.style.borderColor = tarea.color_prioridad;
+
+        // Determinar clase de urgencia
+        let urgenciaClass = 'urgencia-normal';
+        let urgenciaText = '';
+        
+        if (tarea.urgencia_visual === 'vencida') {
+            urgenciaClass = 'urgencia-vencida';
+            urgenciaText = '⚠️ VENCIDA';
+        } else if (tarea.urgencia_visual === 'hoy') {
+            urgenciaClass = 'urgencia-hoy';
+            urgenciaText = '📅 HOY';
+        } else if (tarea.urgencia_visual === 'proxima') {
+            urgenciaClass = 'urgencia-proxima';
+            urgenciaText = '⏰ Próxima';
+        }
+
+        // Calcular si hay saldo pendiente
+        const hayDeuda = tarea.saldo_pendiente > 0;
+        const deudaClass = hayDeuda ? 'text-danger' : 'text-success';
+        const deudaIcon = hayDeuda ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill';
+
+        card.innerHTML = `
+            <div class="card-header-kanban">
+                ${tarea.cliente}
+                ${tarea.placa !== 'N/A' ? `<div class="card-placa">${tarea.placa}</div>` : ''}
+            </div>
+            
+            <div class="card-description">
+                ${tarea.descripcion}
+            </div>
+
+            ${urgenciaText ? `<div class="urgencia-badge ${urgenciaClass}">${urgenciaText}</div>` : ''}
+
+            <div class="card-footer-kanban">
+                <div>
+                    <span class="card-prioridad" style="background: ${tarea.color_prioridad};" title="Prioridad: ${tarea.prioridad}"></span>
+                    <span class="card-fecha">${tarea.dias_restantes} días</span>
+                </div>
+                <div class="${deudaClass}">
+                    <i class="bi ${deudaIcon}" style="font-size: 0.8rem;"></i>
+                    <strong>$${formatoDinero(tarea.saldo_pendiente, 2)}</strong>
+                </div>
+            </div>
+
+            ${tarea.precio_total > 0 ? `
+                <div class="card-progress-bar">
+                    <div class="card-progress-fill" style="width: ${tarea.porcentaje_pago}%;"></div>
+                </div>
+                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                    ${tarea.porcentaje_pago}% pagado
+                </small>
+            ` : ''}
+        `;
+
+        // Agregar eventos a la tarjeta
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.kanban-card')) {
+                window.location.href = `/tareas/${tarea.id}/`;
+            }
+        });
+
+        return card;
+    }
+
+    /**
+     * Event: Cuando termina el drag
+     */
+    onDragEnd(event) {
+        const tareaId = parseInt(event.item.dataset.tareaId);
+        const nuevoEstado = event.to.dataset.estado;
+
+        // Verificar si realmente cambió de columna
+        if (event.from === event.to && event.oldIndex === event.newIndex) {
+            return; // Sin cambios
+        }
+
+        console.log(`📦 Moviendo tarea #${tareaId} a estado '${nuevoEstado}'`);
+        this.actualizarEstadoTarea(tareaId, nuevoEstado);
+    }
+
+    /**
+     * Event: Durante el drag (verificar validez)
+     */
+    onDragMove(event) {
+        // Aquí podrías validar si cierto tipo de tarea puede moverse a cierto estado
+        return true;
+    }
+
+    /**
+     * Event: Cuando se dropea en una nueva zona
+     */
+    onDragAdd(event) {
+        // Se dispara cuando se añade a una nueva lista
+        console.log('Tarea añadida a zona:', event.to.dataset.estado);
+    }
+
+    /**
+     * Actualiza el estado de una tarea en el servidor
+     */
+    actualizarEstadoTarea(tareaId, nuevoEstado) {
+        const url = this.apiUpdateUrl.replace('0', tareaId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+            },
+            body: JSON.stringify({
+                nuevo_estado: nuevoEstado
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('✅ Tarea actualizada:', data.message);
+                this.mostrarExito(`Tarea movida a ${nuevoEstado}`);
+                // Recargar tareas para refrescar estadísticas
+                setTimeout(() => this.loadTareas(), 500);
+            } else {
+                console.error('❌ Error:', data.error);
+                this.mostrarError('No se pudo actualizar la tarea: ' + data.error);
+                // Revert: recargar tareas
+                this.loadTareas();
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error de conexión:', error);
+            this.mostrarError('Error al actualizar la tarea');
+            this.loadTareas();
+        });
+    }
+
+    /**
+     * Actualiza las estadísticas mostradas arriba
+     */
+    actualizarEstadisticas(stats) {
+        document.querySelector('.stat-pendiente').textContent = stats.pendiente;
+        document.querySelector('.stat-en_proceso').textContent = stats.en_proceso;
+        document.querySelector('.stat-completado').textContent = stats.completado;
+        document.querySelector('.stat-cancelado').textContent = stats.cancelado;
+    }
+
+    /**
+     * Muestra un mensaje de error
+     */
+    mostrarError(mensaje) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '1rem';
+        alertDiv.style.right = '1rem';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            <i class="bi bi-exclamation-circle me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 4000);
+    }
+
+    /**
+     * Muestra un mensaje de éxito
+     */
+    mostrarExito(mensaje) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.style.position = 'fixed';
+        alertDiv.style.top = '1rem';
+        alertDiv.style.right = '1rem';
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            <i class="bi bi-check-circle me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 3000);
+    }
+
+    /**
+     * Obtiene el CSRF token del documento
+     */
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.querySelector('meta[name="csrf-token"]')?.content ||
+               '';
+    }
+
+    /**
+     * Configura los event listeners de los filtros
+     */
+    setupEventListeners() {
+        const btnFiltrar = document.getElementById('btn-filtrar');
+        btnFiltrar.addEventListener('click', () => {
+            this.paginaActual = 1; // Resetear a página 1 cuando se aplican filtros
+            this.loadTareas();
+        });
+
+        // También permitir Enter en los inputs
+        ['filtro-cliente', 'filtro-placa', 'filtro-prioridad'].forEach(id => {
+            document.getElementById(id).addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.paginaActual = 1;
+                    this.loadTareas();
+                }
+            });
+        });
+        
+        // Botones de paginación
+        const btnAnterior = document.getElementById('btn-pagina-anterior');
+        const btnSiguiente = document.getElementById('btn-pagina-siguiente');
+        
+        if (btnAnterior) {
+            btnAnterior.addEventListener('click', () => this.paginaAnterior());
+        }
+        if (btnSiguiente) {
+            btnSiguiente.addEventListener('click', () => this.paginaSiguiente());
+        }
+    }
+    
+    /**
+     * Navega a la página anterior
+     */
+    paginaAnterior() {
+        if (this.paginaActual > 1) {
+            this.paginaActual--;
+            this.loadTareas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    /**
+     * Navega a la página siguiente
+     */
+    paginaSiguiente() {
+        if (this.paginaActual < this.totalPaginas) {
+            this.paginaActual++;
+            this.loadTareas();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    /**
+     * Actualiza los controles de paginación en la UI
+     */
+    actualizarControlesPaginacion() {
+        // Actualizar información de tareas mostradas
+        document.querySelector('.pagina-inicio').textContent = this.paginaInicio;
+        document.querySelector('.pagina-fin').textContent = this.paginaFin;
+        document.querySelector('.total-tareas').textContent = this.totalTareas;
+        
+        // Actualizar información de página
+        document.querySelector('.pagina-actual').textContent = this.paginaActual;
+        document.querySelector('.total-paginas').textContent = this.totalPaginas;
+        
+        // Actualizar botones anterior y siguiente
+        const btnAnterior = document.getElementById('btn-pagina-anterior');
+        const btnSiguiente = document.getElementById('btn-pagina-siguiente');
+        
+        if (btnAnterior) {
+            btnAnterior.disabled = this.paginaActual <= 1;
+        }
+        if (btnSiguiente) {
+            btnSiguiente.disabled = this.paginaActual >= this.totalPaginas;
+        }
+    }
+}
+
+// ============================================================================
+// INICIALIZACIÓN
+// ============================================================================
+
+// Función de diagnóstico
+window.diagnosticoAPI = async function() {
+    const url = '{% url "tareas:api_get_tareas_kanban" %}';
+    console.log('🔍 Diagnóstico de API Kanban');
+    console.log('URL: ' + url);
+    
+    try {
+        const response = await fetch(url);
+        console.log('Status:', response.status);
+        console.log('StatusText:', response.statusText);
+        
+        if (!response.ok) {
+            console.error('❌ Respuesta no OK');
+            const text = await response.text();
+            console.error('Response:', text);
+            return false;
+        }
+        
+        const data = await response.json();
+        console.log('✅ API respondió correctamente');
+        console.log('Datos:', data);
+        
+        return true;
+    } catch (error) {
+        console.error('❌ Error en fetch:', error.message);
+        return false;
+    }
+};
+
+console.log('💡 TIP: Ejecuta "diagnosticoAPI()" en la consola para verificar la conexión a la API');
+
+document.addEventListener('DOMContentLoaded', () => {
+    const kanbanBoard = new KanbanBoard();
+});
+</script>
+{% endblock %}

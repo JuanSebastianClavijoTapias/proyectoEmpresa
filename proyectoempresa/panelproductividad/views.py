@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import Sum
 from datetime import date, timedelta
 from .models import Trabajador, RegistroProductividad
-from .forms import RegistroProductividadForm, TrabajadorForm
+from .forms import RegistroProductividadForm, RegistroProductividadTrabajadorForm, TrabajadorForm
 
 
 @login_required
@@ -51,16 +51,37 @@ def lista_productividad(request):
 @login_required
 def crear_productividad(request):
     """Vista para crear un nuevo registro de productividad"""
-    if request.method == 'POST':
-        form = RegistroProductividadForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Registro de productividad creado exitosamente.')
-            return redirect('productividad:lista')
-    else:
-        form = RegistroProductividadForm(initial={'fecha': date.today()})
+    # Verificar si el usuario actual es un trabajador
+    es_trabajador = hasattr(request.user, 'trabajador')
+    trabajador = request.user.trabajador if es_trabajador else None
     
-    return render(request, 'panelproductividad/crear.html', {'form': form})
+    if request.method == 'POST':
+        if es_trabajador:
+            form = RegistroProductividadTrabajadorForm(request.POST)
+            if form.is_valid():
+                # Asignar automáticamente el trabajador logueado
+                registro = form.save(commit=False)
+                registro.trabajador = trabajador
+                registro.save()
+                messages.success(request, f'✓ Registro de productividad guardado en tu cuenta ({trabajador.nombre})')
+                return redirect('productividad:lista')
+        else:
+            form = RegistroProductividadForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Registro de productividad creado exitosamente.')
+                return redirect('productividad:lista')
+    else:
+        if es_trabajador:
+            form = RegistroProductividadTrabajadorForm(initial={'fecha': date.today()})
+        else:
+            form = RegistroProductividadForm(initial={'fecha': date.today()})
+    
+    return render(request, 'panelproductividad/crear.html', {
+        'form': form,
+        'es_trabajador': es_trabajador,
+        'trabajador': trabajador
+    })
 
 
 @login_required

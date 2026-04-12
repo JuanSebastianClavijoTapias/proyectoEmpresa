@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Editar Registro - Productividad{% endblock %}
 
@@ -10,115 +11,312 @@
             <li class="breadcrumb-item active">Editar Registro</li>
         </ol>
     </nav>
-    <h1><i class="bi bi-pencil"></i> Editar Registro</h1>
+    <h1 style="color: white; margin: 0;">
+        <i class="bi bi-pencil me-2"></i>Editar Registro de Productividad
+    </h1>
 </div>
 
-<div class="card">
-    <div class="card-body">
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
         <form method="post">
             {% csrf_token %}
             
-            <h5 class="text-primary mb-3"><i class="bi bi-info-circle"></i> Información General</h5>
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Fecha *</label>
-                        {{ form.fecha }}
-                    </div>
+            <!-- Sección 1: Información General -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 10px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; color: white;">
+                    <h6 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i><strong>Información General</strong>
+                    </h6>
                 </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Trabajador *</label>
-                        {{ form.trabajador }}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-calendar3" style="color: #667eea; margin-right: 0.5rem;"></i>Fecha *
+                                </label>
+                                <div class="input-group">
+                                    {{ form.fecha }}
+                                    <button type="button" class="btn btn-outline-primary btn-fecha-hoy" style="border-radius: 0 8px 8px 0;" title="Establecer fecha de hoy">
+                                        <i class="bi bi-calendar-check"></i> Hoy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-person" style="color: #667eea; margin-right: 0.5rem;"></i>Trabajador *
+                                </label>
+                                <div style="position: relative;">
+                                    {{ form.trabajador }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-clock-history" style="color: #667eea; margin-right: 0.5rem;"></i>Hora Inicio *
+                                </label>
+                                <div class="input-group">
+                                    {{ form.hora_inicio }}
+                                    <button type="button" class="btn btn-outline-primary btn-hora-actual" style="border-radius: 0 8px 8px 0;" title="Establecer hora actual">
+                                        <i class="bi bi-clock"></i> Actual
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Hora Inicio *</label>
-                        {{ form.hora_inicio }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label">Hora Fin *</label>
-                        {{ form.hora_finalizacion }}
-                    </div>
-                </div>
-            </div>
-            
-            <hr>
-            
-            <h5 class="text-primary mb-3"><i class="bi bi-list-check"></i> Procesos Realizados (Cantidad)</h5>
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-scissors"></i> Cortado</label>
-                        {{ form.cortado }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-pencil"></i> Marcado de Piezas</label>
-                        {{ form.marcado_piezas }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-needle"></i> Costura</label>
-                        {{ form.costura }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-tools"></i> Armado</label>
-                        {{ form.armado }}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-wrench"></i> Instalación</label>
-                        {{ form.instalacion }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-lamp"></i> Sillas Realizadas</label>
-                        {{ form.sillas_realizadas }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-door-open"></i> Tapizado Puertas</label>
-                        {{ form.tapizado_puertas }}
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="mb-3">
-                        <label class="form-label"><i class="bi bi-cloud"></i> Tapizado Techo</label>
-                        {{ form.tapizado_techo }}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-clock" style="color: #667eea; margin-right: 0.5rem;"></i>Hora Fin *
+                                </label>
+                                <div class="input-group">
+                                    {{ form.hora_finalizacion }}
+                                    <button type="button" class="btn btn-outline-primary btn-hora-actual" style="border-radius: 0 8px 8px 0;" title="Establecer hora actual">
+                                        <i class="bi bi-clock"></i> Actual
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <hr>
-            
-            <div class="mb-3">
-                <label class="form-label">Observaciones</label>
-                {{ form.observaciones }}
+
+            <!-- Sección 2: Procesos Realizados -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 10px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 1rem; color: white;">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-check me-2"></i><strong>Procesos Realizados</strong>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Fila 1 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-scissors" style="color: #f5576c;"></i> Cortado
+                                </label>
+                                {{ form.cortado }}
+                                <small class="text-muted d-block mt-1">Piezas cortadas</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-pencil" style="color: #f5576c;"></i> Marcado de Piezas
+                                </label>
+                                {{ form.marcado_piezas }}
+                                <small class="text-muted d-block mt-1">Piezas marcadas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 2 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-needle" style="color: #f5576c;"></i> Costura
+                                </label>
+                                {{ form.costura }}
+                                <small class="text-muted d-block mt-1">Procesos de costura</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-tools" style="color: #f5576c;"></i> Armado
+                                </label>
+                                {{ form.armado }}
+                                <small class="text-muted d-block mt-1">Piezas armadas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 3 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-wrench" style="color: #f5576c;"></i> Instalación
+                                </label>
+                                {{ form.instalacion }}
+                                <small class="text-muted d-block mt-1">Instalaciones realizadas</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-lamp" style="color: #f5576c;"></i> Sillas Realizadas
+                                </label>
+                                {{ form.sillas_realizadas }}
+                                <small class="text-muted d-block mt-1">Sillas terminadas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 4 -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-door-open" style="color: #f5576c;"></i> Tapizado Puertas
+                                </label>
+                                {{ form.tapizado_puertas }}
+                                <small class="text-muted d-block mt-1">Puertas tapizadas</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-cloud" style="color: #f5576c;"></i> Tapizado Techo
+                                </label>
+                                {{ form.tapizado_techo }}
+                                <small class="text-muted d-block mt-1">Techos tapizados</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-circle me-2"></i> Actualizar Registro
+
+            <!-- Sección 3: Observaciones -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 10px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 1rem; color: white;">
+                    <h6 class="mb-0">
+                        <i class="bi bi-chat-left-text me-2"></i><strong>Observaciones Adicionales</strong>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-0">
+                        <label class="form-label fw-bold">Notas del día</label>
+                        {{ form.observaciones }}
+                        <small class="text-muted d-block mt-2">Agrega cualquier comentario importante sobre tu trabajo</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="d-flex gap-2 justify-content-center mb-4">
+                <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
+                    <i class="bi bi-check-circle me-2"></i> Guardar Cambios
                 </button>
-                <a href="{% url 'productividad:lista' %}" class="btn btn-outline-secondary">
+                <a href="{% url 'productividad:lista' %}" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px; font-weight: 600;">
                     <i class="bi bi-x-circle me-2"></i> Cancelar
                 </a>
             </div>
         </form>
     </div>
 </div>
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2.5rem 0;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 10px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+    
+    .form-label {
+        color: #333;
+        margin-bottom: 0.6rem;
+        font-size: 0.95rem;
+    }
+    
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .input-group .form-control,
+    .input-group .form-select,
+    .input-group .btn {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .input-group .form-control,
+    .input-group .form-select {
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .input-group .btn {
+        border-radius: 0 8px 8px 0;
+        border-left: none;
+        border-color: #e0e0e0;
+    }
+    
+    .input-group .btn:hover {
+        background-color: #667eea;
+        color: white;
+    }
+</style>
+
+<script src="{% static 'js/date-today-button.js' %}"></script>
+<script src="{% static 'js/time-now-button.js' %}"></script>
+
+<script>
+// Ejecutar funciones si están disponibles
+if (typeof setupFechaHoyButtons !== 'undefined') {
+    console.log('setupFechaHoyButtons disponible');
+    setupFechaHoyButtons();
+}
+if (typeof setupHoraActualButtons !== 'undefined') {
+    console.log('setupHoraActualButtons disponible');
+    setupHoraActualButtons();
+}
+
+// Alternativa directa si los scripts no cargaron
+console.log('Buscando botones de fecha y hora...');
+document.querySelectorAll('.btn-fecha-hoy').forEach(btn => {
+    console.log('Botón fecha encontrado');
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const inputGroup = this.closest('.input-group');
+        const input = inputGroup?.querySelector('input[type="date"]') || inputGroup?.querySelector('input');
+        if (input) {
+            const hoy = new Date();
+            const fecha = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+            input.value = fecha;
+            console.log('Fecha establecida:', fecha);
+        }
+    });
+});
+
+document.querySelectorAll('.btn-hora-actual').forEach(btn => {
+    console.log('Botón hora encontrado');
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const inputGroup = this.closest('.input-group');
+        const input = inputGroup?.querySelector('input[type="time"]') || inputGroup?.querySelector('input');
+        if (input) {
+            const ahora = new Date();
+            const hora = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`;
+            input.value = hora;
+            console.log('Hora establecida:', hora);
+        }
+    });
+});
+</script>
+
 {% endblock %}

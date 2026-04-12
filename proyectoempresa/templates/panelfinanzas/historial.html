@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}Historial de Entregas - Finanzas{% endblock %}
 
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1><i class="bi bi-clock-history me-2"></i>Historial de Entregas</h1>
-        <p class="text-muted mb-0">Registro de productos entregados y sus finanzas</p>
+        <p class="text-white mb-0">Registro de productos entregados y sus finanzas</p>
     </div>
     <div>
         <a href="{% url 'finanzas:reporte' %}" class="btn btn-outline-primary me-2">
@@ -35,7 +36,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1 opacity-75">Total Costos</h6>
-                    <h3>${{ total_costo|floatformat:0 }}</h3>
+                    <h3>${{ total_costo|formato_dinero }}</h3>
                 </div>
                 <i class="bi bi-cart" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
@@ -46,7 +47,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1 opacity-75">Total Ventas</h6>
-                    <h3>${{ total_venta|floatformat:0 }}</h3>
+                    <h3>${{ total_venta|formato_dinero }}</h3>
                 </div>
                 <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
@@ -57,7 +58,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1 opacity-75">Ganancia Total</h6>
-                    <h3>${{ total_ganancia|floatformat:0 }}</h3>
+                    <h3>${{ total_ganancia|formato_dinero }}</h3>
                 </div>
                 <i class="bi bi-graph-up-arrow" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
@@ -120,20 +121,20 @@
                             <a href="{% url 'tareas:detalle' entrega.tarea.pk %}" class="text-decoration-none">
                                 {{ entrega.tarea.nombre_cliente }}
                             </a>
-                            <br><small class="text-muted">{{ entrega.tarea.placa }}</small>
+                            <br><small class="text-white mb-0">{{ entrega.tarea.placa }}</small>
                             {% else %}
-                            <span class="text-muted">-</span>
+                            <span class="text-white mb-0">-</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">${{ entrega.precio_costo|floatformat:0 }}</td>
-                        <td class="text-end">${{ entrega.precio_venta|floatformat:0 }}</td>
+                        <td class="text-end">${{ entrega.precio_costo|formato_dinero }}</td>
+                        <td class="text-end">${{ entrega.precio_venta|formato_dinero }}</td>
                         <td class="text-center">{{ entrega.cantidad }}</td>
                         <td class="text-end">
                             <span class="{% if entrega.ganancia_total > 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
-                                ${{ entrega.ganancia_total|floatformat:0 }}
+                                ${{ entrega.ganancia_total|formato_dinero }}
                             </span>
                             <br>
-                            <small class="text-muted">{{ entrega.porcentaje_ganancia|floatformat:1 }}%</small>
+                            <small class="text-white mb-0">{{ entrega.porcentaje_ganancia|floatformat:1 }}%</small>
                         </td>
                         <td>{{ entrega.fecha_registro|date:"d/m/Y" }}</td>
                     </tr>
@@ -145,9 +146,11 @@
         <div class="text-center py-5">
             <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
             <p class="text-muted mt-3">No hay entregas registradas</p>
-            <p class="text-muted">Las entregas se crean automáticamente cuando se agregan productos a las tareas.</p>
+            <p class="text-white mb-0">Las entregas se crean automáticamente cuando se agregan productos a las tareas.</p>
         </div>
         {% endif %}
     </div>
 </div>
 {% endblock %}
+
+

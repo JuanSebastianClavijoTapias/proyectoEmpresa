@@ -1,0 +1,643 @@
+/**
+ * LUXURY LEATHER PALETTE
+ * Paleta de colores de lujo y cuero para Tapicería Cuir
+ * 
+ * Brand Identity: Elegancia, profesionalismo y sofisticación
+ */
+
+:root {
+    /* PRIMARY COLORS */
+    --leather-dark: #2B1B17;           /* Marrón Cuero Oscuro - Fondo principal */
+    --leather-chocolate: #4A2C22;      /* Marrón Chocolate - Sombras y texturas */
+    --gold-sand: #B88A4D;              /* Dorado Arena - Logos, iconos, realces */
+    --gold-old: #D4A373;               /* Oro Viejo - Textos secundarios */
+    --carbon-gray: #1A1A1A;            /* Gris Carbón - Bordes y degradados */
+    
+    /* SEMANTIC COLORS */
+    --success: #6B8E23;                /* Verde Oliva - Éxito y validación */
+    --warning: #CD853F;                /* Marrón Perú - Advertencias */
+    --danger: #A0522D;                 /* Marrón Sienna - Errores */
+    --info: #556B2F;                   /* Verde Musgo - Información */
+    
+    /* NEUTRAL COLORS */
+    --white: #FFFFFF;
+    --light-cream: #F5F1ED;            /* Crema clara - Fondos claros */
+    --medium-gray: #8B8B8B;            /* Gris medio - Textos terciarios */
+    --dark-gray: #333333;              /* Gris oscuro - Textos primarios en fondos claros */
+    
+    /* FUNCTIONAL COLORS */
+    --border-light: rgba(184, 138, 77, 0.2);
+    --border-medium: rgba(184, 138, 77, 0.5);
+    --border-dark: var(--leather-chocolate);
+    --shadow-subtle: rgba(43, 27, 23, 0.1);
+    --shadow-medium: rgba(43, 27, 23, 0.25);
+    --shadow-strong: rgba(43, 27, 23, 0.4);
+    
+    /* GRADIENT DEFINITIONS */
+    --gradient-luxury: linear-gradient(135deg, var(--leather-dark) 0%, var(--leather-chocolate) 100%);
+    --gradient-gold: linear-gradient(135deg, var(--gold-sand) 0%, var(--gold-old) 100%);
+    --gradient-subtle: linear-gradient(180deg, rgba(184, 138, 77, 0.1) 0%, rgba(212, 163, 115, 0.05) 100%);
+}
+
+/* ============================================
+   TYPOGRAPHY - LUXURY PALETTE
+   ============================================ */
+
+body {
+    background-color: var(--light-cream);
+    color: var(--dark-gray);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--leather-dark);
+    font-weight: 600;
+}
+
+h1 { font-size: 2.5rem; color: var(--leather-dark); }
+h2 { font-size: 2rem; color: var(--leather-dark); }
+h3 { font-size: 1.75rem; color: var(--leather-dark); }
+h4 { font-size: 1.5rem; color: var(--leather-dark); }
+h5 { font-size: 1.25rem; color: var(--leather-dark); }
+h6 { font-size: 1rem; color: var(--leather-dark); }
+
+/* Textos secundarios */
+.text-secondary {
+    color: var(--gold-old);
+}
+
+.text-muted {
+    color: var(--medium-gray);
+}
+
+small, .small {
+    color: var(--medium-gray);
+}
+
+a {
+    color: var(--gold-sand);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--gold-old);
+    text-decoration: underline;
+}
+
+/* ============================================
+   NAVIGATION & HEADER
+   ============================================ */
+
+.sidebar {
+    background: var(--gradient-luxury);
+    color: var(--light-cream);
+    box-shadow: 2px 0 8px var(--shadow-medium);
+}
+
+.sidebar .nav-link {
+    color: rgba(245, 241, 237, 0.85);
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+    background-color: rgba(184, 138, 77, 0.2);
+    color: var(--gold-sand);
+    border-left-color: var(--gold-sand);
+    padding-left: calc(20px - 3px);
+}
+
+.sidebar-brand {
+    color: var(--gold-sand);
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding: 20px;
+    border-bottom: 2px solid var(--border-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.page-header {
+    background: var(--gradient-luxury);
+    color: var(--light-cream);
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+.page-header h1 {
+    color: var(--gold-sand);
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: rgba(245, 241, 237, 0.9);
+}
+
+/* Mobile navbar */
+.mobile-navbar {
+    background: var(--gradient-luxury);
+    box-shadow: 0 2px 8px var(--shadow-medium);
+}
+
+.offcanvas {
+    background-color: var(--light-cream);
+}
+
+.offcanvas-header {
+    background: var(--gradient-luxury);
+    color: var(--light-cream);
+}
+
+.offcanvas-title {
+    color: var(--gold-sand);
+    font-weight: 600;
+}
+
+.offcanvas .nav-link {
+    color: var(--dark-gray);
+    border-bottom: 1px solid var(--border-light);
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.offcanvas .nav-link:hover {
+    background-color: rgba(184, 138, 77, 0.1);
+    color: var(--gold-sand);
+    padding-left: 24px;
+}
+
+/* ============================================
+   CARDS & CONTAINERS
+   ============================================ */
+
+.card {
+    background-color: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-subtle);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 24px var(--shadow-medium);
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, rgba(43, 27, 23, 0.05) 0%, rgba(184, 138, 77, 0.05) 100%);
+    border-bottom: 2px solid var(--border-light);
+    font-weight: 600;
+    color: var(--leather-dark);
+    padding: 1.5rem;
+    border-radius: 11px 11px 0 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+    color: var(--dark-gray);
+}
+
+.card-footer {
+    background-color: rgba(184, 138, 77, 0.05);
+    border-top: 1px solid var(--border-light);
+    text-align: right;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: var(--gradient-luxury);
+    color: var(--light-cream);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-strong);
+}
+
+.stat-card h3 {
+    color: var(--gold-sand);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card small {
+    color: rgba(245, 241, 237, 0.9);
+}
+
+/* ============================================
+   BUTTONS & INTERACTIVE ELEMENTS
+   ============================================ */
+
+.btn {
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background: var(--gradient-gold);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(184, 138, 77, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--gold-old) 0%, var(--gold-sand) 100%);
+    color: var(--white);
+    box-shadow: 0 6px 16px rgba(184, 138, 77, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(184, 138, 77, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--gold-sand);
+    color: var(--gold-sand);
+    background-color: transparent;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--gold-sand);
+    color: var(--white);
+    border-color: var(--gold-sand);
+}
+
+.btn-secondary {
+    background-color: var(--leather-chocolate);
+    color: var(--light-cream);
+}
+
+.btn-secondary:hover {
+    background-color: var(--leather-dark);
+    color: var(--gold-sand);
+}
+
+.btn-danger {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background-color: #8B4513;
+    color: var(--white);
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: var(--white);
+}
+
+.btn-success:hover {
+    background-color: #556B2F;
+    color: var(--white);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   FORMS & INPUTS
+   ============================================ */
+
+.form-control,
+.form-select {
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    background-color: var(--white);
+    color: var(--dark-gray);
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--gold-sand);
+    background-color: var(--white);
+    color: var(--dark-gray);
+    box-shadow: 0 0 0 0.2rem rgba(184, 138, 77, 0.25);
+}
+
+.form-label {
+    color: var(--leather-dark);
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.3px;
+}
+
+.form-text {
+    color: var(--medium-gray);
+    font-size: 0.85rem;
+}
+
+.input-group .form-control,
+.input-group .form-select {
+    border-radius: 8px 0 0 8px;
+}
+
+.input-group .btn {
+    border-radius: 0 8px 8px 0;
+}
+
+/* ============================================
+   BADGES & ALERTS
+   ============================================ */
+
+.badge {
+    padding: 0.4rem 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.badge-primary {
+    background-color: var(--gold-sand);
+    color: var(--white);
+}
+
+.badge-secondary {
+    background-color: var(--leather-chocolate);
+    color: var(--light-cream);
+}
+
+.badge-success {
+    background-color: var(--success);
+    color: var(--white);
+}
+
+.badge-warning {
+    background-color: var(--warning);
+    color: var(--white);
+}
+
+.badge-danger {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.alert {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+}
+
+.alert-warning {
+    background-color: rgba(205, 133, 63, 0.1);
+    border-color: var(--warning);
+    color: var(--dark-gray);
+}
+
+.alert-danger {
+    background-color: rgba(160, 82, 45, 0.1);
+    border-color: var(--danger);
+    color: var(--dark-gray);
+}
+
+.alert-success {
+    background-color: rgba(107, 142, 35, 0.1);
+    border-color: var(--success);
+    color: var(--dark-gray);
+}
+
+.alert-info {
+    background-color: rgba(85, 107, 47, 0.1);
+    border-color: var(--info);
+    color: var(--dark-gray);
+}
+
+/* ============================================
+   PAGINATION & NAVIGATION
+   ============================================ */
+
+.pagination {
+    margin-top: 2rem;
+}
+
+.page-link {
+    color: var(--gold-sand);
+    border-color: var(--border-light);
+    background-color: var(--white);
+}
+
+.page-link:hover {
+    background-color: rgba(184, 138, 77, 0.1);
+    color: var(--gold-old);
+    border-color: var(--border-medium);
+}
+
+.page-link.active {
+    background-color: var(--gold-sand);
+    border-color: var(--gold-sand);
+    color: var(--white);
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+
+.table {
+    color: var(--dark-gray);
+}
+
+.table thead {
+    background-color: var(--leather-dark);
+    color: var(--gold-sand);
+}
+
+.table thead th {
+    border-bottom: 2px solid var(--border-medium);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.3px;
+    font-weight: 600;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+    transition: background-color 0.3s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(184, 138, 77, 0.05);
+}
+
+/* ============================================
+   BREADCRUMB
+   ============================================ */
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item {
+    color: var(--medium-gray);
+}
+
+.breadcrumb-item.active {
+    color: var(--gold-sand);
+    font-weight: 600;
+}
+
+.breadcrumb-item a {
+    color: var(--gold-sand);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--gold-old);
+}
+
+/* ============================================
+   MODALS & POPOVERS
+   ============================================ */
+
+.modal-content {
+    background-color: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px var(--shadow-medium);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, rgba(43, 27, 23, 0.05) 0%, rgba(184, 138, 77, 0.05) 100%);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.modal-header .modal-title {
+    color: var(--leather-dark);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-close {
+    filter: invert(1);
+    opacity: 0.7;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+
+/* ============================================
+   SCROLLBAR (Chrome, Edge, Safari)
+   ============================================ */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--light-cream);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gold-sand);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-old);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-gold {
+    color: var(--gold-sand);
+}
+
+.text-leather {
+    color: var(--leather-dark);
+}
+
+.bg-leather {
+    background-color: var(--leather-dark);
+}
+
+.bg-leather-light {
+    background-color: rgba(43, 27, 23, 0.05);
+}
+
+.bg-gold {
+    background-color: var(--gold-sand);
+}
+
+.border-gold {
+    border-color: var(--gold-sand);
+}
+
+.border-leather {
+    border-color: var(--leather-dark);
+}
+
+.shadow-luxury {
+    box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+/* ============================================
+   ACCESSIBILITY & RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    
+    .page-header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+    .card {
+        border-color: var(--border-dark);
+    }
+    
+    .form-control:focus {
+        outline: 3px solid var(--gold-sand);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

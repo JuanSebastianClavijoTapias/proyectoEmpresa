@@ -6,12 +6,14 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1><i class="bi bi-journal-text"></i> Notas de Análisis</h1>
-        <p class="text-muted mb-0">Observaciones, fortalezas, debilidades y acciones</p>
+        <p class="text-white mb-0">Observaciones, fortalezas, debilidades y acciones</p>
     </div>
     <div class="d-flex gap-2">
+        {% if not request.user.trabajador %}
         <a href="{% url 'analisis:dashboard' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Dashboard
         </a>
+        {% endif %}
         <a href="{% url 'analisis:crear_nota' %}" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Nueva Nota
         </a>
@@ -89,3 +91,4 @@
 </div>
 {% endif %}
 {% endblock %}
+

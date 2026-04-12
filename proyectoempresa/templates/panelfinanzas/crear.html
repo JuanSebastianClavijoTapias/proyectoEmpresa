@@ -2,87 +2,123 @@
 {% block title %}Nuevo Producto - Catálogo{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <h1><i class="bi bi-plus-circle me-2"></i>Nuevo Producto</h1>
-    <p class="text-muted">Agregar un nuevo producto al catálogo con sus precios</p>
+<!-- Header con Gradiente -->
+<div class="page-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2.5rem 0; margin: -1rem -1rem 2rem -1rem; border-radius: 10px;">
+    <div style="padding: 0 1rem;">
+        <h1 style="color: white; margin-bottom: 0.5rem;"><i class="bi bi-plus-circle me-2"></i>Nuevo Producto</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 0;">Agregar un nuevo producto al catálogo con sus precios</p>
+    </div>
 </div>
 
 <div class="row">
+    <!-- Formulario Principal -->
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-box-seam me-2"></i>Información del Producto
+        <!-- Sección de Información -->
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden; border-left: 5px solid #667eea;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 1.25rem;">
+                <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Información del Producto</h5>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="padding: 2rem;">
                 <form method="post">
                     {% csrf_token %}
                     
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="form-label">Nombre del Producto *</label>
-                            {{ form.nombre }}
-                        </div>
+                    <!-- Nombre del Producto -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" style="color: #333;">
+                            <i class="bi bi-type me-2" style="color: #667eea;"></i>Nombre del Producto *
+                        </label>
+                        {{ form.nombre }}
+                        <small class="text-muted d-block mt-1">Ej: Tapizado Clásico, Reparación Cremallera, etc.</small>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Descripción</label>
+                    <!-- Descripción -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" style="color: #333;">
+                            <i class="bi bi-chat-left-text me-2" style="color: #764ba2;"></i>Descripción
+                        </label>
                         {{ form.descripcion }}
+                        <small class="text-muted d-block mt-1">Detalles adicionales sobre el producto (opcional)</small>
                     </div>
                     
-                    <hr class="my-4">
-                    <h6 class="mb-3"><i class="bi bi-currency-dollar me-2"></i>Precios</h6>
+                    <hr style="border-color: #e0e0e0; margin: 2rem 0;">
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Precio de Costo *</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.precio_costo }}
-                            </div>
-                            <small class="text-muted">Lo que nos cuesta</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Precio de Venta *</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.precio_venta }}
-                            </div>
-                            <small class="text-muted">A cuánto se vende</small>
-                        </div>
-                    </div>
+                    <!-- Sección de Precios -->
+                    <h6 class="mb-4 fw-bold" style="color: #333;">
+                        <i class="bi bi-currency-dollar me-2" style="color: #2ecc71;"></i>Información de Precios
+                    </h6>
                     
-                    <div class="mb-3">
-                        <div class="form-check">
-                            {{ form.es_precio_variable }}
-                            <label class="form-check-label" for="id_es_precio_variable">
-                                <strong>Precio Variable</strong>
-                            </label>
-                            <div class="form-text">Si está activo, el trabajador podrá ingresar el precio cobrado al crear la tarea (ej: trabajos de moto donde el precio cambia).</div>
+                    <div class="row mb-4">
+                        <!-- Precio de Costo -->
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light" style="border-radius: 10px; padding: 1.25rem;">
+                                <label class="form-label fw-bold mb-2" style="color: #333;">
+                                    <i class="bi bi-bag-fill me-2" style="color: #e74c3c;"></i>Precio de Costo *
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-0" style="color: #e74c3c; font-weight: bold;">$</span>
+                                    {{ form.precio_costo }}
+                                </div>
+                                <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">Lo que te cuesta obtener o producir</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Precio de Venta -->
+                        <div class="col-md-6">
+                            <div class="card border-0 bg-light" style="border-radius: 10px; padding: 1.25rem;">
+                                <label class="form-label fw-bold mb-2" style="color: #333;">
+                                    <i class="bi bi-cart-fill me-2" style="color: #2ecc71;"></i>Precio de Venta *
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white border-0" style="color: #2ecc71; font-weight: bold;">$</span>
+                                    {{ form.precio_venta }}
+                                </div>
+                                <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">Precio al cliente final</small>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Vista previa de ganancia -->
-                    <div class="alert alert-info" id="preview-ganancia">
-                        <div class="row text-center">
-                            <div class="col-md-6">
-                                <small>Ganancia Unitaria</small>
-                                <h5 id="ganancia-unitaria">$0</h5>
-                            </div>
-                            <div class="col-md-6">
-                                <small>% Ganancia</small>
-                                <h5 id="porcentaje-ganancia">0%</h5>
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); border-radius: 10px; padding: 1.5rem; color: white; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);">
+                                <div class="row text-center">
+                                    <div class="col-md-6 border-end" style="border-right: 1px solid rgba(255,255,255,0.2);">
+                                        <p class="mb-1" style="font-size: 0.9rem; opacity: 0.9;">
+                                            <i class="bi bi-graph-up me-1"></i>Ganancia Unitaria
+                                        </p>
+                                        <h3 id="ganancia-unitaria" class="mb-0" style="font-weight: bold;">$0</h3>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1" style="font-size: 0.9rem; opacity: 0.9;">
+                                            <i class="bi bi-percent me-1"></i>Margen de Ganancia
+                                        </p>
+                                        <h3 id="porcentaje-ganancia" class="mb-0" style="font-weight: bold;">0%</h3>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <hr class="my-4">
+                    <!-- Checkbox Precio Variable -->
+                    <div class="card border-0 bg-light mb-4" style="border-radius: 10px; padding: 1.25rem;">
+                        <div class="form-check">
+                            {{ form.es_precio_variable }}
+                            <label class="form-check-label fw-bold" for="id_es_precio_variable" style="color: #333;">
+                                <i class="bi bi-percent me-2" style="color: #f39c12;"></i>Precio Variable
+                            </label>
+                            <div class="form-text mt-2">
+                                Si está activo, el trabajador podrá ajustar el precio al crear la tarea. Perfecto para trabajos donde el costo cambia (ej: servicios de moto por kilómetro).
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-1"></i>Cancelar
+                    <!-- Botones de acción -->
+                    <div class="d-flex justify-content-between gap-2 mt-4">
+                        <a href="{% url 'finanzas:lista' %}" class="btn btn-outline-secondary btn-lg" style="border-radius: 8px; font-weight: 600;">
+                            <i class="bi bi-arrow-left me-2"></i>Cancelar
                         </a>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-lg me-1"></i>Guardar Producto
+                        <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); border: none; color: white; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);">
+                            <i class="bi bi-check-lg me-2"></i>Guardar Producto
                         </button>
                     </div>
                 </form>
@@ -90,28 +126,139 @@
         </div>
     </div>
     
+    <!-- Panel de Ayuda e Información -->
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-info-circle me-2"></i>Ayuda
+        <!-- Card de Guía -->
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden; border-left: 5px solid #3498db;">
+            <div class="card-header" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none; color: white; padding: 1.25rem;">
+                <h5 class="mb-0"><i class="bi bi-lightbulb me-2"></i>Guía de Precios</h5>
             </div>
-            <div class="card-body">
-                <p><strong>Precio de Costo:</strong> Es lo que te cuesta obtener o producir el producto.</p>
-                <p><strong>Precio de Venta:</strong> Es el precio al que vendes al cliente final.</p>
-                <p><strong>Ganancia:</strong> Se calcula automáticamente restando el costo del precio de venta.</p>
-                <hr>
-                <p class="mb-2"><strong>Nota:</strong> Los productos del catálogo estarán disponibles para que los trabajadores los seleccionen al crear tareas.</p>
+            <div class="card-body" style="padding: 1.5rem;">
+                <div class="mb-3">
+                    <p class="mb-2" style="font-weight: 600; color: #e74c3c;">
+                        <i class="bi bi-bag-fill me-2"></i>Precio de Costo
+                    </p>
+                    <p class="text-muted" style="font-size: 0.9rem;">Lo que te cuesta obtener, producir o importar el producto.</p>
+                </div>
+                <hr style="border-color: #e0e0e0;">
+                <div class="mb-3">
+                    <p class="mb-2" style="font-weight: 600; color: #2ecc71;">
+                        <i class="bi bi-cart-fill me-2"></i>Precio de Venta
+                    </p>
+                    <p class="text-muted" style="font-size: 0.9rem;">El precio que cobras al cliente por el producto o servicio.</p>
+                </div>
+                <hr style="border-color: #e0e0e0;">
+                <div>
+                    <p class="mb-2" style="font-weight: 600; color: #27ae60;">
+                        <i class="bi bi-graph-up me-2"></i>Ganancia
+                    </p>
+                    <p class="text-muted" style="font-size: 0.9rem;">Se calcula automáticamente: <strong>Precio Venta - Precio Costo</strong></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card de Tips -->
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; border-left: 5px solid #f39c12;">
+            <div class="card-header" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); border: none; color: white; padding: 1.25rem;">
+                <h5 class="mb-0"><i class="bi bi-star-fill me-2"></i>Consejos</h5>
+            </div>
+            <div class="card-body" style="padding: 1.5rem;">
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li class="mb-2" style="padding-left: 1.5rem; position: relative;">
+                        <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #2ecc71;"></i>
+                        <span style="font-size: 0.9rem; color: #333;">Sé específico en el nombre</span>
+                    </li>
+                    <li class="mb-2" style="padding-left: 1.5rem; position: relative;">
+                        <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #2ecc71;"></i>
+                        <span style="font-size: 0.9rem; color: #333;">Incluye detalles en la descripción</span>
+                    </li>
+                    <li class="mb-2" style="padding-left: 1.5rem; position: relative;">
+                        <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #2ecc71;"></i>
+                        <span style="font-size: 0.9rem; color: #333;">Verifica el margen de ganancia</span>
+                    </li>
+                    <li style="padding-left: 1.5rem; position: relative;">
+                        <i class="bi bi-check-circle-fill" style="position: absolute; left: 0; color: #2ecc71;"></i>
+                        <span style="font-size: 0.9rem; color: #333;">Actualiza precios según el mercado</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_css %}
 <style>
-    #preview-ganancia {
-        background-color: #e8f4fd;
-        border-color: #bee5eb;
+    .form-control {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        background-color: #f8f9ff;
+    }
+
+    .form-check-input {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 6px;
+        border: 2px solid #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .input-group-text {
+        border-radius: 8px 0 0 8px;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .input-group .form-control {
+        border-radius: 0 8px 8px 0;
+        border-left: none;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-secondary:hover {
+        border-color: #667eea;
+        color: #667eea;
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4) !important;
+    }
+
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(-2px);
     }
 </style>
 {% endblock %}
@@ -131,15 +278,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toFixed(0);
         document.getElementById('porcentaje-ganancia').textContent = porcentaje.toFixed(1) + '%';
-        
-        const previewDiv = document.getElementById('preview-ganancia');
-        if (gananciaUnitaria > 0) {
-            previewDiv.className = 'alert alert-success';
-        } else if (gananciaUnitaria < 0) {
-            previewDiv.className = 'alert alert-danger';
-        } else {
-            previewDiv.className = 'alert alert-info';
-        }
     }
     
     precioCosto.addEventListener('input', calcularGanancia);

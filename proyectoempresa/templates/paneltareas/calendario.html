@@ -6,7 +6,7 @@
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap">
     <div>
         <h1><i class="bi bi-calendar3"></i> Calendario de Entregas</h1>
-        <p class="text-muted">Visualiza las fechas de entrega de los trabajos</p>
+        <p class="text-white mb-0">Visualiza las fechas de entrega de los trabajos</p>
     </div>
     <a href="{% url 'tareas:lista' %}" class="btn btn-outline-secondary">
         <i class="bi bi-list-ul me-2"></i> Ver Lista
@@ -101,7 +101,7 @@
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         <div>
                                             <strong style="font-size: 1.1rem; color: #34495e;">{{ tarea.placa }}</strong>
-                                            <br><small class="text-muted"><i class="bi bi-person"></i> {{ tarea.nombre_cliente }}</small>
+                                            <br><small class="text-white mb-0"><i class="bi bi-person"></i> {{ tarea.nombre_cliente }}</small>
                                         </div>
                                         <span class="badge" style="background: {% if tarea.prioridad == 'alta' %}linear-gradient(135deg, #e74c3c, #c0392b){% elif tarea.estado == 'en_proceso' %}linear-gradient(135deg, #3498db, #2980b9){% else %}linear-gradient(135deg, #f39c12, #e67e22){% endif %}; font-size: 0.9rem;">
                                             {{ dia_info.dia }}/{{ mes_actual }}
@@ -274,3 +274,4 @@
 }
 </style>
 {% endblock %}
+

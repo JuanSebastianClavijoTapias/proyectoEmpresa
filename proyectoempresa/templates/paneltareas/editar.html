@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
         matches.forEach(c => {
             const div = document.createElement('div');
             div.className = 'autocomplete-item';
-            div.innerHTML = '<strong>' + c.nombre + '</strong> <small class="text-muted">- ' + c.telefono + '</small>';
+            div.innerHTML = '<strong>' + c.nombre + '</strong> <small class="text-white mb-0">- ' + c.telefono + '</small>';
             div.addEventListener('click', function() {
                 nombreInput.value = c.nombre;
                 telefonoInput.value = c.telefono;
@@ -549,3 +549,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+

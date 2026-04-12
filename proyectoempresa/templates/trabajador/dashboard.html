@@ -6,7 +6,7 @@
 <div class="page-header d-flex justify-content-between align-items-center flex-wrap">
     <div>
         <h1><i class="bi bi-person-workspace"></i> Bienvenido, {{ trabajador.nombre }}</h1>
-        <p class="text-muted">Aquí puedes registrar y monitorear tu productividad diaria</p>
+        <p class="text-white mb-0">Aquí puedes registrar y monitorear tu productividad diaria</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'trabajador:registrar' %}" class="btn" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
@@ -30,7 +30,7 @@
             <div class="card-body">
                 <h6 class="text-muted mb-2"><i class="bi bi-calendar-today"></i> Hoy Registrado</h6>
                 <h4 style="color: #3498db; font-weight: 700;">{{ total_hoy }} items</h4>
-                <small class="text-muted">{{ registro_hoy.duracion|default:'Pendiente' }}</small>
+                <small class="text-white mb-0">{{ registro_hoy.duracion|default:'Pendiente' }}</small>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
             <div class="card-body">
                 <h6 class="text-muted mb-2"><i class="bi bi-calendar-today"></i> Hoy</h6>
                 <h4 style="color: #95a5a6; font-weight: 700;">Sin registro</h4>
-                <small class="text-muted">Registra tu productividad</small>
+                <small class="text-white mb-0">Registra tu productividad</small>
             </div>
         </div>
     </div>
@@ -52,7 +52,7 @@
             <div class="card-body">
                 <h6 class="text-muted mb-2"><i class="bi bi-calendar-week"></i> Esta Semana</h6>
                 <h4 style="color: #f39c12; font-weight: 700;">{{ total_semana }} items</h4>
-                <small class="text-muted">{{ registros_semana.count }} registros</small>
+                <small class="text-white mb-0">{{ registros_semana.count }} registros</small>
             </div>
         </div>
     </div>
@@ -63,7 +63,7 @@
             <div class="card-body">
                 <h6 class="text-muted mb-2"><i class="bi bi-calendar-month"></i> Este Mes</h6>
                 <h4 style="color: #27ae60; font-weight: 700;">{{ total_mes }} items</h4>
-                <small class="text-muted">{{ registros_mes.count }} registros</small>
+                <small class="text-white mb-0">{{ registros_mes.count }} registros</small>
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
                 {% else %}
                     <h4 style="color: #95a5a6; font-weight: 700;">N/A</h4>
                 {% endif %}
-                <small class="text-muted">Última 30 días</small>
+                <small class="text-white mb-0">Última 30 días</small>
             </div>
         </div>
     </div>
@@ -175,3 +175,4 @@
 </div>
 
 {% endblock %}
+

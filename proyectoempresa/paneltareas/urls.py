@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_kanban
 
 app_name = 'tareas'
 
@@ -15,6 +16,12 @@ urlpatterns = [
     path('<int:pk>/imagen/<int:imagen_pk>/eliminar/', views.eliminar_imagen, name='eliminar_imagen'),
     path('<int:pk>/abonar/', views.abonar_tarea, name='abonar'),
     path('<int:pk>/completar-pago/', views.completar_pago_tarea, name='completar_pago'),
+    
+    # Kanban Board
+    path('kanban/', views_kanban.kanban_board, name='kanban'),
+    path('api/kanban/tareas/', views_kanban.get_tareas_kanban, name='api_get_tareas_kanban'),
+    path('api/kanban/tareas/<int:tarea_id>/estado/', views_kanban.actualizar_estado_tarea, name='api_actualizar_estado_tarea'),
+    path('api/kanban/reordenar/', views_kanban.reordenar_tareas, name='api_reordenar_tareas'),
     
     # Clientes
     path('clientes/', views.lista_clientes, name='lista_clientes'),

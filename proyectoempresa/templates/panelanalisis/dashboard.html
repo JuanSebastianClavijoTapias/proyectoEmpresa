@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load money_format %}
 
 {% block title %}Panel de Análisis - KPIs{% endblock %}
 
@@ -6,7 +7,7 @@
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1><i class="bi bi-bar-chart-line"></i> Panel de Análisis</h1>
-        <p class="text-muted mb-0">KPIs y métricas de rendimiento del negocio</p>
+        <p class="text-white mb-0">KPIs y métricas de rendimiento del negocio</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'analisis:lista_objetivos' %}" class="btn btn-outline-primary">
@@ -54,7 +55,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <p class="small mb-1">Ingresos</p>
-                    <h3 class="mb-0">${{ ingresos|floatformat:0 }}</h3>
+                    <h3 class="mb-0">${{ ingresos|formato_dinero }}</h3>
                 </div>
                 <div class="align-self-center">
                     <span class="badge bg-white bg-opacity-25 fs-6">
@@ -71,7 +72,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <p class="small mb-1">Ganancia Neta</p>
-                    <h3 class="mb-0">${{ ganancia|floatformat:0 }}</h3>
+                    <h3 class="mb-0">${{ ganancia|formato_dinero }}</h3>
                 </div>
                 <div class="align-self-center">
                     <span class="badge bg-white bg-opacity-25 fs-6">
@@ -95,7 +96,7 @@
     <div class="col-md-3 mb-3">
         <div class="stat-card clientes h-100">
             <p class="small mb-1">Ticket Promedio</p>
-            <h3 class="mb-0">${{ ticket_promedio|floatformat:0 }}</h3>
+            <h3 class="mb-0">${{ ticket_promedio|formato_dinero }}</h3>
             <small>por tarea</small>
         </div>
     </div>
@@ -120,7 +121,7 @@
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <strong>{{ alerta.cliente }}</strong><br>
-                                    <small class="text-muted">${{ alerta.saldo|floatformat:0 }} pendiente</small>
+                                    <small class="text-white mb-0">${{ alerta.saldo|formato_dinero }} pendiente</small>
                                 </div>
                                 <div class="text-end">
                                     <span class="badge {% if alerta.severidad == 'crítica' %}bg-danger{% elif alerta.severidad == 'alta' %}bg-warning text-dark{% else %}bg-info{% endif %}">
@@ -139,7 +140,7 @@
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <strong>{{ tarea.nombre_cliente }}</strong><br>
-                                    <small class="text-muted">{{ tarea.descripcion_trabajo|truncatewords:5 }}</small>
+                                    <small class="text-white mb-0">{{ tarea.descripcion_trabajo|truncatewords:5 }}</small>
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-warning text-dark">{{ tarea.dias_restantes }}d</span>
@@ -159,7 +160,7 @@
                     {% endif %}
                     
                     {% if not alertas_cobranza and not tareas_criticas and not trabajadores_sin_registrar %}
-                        <p class="text-muted mb-0"><i class="bi bi-check-circle"></i> Sin alertas críticas</p>
+                        <p class="text-white mb-0"><i class="bi bi-check-circle"></i> Sin alertas críticas</p>
                     {% endif %}
                 </div>
             </div>
@@ -188,11 +189,11 @@
                     <div class="row text-center g-2">
                         <div class="col-6">
                             <strong style="color: #27ae60;">${{ ganancia|floatformat:0 }}</strong><br>
-                            <small class="text-muted">Ganancia</small>
+                            <small class="text-white mb-0">Ganancia</small>
                         </div>
                         <div class="col-6">
                             <strong style="color: #3498db;">{{ total_gastos_mes|floatformat:0|default:"$0" }}</strong><br>
-                            <small class="text-muted">Gastos</small>
+                            <small class="text-white mb-0">Gastos</small>
                         </div>
                     </div>
                 </div>
@@ -317,7 +318,7 @@
 <div class="row mb-4">
     <div class="col-md-2 mb-3">
         <div class="stat-card completadas h-100 text-center">
-            <p class="small mb-1">Tareas Completadas</p>
+            <p class="small mb-1 text-muted">Tareas Completadas</p>
             <h2 class="mb-0">{{ tareas_completadas }}</h2>
             <span class="badge bg-white bg-opacity-25">
                 {{ var_tareas }}%
@@ -326,35 +327,35 @@
     </div>
     <div class="col-md-2 mb-3">
         <div class="stat-card proceso h-100 text-center">
-            <p class="small mb-1">Total Tareas</p>
+            <p class="small mb-1 text-muted">Total Tareas</p>
             <h2 class="mb-0">{{ tareas_total }}</h2>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="stat-card clientes h-100 text-center">
-            <p class="small mb-1">Tasa Completación</p>
+        <div class="stat-card urgentes h-100 text-center">
+            <p class="small mb-1 text-muted">Tasa Completación</p>
             <h2 class="mb-0">{{ tasa_completacion }}%</h2>
-            <div class="progress mt-1" style="height: 8px; background-color: rgba(255,255,255,0.3); border-radius: 4px; --progress-value: {{ tasa_completacion }}%;">
-                <div class="progress-bar" style="width: var(--progress-value); background-color: rgba(255,255,255,0.95); border-radius: 4px;"></div>
+            <div class="progress mt-1" style="height: 8px;">
+                <div class="progress-bar bg-warning" style="width: {{ tasa_completacion }}%;"></div>
             </div>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="stat-card pendientes h-100 text-center">
-            <p class="small mb-1">Tiempo Promedio</p>
+        <div class="stat-card clientes h-100 text-center">
+            <p class="small mb-1 text-muted">Tiempo Promedio</p>
             <h2 class="mb-0">{{ tiempo_promedio }}</h2>
-            <small>días</small>
+            <small class="text-white mb-0">días</small>
         </div>
     </div>
     <div class="col-md-2 mb-3">
         <div class="stat-card completadas h-100 text-center">
-            <p class="small mb-1">Puntualidad</p>
+            <p class="small mb-1 text-muted">Puntualidad</p>
             <h2 class="mb-0">{{ tasa_puntualidad }}%</h2>
         </div>
     </div>
     <div class="col-md-2 mb-3">
-        <div class="stat-card urgentes h-100 text-center">
-            <p class="small mb-1">Tareas Vencidas</p>
+        <div class="stat-card proceso h-100 text-center">
+            <p class="small mb-1 text-muted">Tareas Vencidas</p>
             <h2 class="mb-0">{{ tareas_vencidas }}</h2>
         </div>
     </div>
@@ -369,7 +370,7 @@
         <div class="row">
             <div class="col-4 mb-3">
                 <div class="stat-card proceso h-100 text-center">
-                    <p class="small mb-1">Items Producidos</p>
+                    <p class="small mb-1 text-muted">Items Producidos</p>
                     <h3 class="mb-0">{{ total_items_producidos }}</h3>
                     <span class="badge bg-white bg-opacity-25">
                         {{ var_productividad }}%
@@ -377,14 +378,14 @@
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="stat-card pendientes h-100 text-center">
-                    <p class="small mb-1">Horas Trabajo</p>
+                <div class="stat-card completadas h-100 text-center">
+                    <p class="small mb-1 text-muted">Horas Trabajo</p>
                     <h3 class="mb-0">{{ total_horas_trabajo }}</h3>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="stat-card completadas h-100 text-center">
-                    <p class="small mb-1">Items/Hora</p>
+                <div class="stat-card urgentes h-100 text-center">
+                    <p class="small mb-1 text-muted">Items/Hora</p>
                     <h3 class="mb-0">{{ productividad_hora }}</h3>
                 </div>
             </div>
@@ -395,7 +396,7 @@
         <div class="row">
             <div class="col-4 mb-3">
                 <div class="stat-card clientes h-100 text-center">
-                    <p class="small mb-1">Clientes Nuevos</p>
+                    <p class="small mb-1 text-muted">Clientes Nuevos</p>
                     <h3 class="mb-0">{{ clientes_nuevos }}</h3>
                     <span class="badge bg-white bg-opacity-25">
                         {{ var_clientes }}%
@@ -404,14 +405,14 @@
             </div>
             <div class="col-4 mb-3">
                 <div class="stat-card proceso h-100 text-center">
-                    <p class="small mb-1">Total Clientes</p>
+                    <p class="small mb-1 text-muted">Total Clientes</p>
                     <h3 class="mb-0">{{ total_clientes }}</h3>
                 </div>
             </div>
             <div class="col-4 mb-3">
-                <div class="stat-card completadas h-100 text-center">
-                    <p class="small mb-1">Más Detalles</p>
-                    <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-light mt-1">
+                <div class="stat-card urgentes h-100 text-center">
+                    <p class="small mb-1 text-muted">Más Detalles</p>
+                    <a href="{% url 'analisis:trabajadores' %}?fecha_desde={{ fecha_desde|date:'Y-m-d' }}&fecha_hasta={{ fecha_hasta|date:'Y-m-d' }}" class="btn btn-sm btn-warning">
                         <i class="bi bi-person-lines-fill"></i> Ver
                     </a>
                 </div>
@@ -430,51 +431,47 @@
         <div class="row">
             <div class="col-md mb-3">
                 <label class="small text-muted">Ingresos</label>
-                <div class="d-flex justify-content-between small">
+                <div class="d-flex justify-content-between small text-muted">
                     <span>${{ progreso_objetivo.ingresos.actual|floatformat:0 }}</span>
                     <span>Meta: ${{ progreso_objetivo.ingresos.meta|floatformat:0 }}</span>
                 </div>
                 <div class="progress" style="height: 10px;">
-                    <div class="progress-bar bg-{% if progreso_objetivo.ingresos.porcentaje >= 80 %}success{% elif progreso_objetivo.ingresos.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
-                         style="width: {{ progreso_objetivo.ingresos.porcentaje }}%">{{ progreso_objetivo.ingresos.porcentaje }}%</div>
+                    <div class="progress-bar bg-info" style="width: {{ progreso_objetivo.ingresos.porcentaje }}%">{{ progreso_objetivo.ingresos.porcentaje }}%</div>
                 </div>
             </div>
             <div class="col-md mb-3">
                 <label class="small text-muted">Ganancia</label>
-                <div class="d-flex justify-content-between small">
+                <div class="d-flex justify-content-between small text-muted">
                     <span>${{ progreso_objetivo.ganancia.actual|floatformat:0 }}</span>
                     <span>Meta: ${{ progreso_objetivo.ganancia.meta|floatformat:0 }}</span>
                 </div>
                 <div class="progress" style="height: 10px;">
-                    <div class="progress-bar bg-{% if progreso_objetivo.ganancia.porcentaje >= 80 %}success{% elif progreso_objetivo.ganancia.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
-                         style="width: {{ progreso_objetivo.ganancia.porcentaje }}%">{{ progreso_objetivo.ganancia.porcentaje }}%</div>
+                    <div class="progress-bar bg-success" style="width: {{ progreso_objetivo.ganancia.porcentaje }}%">{{ progreso_objetivo.ganancia.porcentaje }}%</div>
                 </div>
             </div>
             <div class="col-md mb-3">
                 <label class="small text-muted">Tareas Completadas</label>
-                <div class="d-flex justify-content-between small">
+                <div class="d-flex justify-content-between small text-muted">
                     <span>{{ progreso_objetivo.tareas.actual }}</span>
                     <span>Meta: {{ progreso_objetivo.tareas.meta }}</span>
                 </div>
                 <div class="progress" style="height: 10px;">
-                    <div class="progress-bar bg-{% if progreso_objetivo.tareas.porcentaje >= 80 %}success{% elif progreso_objetivo.tareas.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
-                         style="width: {{ progreso_objetivo.tareas.porcentaje }}%">{{ progreso_objetivo.tareas.porcentaje }}%</div>
+                    <div class="progress-bar bg-warning" style="width: {{ progreso_objetivo.tareas.porcentaje }}%">{{ progreso_objetivo.tareas.porcentaje }}%</div>
                 </div>
             </div>
             <div class="col-md mb-3">
                 <label class="small text-muted">Clientes Nuevos</label>
-                <div class="d-flex justify-content-between small">
+                <div class="d-flex justify-content-between small text-muted">
                     <span>{{ progreso_objetivo.clientes.actual }}</span>
                     <span>Meta: {{ progreso_objetivo.clientes.meta }}</span>
                 </div>
                 <div class="progress" style="height: 10px;">
-                    <div class="progress-bar bg-{% if progreso_objetivo.clientes.porcentaje >= 80 %}success{% elif progreso_objetivo.clientes.porcentaje >= 50 %}warning{% else %}danger{% endif %}" 
-                         style="width: {{ progreso_objetivo.clientes.porcentaje }}%">{{ progreso_objetivo.clientes.porcentaje }}%</div>
+                    <div class="progress-bar bg-danger" style="width: {{ progreso_objetivo.clientes.porcentaje }}%">{{ progreso_objetivo.clientes.porcentaje }}%</div>
                 </div>
             </div>
             <div class="col-md mb-3">
                 <label class="small text-muted">Items Producidos</label>
-                <div class="d-flex justify-content-between small">
+                <div class="d-flex justify-content-between small text-muted">
                     <span>{{ progreso_objetivo.items.actual }}</span>
                     <span>Meta: {{ progreso_objetivo.items.meta }}</span>
                 </div>
@@ -605,7 +602,7 @@
                             </div>
                             <div class="text-end">
                                 <strong style="color: #f39c12;">${{ gasto.total|floatformat:0 }}</strong><br>
-                                <small class="text-muted">{{ gasto.porcentaje }}%</small>
+                                <small class="text-white mb-0">{{ gasto.porcentaje }}%</small>
                             </div>
                         </div>
                         {% endfor %}
@@ -904,3 +901,5 @@ if (categoria_labels.length > 0 && categoria_data.length > 0 && document.getElem
 }
 </style>
 {% endblock %}
+
+

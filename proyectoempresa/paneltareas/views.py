@@ -217,44 +217,8 @@ def home(request):
 
 @login_required
 def lista_tareas(request):
-    """Vista para listar todas las tareas planificadas"""
-    tareas = TareaPlanificada.objects.all()
-    
-    # Filtros
-    estado_filtro = request.GET.get('estado')
-    prioridad_filtro = request.GET.get('prioridad')
-    placa_filtro = request.GET.get('placa')
-    
-    if estado_filtro:
-        tareas = tareas.filter(estado=estado_filtro)
-    if prioridad_filtro:
-        tareas = tareas.filter(prioridad=prioridad_filtro)
-    if placa_filtro:
-        tareas = tareas.filter(placa__icontains=placa_filtro)
-    
-    # Clientes morosos: tareas con saldo pendiente > 0
-    todas_tareas = TareaPlanificada.objects.filter(estado__in=['pendiente', 'en_proceso', 'completado'])
-    morosos = []
-    for t in todas_tareas:
-        saldo = t.saldo_pendiente
-        if saldo > 0:
-            morosos.append({
-                'tarea': t,
-                'saldo': saldo,
-                'total': t.precio_total,
-                'abonado': t.monto_abonado,
-            })
-    morosos.sort(key=lambda x: x['saldo'], reverse=True)
-    total_saldo_pendiente = sum(m['saldo'] for m in morosos)
-    
-    context = {
-        'tareas': tareas,
-        'estados': TareaPlanificada.ESTADO_CHOICES,
-        'prioridades': TareaPlanificada.PRIORIDAD_CHOICES,
-        'morosos': morosos,
-        'total_saldo_pendiente': total_saldo_pendiente,
-    }
-    return render(request, 'paneltareas/lista.html', context)
+    """Redirige a la página principal del Kanban"""
+    return redirect('tareas:kanban')
 
 
 @login_required

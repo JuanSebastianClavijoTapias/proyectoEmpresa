@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,136 +10,174 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-        }
-        
-        body {
-            background-color: #f8f9fa;
-            min-height: 100vh;
-        }
-        
+        /* ===== SIDEBAR STYLING ===== */
         .sidebar {
-            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            min-height: 100vh;
-            max-height: 100vh;
             position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
             width: 250px;
-            padding-top: 20px;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+            padding: 1.5rem 0;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
             overflow-y: auto;
-        }
-        
-        .sidebar .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 12px 20px;
-            margin: 4px 10px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar .nav-link:hover,
-        .sidebar .nav-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            font-size: 1.1rem;
+            z-index: 1000;
         }
         
         .sidebar-brand {
-            color: white;
-            font-size: 1.3rem;
-            font-weight: bold;
-            padding: 10px 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 20px;
+            padding: 0 1.5rem;
+            margin-bottom: 2rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .sidebar .nav {
+            flex-direction: column;
+        }
+        
+        .sidebar .nav-item {
+            margin: 0.25rem 0;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0.75rem 1.5rem;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left-color: #0d6efd;
+        }
+        
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(13, 110, 253, 0.2);
+            border-left-color: #0d6efd;
+            font-weight: 600;
+        }
+        
+        .sidebar .text-white-50 {
+            color: rgba(255, 255, 255, 0.5) !important;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         .main-content {
             margin-left: 250px;
-            padding: 20px 30px;
+            padding: 2rem;
         }
         
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        /* ===== MOBILE NAVBAR STYLING ===== */
+        .mobile-navbar {
+            display: none;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        
-        .card-header {
-            background-color: white;
-            border-bottom: 1px solid #eee;
-            border-radius: 12px 12px 0 0 !important;
-            font-weight: 600;
-        }
-        
-        .btn-primary {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-            border-color: #2980b9;
-        }
-        
+
+        /* Additional specific styling for stat cards */
         .stat-card {
-            border-radius: 12px;
-            padding: 20px;
-            color: white;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            padding: 1.5rem;
+            color: white !important;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border: none;
         }
         
-        .stat-card.pendientes { background: linear-gradient(135deg, #f39c12, #e67e22); }
-        .stat-card.proceso { background: linear-gradient(135deg, #3498db, #2980b9); }
-        .stat-card.completadas { background: linear-gradient(135deg, #27ae60, #229954); }
-        .stat-card.clientes { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
-        .stat-card.urgentes { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-        
-        .stat-card h3 {
-            font-size: 2rem;
-            margin-bottom: 0;
+        .stat-card p, .stat-card h3, .stat-card span, .stat-card small {
+            color: white !important;
         }
         
-        .badge-estado {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
+        .stat-card.pendientes { 
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        .stat-card.pendientes:hover {
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.4);
+            transform: translateY(-2px);
         }
         
-        .badge-pendiente { background-color: #f39c12; }
-        .badge-en_proceso { background-color: #3498db; }
-        .badge-completado { background-color: #27ae60; }
-        .badge-cancelado { background-color: #95a5a6; }
+        .stat-card.proceso { 
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        .stat-card.proceso:hover {
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+            transform: translateY(-2px);
+        }
         
-        .badge-prioridad-baja { background-color: #95a5a6; }
-        .badge-prioridad-media { background-color: #3498db; }
-        .badge-prioridad-alta { background-color: #f39c12; }
-        .badge-prioridad-urgente { background-color: #e74c3c; }
+        .stat-card.completadas { 
+            background: linear-gradient(135deg, #27ae60, #229954);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+        .stat-card.completadas:hover {
+            box-shadow: 0 8px 20px rgba(39, 174, 96, 0.4);
+            transform: translateY(-2px);
+        }
         
+        .stat-card.clientes { 
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+        }
+        .stat-card.clientes:hover {
+            box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card.urgentes { 
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+        }
+        .stat-card.urgentes:hover {
+            box-shadow: 0 8px 20px rgba(243, 156, 18, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        
+        .page-header h1 {
+            color: #fff;
+        }
+        
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* ===== BADGES ===== */
+        .badge-prioridad-alta { 
+            background-color: #f39c12; 
+        }
+        
+        .badge-prioridad-urgente { 
+            background-color: #e74c3c; 
+        }
+        
+        /* ===== TABLE STYLING ===== */
         .table th {
             font-weight: 600;
             color: #555;
             border-bottom: 2px solid #eee;
         }
         
-        .page-header {
-            margin-bottom: 25px;
-        }
-        
-        .page-header h1 {
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
         /* ===== BUTTON STYLING ===== */
         .btn {
             border-radius: 8px;
@@ -153,18 +192,18 @@
         }
 
         .btn-warning, .btn-info {
-            color: #212529; /* Dark text for light backgrounds to ensure contrast */
+            color: #212529;
             border: none;
         }
 
         .btn-primary {
-            background-color: var(--accent-color);
+            background-color: #0d6efd;
         }
 
         .btn-primary:hover {
-            background-color: #2980b9;
+            background-color: #0b5ed7;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
             color: white;
         }
 
@@ -173,8 +212,8 @@
         }
 
         .btn-outline-primary:hover {
-            background-color: var(--accent-color);
-            border-color: var(--accent-color);
+            background-color: #0d6efd;
+            border-color: #0d6efd;
             color: white;
         }
 
@@ -186,95 +225,41 @@
         }
 
         .form-control:focus, .form-select:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
         }
 
-        .form-label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        /* ===== TYPOGRAPHY ===== */
-        p, .text-base {
-            line-height: 1.6;
-            letter-spacing: 0.3px;
-        }
-
-        h1, h2, h3, h4, h5, h6 {
-            color: inherit; /* Allow inheritance so it works in dark containers */
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .text-primary {
-            color: var(--primary-color) !important;
-        }
-
-        .text-muted {
-            color: #6c757d !important;
-            font-size: 0.95rem;
-        }
-
-        /* ===== ACCESSIBILITY ===== */
-        .table td, .table th {
-            padding: 0.75rem;
-            vertical-align: middle;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #f0f6ff;
-        }
-
-        /* Status badges with good contrast */
-        .badge {
-            padding: 0.4rem 0.8rem;
-            font-weight: 500;
-            border-radius: 6px;
-        }
-
-        /* ===== RESPONSIVE IMPROVEMENTS ===== */
-        @media (max-width: 1024px) {
-            .page-header {
-                margin-bottom: 20px;
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .mobile-navbar {
+                display: block;
             }
             
             .main-content {
-                padding: 15px 20px;
-            }
-        }
-
-        /* ===== SPACING STANDARDS ===== */
-        .card {
-            margin-bottom: 1.5rem;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .card-header {
-            padding: 1rem 1.5rem;
-        }
-
-        .mb-spacer {
-            margin-bottom: 2rem;
-        }
-
-        /* ===== VISUAL HIERARCHY ===== */
-        .container-fluid {
-            max-width: 2000px;
-            margin: 0 auto;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                min-height: auto;
-            }
-            .main-content {
                 margin-left: 0;
+                padding: 1rem;
+                margin-top: 60px;
+            }
+            
+            .offcanvas {
+                background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+                width: 250px !important;
+            }
+            
+            .offcanvas .navbar-nav .nav-link {
+                color: rgba(255, 255, 255, 0.7);
+                padding: 0.75rem 1rem;
+                border-left: 3px solid transparent;
+            }
+            
+            .offcanvas .navbar-nav .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+                border-left-color: #0d6efd;
+                color: #fff;
             }
         }
     </style>
@@ -282,42 +267,42 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <nav class="sidebar d-none d-md-block">
+    <nav class="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-car-front-fill"></i> Tapicería Cuir
+            <i class="bi bi-car-front-fill"></i> <span class="brand-text">Tapicería Cuir</span>
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="{% url 'dashboard' %}">
-                    <i class="bi bi-speedometer2"></i> Dashboard
+                    <i class="bi bi-speedometer2"></i> <span class="nav-link-text">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'productividad' in request.path and 'trabajadores' not in request.path %}active{% endif %}" href="{% url 'productividad:lista' %}">
-                    <i class="bi bi-graph-up"></i> Productividad
+                    <i class="bi bi-graph-up"></i> <span class="nav-link-text">Productividad</span>
                 </a>
 
             </li>
             {% if user.is_superuser or user.perfil.es_jefe %}
             <li class="nav-item">
                 <a class="nav-link {% if 'trabajadores' in request.path %}active{% endif %}" href="{% url 'productividad:lista_trabajadores' %}">
-                    <i class="bi bi-person-badge"></i> Trabajadores
+                    <i class="bi bi-person-badge"></i> <span class="nav-link-text">Trabajadores</span>
                 </a>
             </li>
             {% endif %}
             <li class="nav-item">
                 <a class="nav-link {% if 'tareas' in request.path and 'clientes' not in request.path and 'calendario' not in request.path %}active{% endif %}" href="{% url 'tareas:lista' %}">
-                    <i class="bi bi-clipboard-check"></i> Planificador
+                    <i class="bi bi-clipboard-check"></i> <span class="nav-link-text">Planificador</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'calendario' in request.path %}active{% endif %}" href="{% url 'tareas:calendario' %}">
-                    <i class="bi bi-calendar3"></i> Calendario
+                    <i class="bi bi-calendar3"></i> <span class="nav-link-text">Calendario</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'clientes' in request.path %}active{% endif %}" href="{% url 'tareas:lista_clientes' %}">
-                    <i class="bi bi-people"></i> Clientes
+                    <i class="bi bi-people"></i> <span class="nav-link-text">Clientes</span>
                 </a>
             </li>
             
@@ -328,22 +313,22 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'finanzas' in request.path and 'reporte' not in request.path and 'categorias' not in request.path and 'historial' not in request.path %}active{% endif %}" href="{% url 'finanzas:lista' %}">
-                        <i class="bi bi-box-seam"></i> Productos
+                        <i class="bi bi-box-seam"></i> <span class="nav-link-text">Productos</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'historial' in request.path %}active{% endif %}" href="{% url 'finanzas:historial' %}">
-                        <i class="bi bi-clock-history"></i> Historial Entregas
+                        <i class="bi bi-clock-history"></i> <span class="nav-link-text">Historial Entregas</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'reporte' in request.path %}active{% endif %}" href="{% url 'finanzas:reporte' %}">
-                        <i class="bi bi-graph-up"></i> Reporte Financiero
+                        <i class="bi bi-graph-up"></i> <span class="nav-link-text">Reporte Financiero</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'gastos' in request.path %}active{% endif %}" href="{% url 'finanzas:lista_gastos' %}">
-                        <i class="bi bi-cash-coin"></i> Gastos
+                        <i class="bi bi-cash-coin"></i> <span class="nav-link-text">Gastos</span>
                     </a>
                 </li>
                 
@@ -352,12 +337,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'analisis' in request.path and 'trabajadores' not in request.path and 'financiero' not in request.path and 'objetivos' not in request.path and 'notas' not in request.path %}active{% endif %}" href="{% url 'analisis:dashboard' %}">
-                        <i class="bi bi-bar-chart-line"></i> KPIs Dashboard
+                        <i class="bi bi-bar-chart-line"></i> <span class="nav-link-text">KPIs Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'analisis' in request.path and 'financiero' in request.path %}active{% endif %}" href="{% url 'analisis:financiero' %}">
-                        <i class="bi bi-cash-stack"></i> Análisis Financiero
+                        <i class="bi bi-cash-stack"></i> <span class="nav-link-text">Análisis Financiero</span>
                     </a>
                 </li>
                 {% endif %}
@@ -366,17 +351,17 @@
             {% if user.is_authenticated %}
             <li class="nav-item">
                 <a class="nav-link {% if 'analisis' in request.path and 'trabajadores' in request.path %}active{% endif %}" href="{% url 'analisis:trabajadores' %}">
-                    <i class="bi bi-person-lines-fill"></i> Rendimiento
+                    <i class="bi bi-person-lines-fill"></i> <span class="nav-link-text">Rendimiento</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'objetivos' in request.path %}active{% endif %}" href="{% url 'analisis:lista_objetivos' %}">
-                    <i class="bi bi-bullseye"></i> Objetivos
+                    <i class="bi bi-bullseye"></i> <span class="nav-link-text">Objetivos</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'notas' in request.path %}active{% endif %}" href="{% url 'analisis:lista_notas' %}">
-                    <i class="bi bi-journal-text"></i> Notas Análisis
+                    <i class="bi bi-journal-text"></i> <span class="nav-link-text">Notas Análisis</span>
                 </a>
             </li>
             
@@ -385,7 +370,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if 'estandares' in request.path and 'categorias' not in request.path %}active{% endif %}" href="{% url 'estandares:lista' %}">
-                    <i class="bi bi-card-checklist"></i> Estándares
+                    <i class="bi bi-card-checklist"></i> <span class="nav-link-text">Estándares</span>
                 </a>
             </li>
             {% endif %}
@@ -393,7 +378,7 @@
             {% if user.is_superuser or user.perfil.es_jefe %}
             <li class="nav-item mt-4">
                 <a class="nav-link" href="{% url 'admin:index' %}">
-                    <i class="bi bi-gear"></i> Administración
+                    <i class="bi bi-gear"></i> <span class="nav-link-text">Administración</span>
                 </a>
             </li>
             {% endif %}
@@ -410,11 +395,11 @@
                     {% endif %}
                 </div>
                 <a class="nav-link text-danger" href="{% url 'logout' %}">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                    <i class="bi bi-box-arrow-right"></i> <span class="nav-link-text">Cerrar Sesión</span>
                 </a>
                 {% else %}
                 <a class="nav-link" href="{% url 'login' %}">
-                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    <i class="bi bi-box-arrow-in-right"></i> <span class="nav-link-text">Iniciar Sesión</span>
                 </a>
                 {% endif %}
             </li>
@@ -422,16 +407,24 @@
     </nav>
 
     <!-- Mobile navbar -->
-    <nav class="navbar navbar-dark d-md-none" style="background-color: var(--primary-color);">
+    <nav class="navbar navbar-dark navbar-expand-lg mobile-navbar" style="background-color: var(--primary-color); position: fixed; width: 100%; top: 0; z-index: 1020;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">
-                <i class="bi bi-car-front-fill"></i> Tapicería
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="mobileNav">
-                <ul class="navbar-nav">
+            <a class="navbar-brand ms-auto" href="{% url 'dashboard' %}">
+                <i class="bi bi-car-front-fill"></i> Tapicería Cuir
+            </a>
+        </div>
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel" style="width: 250px;">
+            <div class="offcanvas-header" style="background-color: var(--primary-color);">
+                <h5 class="offcanvas-title text-white" id="mobileNavLabel">
+                    <i class="bi bi-car-front-fill me-2"></i> Tapicería Cuir
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body p-0">
+                <ul class="navbar-nav w-100">
                     <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'productividad:lista' %}"><i class="bi bi-graph-up"></i> Productividad</a></li>
                     {% if user.is_superuser or user.perfil.es_jefe %}

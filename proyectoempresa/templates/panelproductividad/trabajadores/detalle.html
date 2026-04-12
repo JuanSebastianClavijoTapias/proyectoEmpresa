@@ -26,11 +26,21 @@
         <form method="get" class="row g-3">
             <div class="col-md-4">
                 <label class="form-label">Desde</label>
-                <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+                <div class="input-group">
+                    <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+                    <button type="button" class="btn btn-outline-primary btn-fecha-hoy" style="border-radius: 0 8px 8px 0;" title="Establecer fecha de hoy">
+                        <i class="bi bi-calendar-check"></i> Hoy
+                    </button>
+                </div>
             </div>
             <div class="col-md-4">
                 <label class="form-label">Hasta</label>
-                <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+                <div class="input-group">
+                    <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+                    <button type="button" class="btn btn-outline-primary btn-fecha-hoy" style="border-radius: 0 8px 8px 0;" title="Establecer fecha de hoy">
+                        <i class="bi bi-calendar-check"></i> Hoy
+                    </button>
+                </div>
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-outline-primary me-2">
@@ -174,4 +184,33 @@
         <i class="bi bi-pencil me-2"></i> Editar Trabajador
     </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<style>
+    .input-group .form-control,
+    .input-group .form-select,
+    .input-group .btn {
+        border-radius: 8px;
+        border: 2px solid #e0e0e0;
+    }
+    
+    .input-group .form-control,
+    .input-group .form-select {
+        border-radius: 8px 0 0 8px;
+    }
+    
+    .input-group .btn {
+        border-radius: 0 8px 8px 0;
+        border-left: none;
+        border-color: #e0e0e0;
+    }
+    
+    .input-group .btn:hover {
+        background-color: #667eea;
+        color: white;
+    }
+</style>
+<script src="{% static 'js/date-today-button.js' %}"></script>
 {% endblock %}

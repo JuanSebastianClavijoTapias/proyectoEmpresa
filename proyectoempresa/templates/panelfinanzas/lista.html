@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}Catálogo de Productos - Finanzas{% endblock %}
 
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1><i class="bi bi-box-seam me-2"></i>Catálogo de Productos</h1>
-        <p class="text-muted mb-0">Gestión de productos y precios</p>
+        <p class="text-white mb-0">Gestión de productos y precios</p>
     </div>
     <div>
         <a href="{% url 'finanzas:historial' %}" class="btn btn-outline-info me-2">
@@ -35,7 +36,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1 opacity-75">Ganancia Histórica Total</h6>
-                    <h3>${{ ganancia_total_historica|floatformat:0|default:"0" }}</h3>
+                    <h3>${{ ganancia_total_historica|formato_dinero|default:"0" }}</h3>
                 </div>
                 <i class="bi bi-cash-stack" style="font-size: 2.5rem; opacity: 0.3;"></i>
             </div>
@@ -106,17 +107,17 @@
                                 {{ producto.nombre }}
                             </a>
                             {% if producto.descripcion %}
-                            <br><small class="text-muted">{{ producto.descripcion|truncatewords:8 }}</small>
+                            <br><small class="text-white mb-0">{{ producto.descripcion|truncatewords:8 }}</small>
                             {% endif %}
                         </td>
-                        <td class="text-end">${{ producto.precio_costo|floatformat:0 }}</td>
-                        <td class="text-end">${{ producto.precio_venta|floatformat:0 }}</td>
+                        <td class="text-end">${{ producto.precio_costo|formato_dinero }}</td>
+                        <td class="text-end">${{ producto.precio_venta|formato_dinero }}</td>
                         <td class="text-end">
                             <span class="{% if producto.ganancia_unitaria > 0 %}text-success{% else %}text-danger{% endif %} fw-bold">
-                                ${{ producto.ganancia_unitaria|floatformat:0 }}
+                                ${{ producto.ganancia_unitaria|formato_dinero }}
                             </span>
                             <br>
-                            <small class="text-muted">{{ producto.porcentaje_ganancia|floatformat:1 }}%</small>
+                            <small class="text-white mb-0">{{ producto.porcentaje_ganancia|floatformat:1 }}%</small>
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">
@@ -179,7 +180,7 @@
                                 <td>
                                     <strong>{{ p_tarea.tarea.descripcion_trabajo|truncatechars:35 }}</strong>
                                     {% if p_tarea.tarea.nombre_cliente %}
-                                    <br><small class="text-muted"><i class="bi bi-person me-1"></i>{{ p_tarea.tarea.nombre_cliente }}</small>
+                                    <br><small class="text-white mb-0"><i class="bi bi-person me-1"></i>{{ p_tarea.tarea.nombre_cliente }}</small>
                                     {% endif %}
                                 </td>
                                 <td class="align-middle">
@@ -198,14 +199,14 @@
                                     {% if p_tarea.precio_cobrado %}
                                     <span class="text-success fw-bold">${{ p_tarea.precio_cobrado|floatformat:0 }}</span>
                                     {% else %}
-                                    <span class="text-muted">-</span>
+                                    <span class="text-white mb-0">-</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-end align-middle">
                                     {% if p_tarea.tarea.monto_abonado %}
                                     <span class="text-primary fw-bold">${{ p_tarea.tarea.monto_abonado|floatformat:0 }}</span>
                                     {% else %}
-                                    <span class="text-muted">$0</span>
+                                    <span class="text-white mb-0">$0</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -227,3 +228,5 @@
 {% endif %}
 
 {% endblock %}
+
+
