@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Est·ndares de Trabajo{% endblock %}
+{% block title %}Est√°ndares de Trabajo{% endblock %}
 
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1><i class="bi bi-card-checklist"></i> Est·ndares de Trabajo</h1>
-        <p class="text-white mb-0">Procesos y est·ndares definidos para las tareas</p>
+        <h1><i class="bi bi-card-checklist"></i> Est√°ndares de Trabajo</h1>
+        <p class="text-white mb-0">Procesos y est√°ndares definidos para las tareas</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Nuevo Est·ndar
+            <i class="bi bi-plus-lg"></i> Nuevo Est√°ndar
         </a>
     </div>
 </div>
@@ -32,8 +32,8 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Est·ndar</th>
-                            <th>DescripciÛn</th>
+                            <th>Est√°ndar</th>
+                            <th>Descripci√≥n</th>
                             <th>Agregado por</th>
                             <th>Fecha</th>
                             <th class="text-end">Acciones</th>
@@ -48,17 +48,25 @@
                                 {% if estandar.creado_por %}
                                     <i class="bi bi-person-circle me-1"></i>{{ estandar.creado_por.username }}
                                 {% else %}
-                                    <span class="text-white mb-0">ó</span>
+                                    <span class="text-muted">Sistema</span>
                                 {% endif %}
                             </td>
-                            <td>{{ estandar.creado_en|date:"d/m/Y" }}</td>
+                            <td>
+                                <small class="text-muted">
+                                    {% if estandar.creado_en %}
+                                        {{ estandar.creado_en|date:"d/m/Y" }}
+                                    {% endif %}
+                                </small>
+                            </td>
                             <td class="text-end">
-                                <a href="{% url 'estandares:editar' estandar.pk %}" class="btn btn-sm btn-outline-primary" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="{% url 'estandares:eliminar' estandar.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'estandares:editar' estandar.pk %}" class="btn btn-outline-primary" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'estandares:eliminar' estandar.pk %}" class="btn btn-outline-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -68,28 +76,16 @@
         </div>
         {% endif %}
     {% endfor %}
-
-    {% comment %} Check if there are any standards at all {% endcomment %}
-    {% with total=categorias.count %}
-        {% if total == 0 %}
-        <div class="text-center py-5">
-            <i class="bi bi-card-checklist display-1 text-muted"></i>
-            <h4 class="mt-3 text-muted">No hay est·ndares registrados</h4>
-            <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Crear Est·ndar
-            </a>
-        </div>
-        {% endif %}
-    {% endwith %}
 {% else %}
-<div class="text-center py-5">
-    <i class="bi bi-card-checklist display-1 text-muted"></i>
-    <h4 class="mt-3 text-muted">No hay est·ndares registrados</h4>
-    <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Crear Est·ndar
-    </a>
-</div>
+    <div class="alert alert-info d-flex align-items-center" role="alert">
+        <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
+        <div>
+            <h5 class="mb-0">Sin est√°ndares registrados</h5>
+            <p class="mb-0 small text-muted">No hay est√°ndares de trabajo definidos a√∫n. Crea uno para comenzar.</p>
+        </div>
+    </div>
 {% endif %}
+
 {% endblock %}
 
 

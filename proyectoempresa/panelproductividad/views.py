@@ -229,23 +229,38 @@ def editar_trabajador(request, pk):
         form = TrabajadorForm(request.POST, instance=trabajador)
         if form.is_valid():
             trabajador = form.save(commit=False)
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
+            username = form.cleaned_data.get('username', '').strip()
+            password = form.cleaned_data.get('password', '').strip()
+            
+            # Si hay username, crear o actualizar usuario
             if username:
                 if trabajador.usuario:
+                    # Usuario existe, actualizar datos
                     trabajador.usuario.username = username
                     if password:
                         trabajador.usuario.set_password(password)
+                        messages.success(request, 'Contraseña actualizada correctamente.')
                     trabajador.usuario.save()
-                elif password:
-                    usuario = User.objects.create_user(
-                        username=username,
-                        password=password,
-                        first_name=trabajador.nombre
-                    )
-                    trabajador.usuario = usuario
+                else:
+                    # Usuario no existe, crear nuevo
+                    if password:
+                        usuario = User.objects.create_user(
+                            username=username,
+                            password=password,
+                            first_name=trabajador.nombre.split()[0] if trabajador.nombre else 'Trabajador'
+                        )
+                        trabajador.usuario = usuario
+                        messages.success(request, f'Usuario "{username}" creado con contraseña.')
+                    else:
+                        messages.warning(request, 'Especifica una contraseña para crear el usuario.')
+            elif trabajador.usuario and password:
+                # Solo cambiar contraseña si el usuario existe
+                trabajador.usuario.set_password(password)
+                trabajador.usuario.save()
+                messages.success(request, 'Contraseña actualizada correctamente.')
+            
             trabajador.save()
-            messages.success(request, 'Trabajador actualizado exitosamente.')
+            messages.info(request, 'Trabajador actualizado exitosamente.')
             return redirect('productividad:lista_trabajadores')
     else:
         form = TrabajadorForm(instance=trabajador)
