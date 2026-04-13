@@ -87,11 +87,14 @@ WSGI_APPLICATION = 'proyectoempresa.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'empresa_cuir',
+        'NAME': 'cuirTapiceria',
         'USER': 'postgres',
         'PASSWORD': 'ROTADO',
-        'port' : '5432',
-        'host': 'localhost'
+        'PORT': '5432',
+        'HOST': 'localhost',
+        'OPTIONS': {
+            'options': '-c lc_messages=C',
+        },
     }
 }
 
@@ -130,7 +133,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Media files (Archivos subidos por usuarios)
 MEDIA_URL = 'media/'
