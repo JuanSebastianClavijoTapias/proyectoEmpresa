@@ -3,6 +3,23 @@ from .models import Trabajador, RegistroProductividad
 
 
 class TrabajadorForm(forms.ModelForm):
+    username = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nombre de usuario'
+        })
+    )
+    password = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña'
+        })
+    )
+    
     class Meta:
         model = Trabajador
         fields = ['nombre', 'activo']
