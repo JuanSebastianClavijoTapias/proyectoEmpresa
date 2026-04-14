@@ -46,10 +46,12 @@
             padding: 40px 20px 30px;
         }
         
-        .login-header .logo-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
+        .login-header .login-logo {
+            height: 108px;
+            width: auto;
+            margin: 0 auto 15px;
             display: block;
+            filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.3));
         }
         
         .login-header h1 {
@@ -127,7 +129,7 @@
     <div class="login-container">
         <div class="card login-card">
             <div class="login-header">
-                <i class="bi bi-car-front-fill logo-icon"></i>
+                <img src="{% static 'logo fondo eliminado.png' %}" alt="Cuir Tapicería" class="login-logo">
                 <h1>Tapicería Cuir</h1>
                 <p>Sistema de Gestión Empresarial</p>
             </div>

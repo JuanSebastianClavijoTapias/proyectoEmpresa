@@ -34,9 +34,72 @@
             color: #fff;
             font-weight: 700;
             font-size: 1.25rem;
+        }
+
+        .sidebar-brand-link {
+            color: inherit;
+            text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.85rem;
+        }
+
+        .brand-logo {
+            height: 56px;
+            width: auto;
+            flex-shrink: 0;
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+        }
+
+        .brand-stack {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .brand-text {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .brand-subtext {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 0.25rem;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-weight: 700;
+        }
+
+        .navbar-brand-logo,
+        .offcanvas-brand-logo {
+            width: auto;
+            filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.3));
+        }
+
+        .navbar-brand-logo {
+            height: 34px;
+        }
+
+        .offcanvas-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .offcanvas-brand-logo {
+            height: 38px;
+        }
+
+        .navbar-brand-text {
+            color: #fff;
         }
         
         .sidebar .nav {
@@ -273,7 +336,13 @@
     <!-- Sidebar -->
     <nav class="sidebar">
         <div class="sidebar-brand">
-            <i class="bi bi-car-front-fill"></i> <span class="brand-text">Tapicería Cuir</span>
+            <a href="{% url 'dashboard' %}" class="sidebar-brand-link">
+                <img src="{% static 'logo fondo eliminado.png' %}" alt="Cuir Tapicería" class="brand-logo">
+                <span class="brand-stack">
+                    <span class="brand-text">Cuir Tapicería</span>
+                    <span class="brand-subtext">Gestión del taller</span>
+                </span>
+            </a>
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -417,13 +486,17 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <a class="navbar-brand ms-auto" href="{% url 'dashboard' %}">
-                <i class="bi bi-car-front-fill"></i> Tapicería Cuir
+                <img src="{% static 'logo fondo eliminado.png' %}" alt="Cuir Tapicería" class="navbar-brand-logo">
+                <span class="navbar-brand-text">Tapicería Cuir</span>
             </a>
         </div>
         <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav" aria-labelledby="mobileNavLabel" style="width: 250px;">
             <div class="offcanvas-header" style="background-color: var(--primary-color);">
                 <h5 class="offcanvas-title text-white" id="mobileNavLabel">
-                    <i class="bi bi-car-front-fill me-2"></i> Tapicería Cuir
+                    <span class="offcanvas-brand">
+                        <img src="{% static 'logo fondo eliminado.png' %}" alt="Cuir Tapicería" class="offcanvas-brand-logo">
+                        <span>Tapicería Cuir</span>
+                    </span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>

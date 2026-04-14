@@ -66,8 +66,11 @@ def home(request):
     from django.db.models import Sum
     import json
     
-    # Si es trabajador, mostrar solo sus tareas asignadas
-    es_trabajador_logueado = hasattr(request.user, 'trabajador')
+    # Usar el rol del perfil para distinguir entre administración y trabajador.
+    try:
+        es_trabajador_logueado = request.user.perfil.es_trabajador and not request.user.is_superuser
+    except (PerfilUsuario.DoesNotExist, AttributeError):
+        es_trabajador_logueado = hasattr(request.user, 'trabajador') and not es_jefe(request.user)
     
     # Estadísticas generales
     tareas_pendientes = TareaPlanificada.objects.filter(estado='pendiente').count()
@@ -124,23 +127,26 @@ def home(request):
     else:
         ultimo_dia_mes = (mes_actual.replace(month=mes_actual.month + 1, day=1) - timedelta(days=1))
     
-    gastos_mes = Gasto.objects.filter(
-        fecha__gte=mes_actual,
-        fecha__lte=ultimo_dia_mes
-    )
-    total_gastos_mes = sum(g.monto for g in gastos_mes)
-    
-    gastos_por_categoria = list(gastos_mes.values('categoria').annotate(
-        total=Sum('monto')
-    ).order_by('-total')[:5])
-    
-    # Preparar datos para gráfico de gastos
-    if gastos_por_categoria:
-        gastos_labels = json.dumps([g['categoria'] for g in gastos_por_categoria])
-        gastos_data = json.dumps([float(g['total']) for g in gastos_por_categoria])
-    else:
-        gastos_labels = json.dumps([])
-        gastos_data = json.dumps([])
+    total_gastos_mes = Decimal('0')
+    gastos_por_categoria = []
+    gastos_labels = json.dumps([])
+    gastos_data = json.dumps([])
+
+    if not es_trabajador_logueado:
+        gastos_mes = Gasto.objects.filter(
+            fecha__gte=mes_actual,
+            fecha__lte=ultimo_dia_mes
+        )
+        total_gastos_mes = sum(g.monto for g in gastos_mes)
+
+        gastos_por_categoria = list(gastos_mes.values('categoria').annotate(
+            total=Sum('monto')
+        ).order_by('-total')[:5])
+
+        # Preparar datos para gráfico de gastos
+        if gastos_por_categoria:
+            gastos_labels = json.dumps([g['categoria'] for g in gastos_por_categoria])
+            gastos_data = json.dumps([float(g['total']) for g in gastos_por_categoria])
     
     # -------------------------
     # FLUJO DE CAJA PROYECTADO
