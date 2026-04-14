@@ -17,7 +17,6 @@
 
 {% if categorias %}
     {% for categoria in categorias %}
-<<<<<<< HEAD
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>{{ categoria.nombre }}</h5>
@@ -41,31 +40,6 @@
                 </thead>
                 <tbody>
                     {% if categoria.estandares.count %}
-=======
-        {% if categoria.estandares.all %}
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>{{ categoria.nombre }}</h5>
-                <span class="badge bg-primary rounded-pill">{{ categoria.estandares.count }}</span>
-            </div>
-            {% if categoria.descripcion %}
-            <div class="card-body pb-0">
-                <p class="text-muted small mb-2">{{ categoria.descripcion }}</p>
-            </div>
-            {% endif %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Estándar</th>
-                            <th>Descripción</th>
-                            <th>Agregado por</th>
-                            <th>Fecha</th>
-                            <th class="text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
->>>>>>> eb82535b93c2cbe8cb6a71f36c829f771dd0fe06
                         {% for estandar in categoria.estandares.all %}
                         <tr>
                             <td class="fw-bold">{{ estandar.titulo }}</td>
@@ -74,11 +48,7 @@
                                 {% if estandar.creado_por %}
                                     <i class="bi bi-person-circle me-1"></i>{{ estandar.creado_por.username }}
                                 {% else %}
-<<<<<<< HEAD
-                                    <span class="text-muted">-</span>
-=======
                                     <span class="text-muted">Sistema</span>
->>>>>>> eb82535b93c2cbe8cb6a71f36c829f771dd0fe06
                                 {% endif %}
                             </td>
                             <td>
@@ -111,17 +81,6 @@
     </div>
     {% endfor %}
 {% else %}
-<<<<<<< HEAD
-<div class="text-center py-5">
-    <i class="bi bi-card-checklist display-1 text-muted"></i>
-    <h4 class="mt-3 text-muted">No hay estándares registrados</h4>
-    <a href="{% url 'estandares:crear' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Crear Estándar
-    </a>
-</div>
-{% endif %}
-{% endblock %}
-=======
     <div class="alert alert-info d-flex align-items-center" role="alert">
         <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
         <div>
@@ -130,8 +89,4 @@
         </div>
     </div>
 {% endif %}
-
 {% endblock %}
-
-
->>>>>>> eb82535b93c2cbe8cb6a71f36c829f771dd0fe06

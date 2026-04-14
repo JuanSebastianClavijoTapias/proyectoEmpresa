@@ -14,7 +14,7 @@
 </div>
 
 <div style="max-width: 100%;">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         
         <!-- Información del Cliente -->
@@ -59,6 +59,20 @@
                     <label class="form-label fw-bold" style="color: #34495e;">Placa del Vehículo (Opcional)</label>
                     {{ form.placa }}
                     <small class="text-muted d-block mt-1">Dejar vacío si no aplica</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fotos Iniciales -->
+        <div class="card mb-4" style="border: none; border-left: 4px solid #9b59b6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; border: none;">
+                <i class="bi bi-images"></i> Fotos Iniciales del Trabajo
+            </div>
+            <div class="card-body" style="padding: 1.5rem;">
+                <div class="mb-3">
+                    <label for="imagenes_iniciales" class="form-label fw-bold" style="color: #34495e;">Seleccionar imágenes</label>
+                    <input type="file" name="imagenes_iniciales" id="imagenes_iniciales" class="form-control" accept="image/*" multiple>
+                    <div class="form-text" id="imagenes-iniciales-feedback">Puedes escoger fotos guardadas de la galería o tomar nuevas desde la cámara. Se pueden subir varias a la vez.</div>
                 </div>
             </div>
         </div>
@@ -265,7 +279,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('productos-container');
     const btnAdd = document.getElementById('btn-add-producto');
     const prefix = 'productos';
+    const imagenesInicialesInput = document.getElementById('imagenes_iniciales');
+    const imagenesInicialesFeedback = document.getElementById('imagenes-iniciales-feedback');
     
+    // ==========================================
+    // IMAGENES INICIALES
+    // ==========================================
+    if (imagenesInicialesInput && imagenesInicialesFeedback) {
+        imagenesInicialesInput.addEventListener('change', function() {
+            const total = this.files ? this.files.length : 0;
+            if (!total) {
+                imagenesInicialesFeedback.textContent = 'Puedes escoger fotos guardadas de la galería o tomar nuevas desde la cámara. Se pueden subir varias a la vez.';
+                return;
+            }
+
+            const nombres = Array.from(this.files)
+                .slice(0, 3)
+                .map((file) => file.name)
+                .join(', ');
+
+            imagenesInicialesFeedback.textContent = total === 1
+                ? `1 imagen seleccionada: ${nombres}`
+                : `${total} imágenes seleccionadas. Primeras: ${nombres}`;
+        });
+    }
+
     // ==========================================
     // SELECTOR DE CLIENTE EXISTENTE
     // ==========================================

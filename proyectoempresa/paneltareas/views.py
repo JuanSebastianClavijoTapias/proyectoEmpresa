@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.http import JsonResponse
 from datetime import date, timedelta
 import calendar
@@ -19,6 +21,28 @@ def es_jefe(user):
         return user.perfil.es_jefe
     except (PerfilUsuario.DoesNotExist, AttributeError):
         return False
+
+
+def guardar_imagenes_tarea(tarea, archivos, descripcion=''):
+    """Valida y guarda imágenes asociadas a una tarea."""
+    imagenes_pendientes = []
+
+    for archivo in archivos:
+        if not getattr(archivo, 'name', ''):
+            continue
+
+        imagen = ImagenTarea(
+            tarea=tarea,
+            imagen=archivo,
+            descripcion=descripcion,
+        )
+        imagen.full_clean()
+        imagenes_pendientes.append(imagen)
+
+    for imagen in imagenes_pendientes:
+        imagen.save()
+
+    return len(imagenes_pendientes)
 
 
 # =============================================
@@ -236,53 +260,70 @@ def crear_tarea(request):
     if request.method == 'POST':
         form = FormClass(request.POST)
         formset = ProductoTareaFormSet(request.POST, prefix='productos')
+        imagenes_iniciales = request.FILES.getlist('imagenes_iniciales')
         if form.is_valid() and formset.is_valid():
-            tarea = form.save(commit=False)
-            tarea.placa = ''
-            tarea.save()
-            # Auto-registrar cliente si no existe
-            Cliente.objects.get_or_create(
-                nombre=tarea.nombre_cliente,
-                defaults={'telefono': tarea.telefono_cliente}
-            )
-            formset.instance = tarea
-            productos_tarea = formset.save(commit=False)
-            for i, pt in enumerate(productos_tarea):
-                form_data = formset.forms[i].cleaned_data
-                nombre_input = form_data.get('nombre_producto_input', '').strip()
-                precio_cobrado = form_data.get('precio_cobrado')
-                
-                if not nombre_input and not pt.producto:
-                    continue
-                
-                if pt.producto:
-                    pt.nombre_producto = pt.producto.nombre
-                    pt.precio_costo = pt.producto.precio_costo
-                    pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
-                else:
-                    # Auto-registrar producto nuevo en el catálogo
-                    nuevo_producto, created = Producto.objects.get_or_create(
-                        nombre=nombre_input,
-                        defaults={
-                            'precio_costo': 0,
-                            'precio_venta': precio_cobrado or 0,
-                            'creado_por': request.user,
-                        }
+            try:
+                with transaction.atomic():
+                    tarea = form.save(commit=False)
+                    tarea.placa = ''
+                    tarea.save()
+                    # Auto-registrar cliente si no existe
+                    Cliente.objects.get_or_create(
+                        nombre=tarea.nombre_cliente,
+                        defaults={'telefono': tarea.telefono_cliente}
                     )
-                    pt.producto = nuevo_producto
-                    pt.nombre_producto = nombre_input
-                    pt.precio_costo = nuevo_producto.precio_costo
-                    pt.precio_venta = precio_cobrado if precio_cobrado else nuevo_producto.precio_venta
-                pt.ajuste_precio = 0
-                pt.save()
-            for obj in formset.deleted_objects:
-                obj.delete()
-            # Auto-set tarea.placa from product placas
-            placas = tarea.productos_tarea.exclude(placa='').values_list('placa', flat=True).distinct()
-            tarea.placa = ', '.join(placas)
-            tarea.save(update_fields=['placa'])
-            messages.success(request, 'Tarea creada exitosamente.')
-            return redirect('tareas:lista')
+                    formset.instance = tarea
+                    productos_tarea = formset.save(commit=False)
+                    for i, pt in enumerate(productos_tarea):
+                        form_data = formset.forms[i].cleaned_data
+                        nombre_input = form_data.get('nombre_producto_input', '').strip()
+                        precio_cobrado = form_data.get('precio_cobrado')
+
+                        if not nombre_input and not pt.producto:
+                            continue
+
+                        if pt.producto:
+                            pt.nombre_producto = pt.producto.nombre
+                            pt.precio_costo = pt.producto.precio_costo
+                            pt.precio_venta = precio_cobrado if precio_cobrado else pt.producto.precio_venta
+                        else:
+                            # Auto-registrar producto nuevo en el catálogo
+                            nuevo_producto, created = Producto.objects.get_or_create(
+                                nombre=nombre_input,
+                                defaults={
+                                    'precio_costo': 0,
+                                    'precio_venta': precio_cobrado or 0,
+                                    'creado_por': request.user,
+                                }
+                            )
+                            pt.producto = nuevo_producto
+                            pt.nombre_producto = nombre_input
+                            pt.precio_costo = nuevo_producto.precio_costo
+                            pt.precio_venta = precio_cobrado if precio_cobrado else nuevo_producto.precio_venta
+                        pt.ajuste_precio = 0
+                        pt.save()
+                    for obj in formset.deleted_objects:
+                        obj.delete()
+                    # Auto-set tarea.placa from product placas
+                    placas = tarea.productos_tarea.exclude(placa='').values_list('placa', flat=True).distinct()
+                    tarea.placa = ', '.join(placas)
+                    tarea.save(update_fields=['placa'])
+
+                    total_imagenes = guardar_imagenes_tarea(tarea, imagenes_iniciales)
+            except ValidationError as exc:
+                mensajes = []
+                if hasattr(exc, 'message_dict'):
+                    for errores in exc.message_dict.values():
+                        mensajes.extend(errores)
+                else:
+                    mensajes.extend(exc.messages)
+                messages.error(request, ' '.join(mensajes) or 'Error al subir las imágenes iniciales.')
+            else:
+                if total_imagenes:
+                    messages.success(request, f'Tarea creada exitosamente con {total_imagenes} imagen(es).')
+                else:
+                    messages.success(request, 'Tarea creada exitosamente.')
+                return redirect('tareas:lista')
     else:
         form = FormClass(initial={'fecha_ingreso': date.today()})
         formset = ProductoTareaFormSet(prefix='productos')

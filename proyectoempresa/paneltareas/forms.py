@@ -134,7 +134,6 @@ class ImagenTareaForm(forms.ModelForm):
             'imagen': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',
-                'capture': 'environment',
             }),
             'descripcion': forms.TextInput(attrs={
                 'class': 'form-control',
