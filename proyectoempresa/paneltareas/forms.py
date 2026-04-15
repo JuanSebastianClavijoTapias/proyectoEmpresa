@@ -127,9 +127,29 @@ class AbonarForm(forms.Form):
 
 class ImagenTareaForm(forms.ModelForm):
     """Formulario para subir imágenes a las tareas"""
+    producto_tarea = forms.ModelChoiceField(
+        queryset=ProductoTarea.objects.none(),
+        required=True,
+        label='Producto',
+        empty_label='Seleccione el producto',
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+        }),
+    )
+
+    def __init__(self, *args, tarea=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = ProductoTarea.objects.none()
+        if tarea is not None:
+            queryset = tarea.productos_tarea.all()
+        self.fields['producto_tarea'].queryset = queryset
+        self.fields['producto_tarea'].label_from_instance = lambda producto_tarea: (
+            f"{producto_tarea.nombre_producto} x{producto_tarea.cantidad}"
+        )
+
     class Meta:
         model = ImagenTarea
-        fields = ['imagen', 'descripcion']
+        fields = ['producto_tarea', 'imagen', 'descripcion']
         widgets = {
             'imagen': forms.FileInput(attrs={
                 'class': 'form-control',

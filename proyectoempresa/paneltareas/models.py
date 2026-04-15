@@ -123,6 +123,14 @@ def validar_imagen(fieldfile_obj):
 class ImagenTarea(models.Model):
     """Modelo para almacenar imágenes del progreso de las tareas"""
     tarea = models.ForeignKey(TareaPlanificada, on_delete=models.CASCADE, related_name='imagenes', verbose_name='Tarea')
+    producto_tarea = models.ForeignKey(
+        'ProductoTarea',
+        on_delete=models.CASCADE,
+        related_name='imagenes',
+        verbose_name='Producto de la tarea',
+        null=True,
+        blank=True,
+    )
     imagen = models.ImageField(
         upload_to='tareas/imagenes/%Y/%m/',
         verbose_name='Imagen',
@@ -135,12 +143,23 @@ class ImagenTarea(models.Model):
         verbose_name = 'Imagen de Tarea'
         verbose_name_plural = 'Imágenes de Tareas'
         ordering = ['-fecha_subida']
+
+    def clean(self):
+        super().clean()
+        if self.producto_tarea_id:
+            if self.tarea_id and self.tarea_id != self.producto_tarea.tarea_id:
+                raise ValidationError({'producto_tarea': 'El producto seleccionado no pertenece a esta tarea.'})
+            self.tarea = self.producto_tarea.tarea
     
     def __str__(self):
+        if self.producto_tarea_id:
+            return f"Imagen de {self.producto_tarea.nombre_producto} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
         placa_str = self.tarea.placa if self.tarea.placa else 'Sin placa'
         return f"Imagen de {placa_str} - {self.fecha_subida.strftime('%d/%m/%Y %H:%M')}"
 
     def save(self, *args, **kwargs):
+        if self.producto_tarea_id:
+            self.tarea = self.producto_tarea.tarea
         if self.imagen:
             self.imagen = self._comprimir_imagen(self.imagen)
         super().save(*args, **kwargs)

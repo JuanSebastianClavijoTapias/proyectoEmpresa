@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cliente, TareaPlanificada, ProductoTarea
+from .models import Cliente, TareaPlanificada, ProductoTarea, ImagenTarea
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
@@ -55,3 +55,11 @@ class ProductoTareaAdmin(admin.ModelAdmin):
     list_filter = ['fecha_registro']
     search_fields = ['nombre_producto', 'tarea__nombre_cliente', 'tarea__placa']
     date_hierarchy = 'fecha_registro'
+
+
+@admin.register(ImagenTarea)
+class ImagenTareaAdmin(admin.ModelAdmin):
+    list_display = ['id', 'tarea', 'producto_tarea', 'descripcion', 'fecha_subida']
+    list_filter = ['fecha_subida']
+    search_fields = ['tarea__nombre_cliente', 'tarea__placa', 'producto_tarea__nombre_producto', 'descripcion']
+    autocomplete_fields = ['tarea', 'producto_tarea']

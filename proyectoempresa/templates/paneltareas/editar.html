@@ -14,7 +14,7 @@
 </div>
 
 <div style="max-width: 100%;">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         
         <!-- Información del Cliente -->
@@ -29,6 +29,7 @@
                         <select id="cliente-selector" class="form-select" style="border: 1px solid #3498db; border-radius: 0.4rem;">
                             <option value="">-- Nuevo cliente / Escribir manualmente --</option>
                         </select>
+                        <small class="text-muted d-block mt-1">Los clientes con saldo pendiente aparecen primero y muestran cuánto deben.</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold" style="color: #34495e;">Nombre del Cliente *</label>
@@ -64,7 +65,7 @@
                 <i class="bi bi-box-seam"></i> Productos
             </div>
             <div class="card-body" style="padding: 1.5rem;">
-                <p class="text-muted small mb-3"><i class="bi bi-info-circle"></i> Escriba el nombre del producto o seleccione del catálogo.</p>
+                <p class="text-muted small mb-3"><i class="bi bi-info-circle"></i> Escriba el nombre del producto o seleccione del catálogo. Las imágenes nuevas se guardan sobre el producto correspondiente.</p>
         
                 {{ formset.management_form }}
         
@@ -79,6 +80,9 @@
                                 {{ form_producto.nombre_producto_input }}
                                 <div class="producto-suggestions autocomplete-list"></div>
                             </div>
+                            {% if form_producto.nombre_producto_input.errors %}
+                            <div class="text-danger small mt-1">{{ form_producto.nombre_producto_input.errors|join:', ' }}</div>
+                            {% endif %}
                             {% for hidden in form_producto.hidden_fields %}
                                 {{ hidden }}
                             {% endfor %}
@@ -110,10 +114,17 @@
                             {% endif %}
                             <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1" style="border: 1px solid #27ae60; background-color: #f0f8f5;">
                         </div>
-                        <div class="col-md-2">
-                            {% if forloop.first %}
-                            <label class="form-label">&nbsp;</label>
+                        <div class="col-12">
+                            <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
+                            <input type="file" name="{{ form_producto.prefix }}-imagenes" id="id_{{ form_producto.prefix }}-imagenes" class="form-control producto-imagenes-input" accept="image/*" multiple>
+                            <div class="form-text producto-imagenes-feedback">Adjunta nuevas imágenes para este producto. Se conservarán las imágenes ya registradas.</div>
+                            {% with total_imagenes=form_producto.instance.imagenes.count %}
+                            {% if total_imagenes %}
+                            <div class="form-text text-success">Actualmente hay {{ total_imagenes }} imagen(es) asociadas a este producto.</div>
                             {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="col-12 d-flex justify-content-end">
                             <div class="d-flex gap-1">
                                 {% if form_producto.DELETE %}
                                 <div class="d-none">{{ form_producto.DELETE }}</div>
@@ -127,9 +138,15 @@
                     {% endfor %}
                 </div>
                 
-                <button type="button" class="btn btn-sm mt-3" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;" id="btn-add-producto">
-                    <i class="bi bi-plus-circle me-1"></i> Agregar Producto
-                </button>
+                <div class="d-flex gap-2 flex-wrap mt-3">
+                    <button type="button" class="btn btn-sm" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;" id="btn-add-producto">
+                        <i class="bi bi-plus-circle me-1"></i> Agregar Producto
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-duplicate-producto">
+                        <i class="bi bi-copy me-1"></i> Duplicar Último
+                    </button>
+                </div>
+                <div class="form-text mt-2">Al duplicar se copian producto, placa, cantidad y precio del último renglón visible.</div>
                 
                 <!-- Resumen de pago en tiempo real -->
                 <div class="card mt-4 mb-0" style="border: none; border-left: 4px solid #9b59b6; background: linear-gradient(135deg, rgba(155, 89, 182, 0.05), rgba(142, 68, 173, 0.05));">
@@ -172,10 +189,23 @@
                     <div class="col-md-3">
                         <label class="form-label fw-bold" style="color: #34495e;">Fecha de Ingreso *</label>
                         {{ form.fecha_ingreso }}
+                        <div class="d-flex gap-2 flex-wrap mt-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-set-today" data-target="id_fecha_ingreso">
+                                <i class="bi bi-calendar-check me-1"></i> Hoy
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold" style="color: #34495e;">Fecha de Entrega *</label>
                         {{ form.fecha_entrega }}
+                        <div class="d-flex gap-2 flex-wrap mt-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-set-today" data-target="id_fecha_entrega">
+                                <i class="bi bi-calendar-check me-1"></i> Hoy
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-copy-date" data-source="id_fecha_ingreso" data-target="id_fecha_entrega">
+                                <i class="bi bi-arrow-left-right me-1"></i> Copiar ingreso
+                            </button>
+                        </div>
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-bold" style="color: #34495e;">Estado</label>
@@ -269,6 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const esJefe = {{ es_jefe|yesno:"true,false" }};
     const container = document.getElementById('productos-container');
     const btnAdd = document.getElementById('btn-add-producto');
+    const btnDuplicate = document.getElementById('btn-duplicate-producto');
     const prefix = 'productos';
     
     // ==========================================
@@ -277,16 +308,59 @@ document.addEventListener('DOMContentLoaded', function() {
     const clienteSelector = document.getElementById('cliente-selector');
     const nombreInput = document.getElementById('id_nombre_cliente');
     const telefonoInput = document.getElementById('id_telefono_cliente');
+
+    function formatMoney(value) {
+        return Number(value || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+
+    function formatClienteLabel(cliente) {
+        const telefono = cliente.telefono ? ` - ${cliente.telefono}` : '';
+        const saldo = cliente.tiene_saldo ? ` | Debe $${formatMoney(cliente.saldo_pendiente)}` : '';
+        return `${cliente.nombre}${telefono}${saldo}`;
+    }
+
+    function renderClienteSuggestion(cliente) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'd-flex justify-content-between align-items-start gap-2';
+
+        const textContainer = document.createElement('div');
+        const nombre = document.createElement('strong');
+        nombre.textContent = cliente.nombre;
+        textContainer.appendChild(nombre);
+
+        if (cliente.telefono) {
+            const telefono = document.createElement('small');
+            telefono.className = 'd-block text-muted';
+            telefono.textContent = cliente.telefono;
+            textContainer.appendChild(telefono);
+        }
+
+        wrapper.appendChild(textContainer);
+
+        if (cliente.tiene_saldo) {
+            const saldo = document.createElement('span');
+            saldo.className = 'badge rounded-pill text-bg-warning';
+            saldo.textContent = `Debe $${formatMoney(cliente.saldo_pendiente)}`;
+            wrapper.appendChild(saldo);
+        }
+
+        return wrapper;
+    }
     
     clientesData.forEach(c => {
         const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.nombre + ' - ' + c.telefono;
+        opt.value = c.selector_value;
+        opt.textContent = formatClienteLabel(c);
         clienteSelector.appendChild(opt);
     });
+
+    const clienteInicial = clientesData.find(c => c.nombre === nombreInput.value && c.telefono === telefonoInput.value);
+    if (clienteInicial) {
+        clienteSelector.value = clienteInicial.selector_value;
+    }
     
     clienteSelector.addEventListener('change', function() {
-        const cliente = clientesData.find(c => c.id == this.value);
+        const cliente = clientesData.find(c => c.selector_value === this.value);
         if (cliente) {
             nombreInput.value = cliente.nombre;
             telefonoInput.value = cliente.telefono;
@@ -297,6 +371,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // AUTOCOMPLETE NOMBRE CLIENTE
     // ==========================================
     const nombreSuggestions = document.getElementById('nombre-suggestions');
+
+    if (nombreInput && !nombreInput.value.trim()) {
+        nombreInput.focus();
+    }
     
     nombreInput.addEventListener('input', function() {
         const val = this.value.toLowerCase().trim();
@@ -309,10 +387,11 @@ document.addEventListener('DOMContentLoaded', function() {
         matches.forEach(c => {
             const div = document.createElement('div');
             div.className = 'autocomplete-item';
-            div.innerHTML = '<strong>' + c.nombre + '</strong> <small class="text-white mb-0">- ' + c.telefono + '</small>';
+            div.appendChild(renderClienteSuggestion(c));
             div.addEventListener('click', function() {
                 nombreInput.value = c.nombre;
                 telefonoInput.value = c.telefono;
+                clienteSelector.value = c.selector_value;
                 nombreSuggestions.style.display = 'none';
             });
             nombreSuggestions.appendChild(div);
@@ -400,10 +479,59 @@ document.addEventListener('DOMContentLoaded', function() {
             suggestions.style.display = 'block';
         });
     }
+
+    function setupProductoImagenes(row) {
+        const input = row.querySelector('.producto-imagenes-input');
+        const feedback = row.querySelector('.producto-imagenes-feedback');
+        if (!input || !feedback) return;
+
+        input.addEventListener('change', function() {
+            const total = this.files ? this.files.length : 0;
+            if (!total) {
+                feedback.textContent = 'Adjunta nuevas imágenes para este producto. Se conservarán las imágenes ya registradas.';
+                return;
+            }
+
+            const nombres = Array.from(this.files)
+                .slice(0, 2)
+                .map((file) => file.name)
+                .join(', ');
+
+            feedback.textContent = total === 1
+                ? `1 imagen nueva lista para este producto: ${nombres}`
+                : `${total} imágenes nuevas listas para este producto. Primeras: ${nombres}`;
+        });
+    }
     
     container.querySelectorAll('.producto-row').forEach(row => {
         setupProductoAutocomplete(row);
         setupPlacaAutocomplete(row);
+        setupProductoImagenes(row);
+    });
+
+    function getTodayString() {
+        const now = new Date();
+        const timezoneOffset = now.getTimezoneOffset() * 60000;
+        return new Date(now.getTime() - timezoneOffset).toISOString().split('T')[0];
+    }
+
+    document.querySelectorAll('.btn-set-today').forEach(button => {
+        button.addEventListener('click', function() {
+            const target = document.getElementById(this.dataset.target);
+            if (!target) return;
+            target.value = getTodayString();
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+    });
+
+    document.querySelectorAll('.btn-copy-date').forEach(button => {
+        button.addEventListener('click', function() {
+            const source = document.getElementById(this.dataset.source);
+            const target = document.getElementById(this.dataset.target);
+            if (!source || !target) return;
+            target.value = source.value || getTodayString();
+            target.dispatchEvent(new Event('change', { bubbles: true }));
+        });
     });
     
     // ==========================================
@@ -480,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    btnAdd.addEventListener('click', function() {
+    function appendProductRow(prefill = {}, focusSelector = '.producto-nombre-input') {
         const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
         const formNum = parseInt(totalForms.value);
         
@@ -514,7 +642,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="number" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input" step="1" min="0" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
             </div>
             ${precioCol}
-            <div class="col-md-2">
+            <div class="col-12">
+                <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
+                <input type="file" name="${prefix}-${formNum}-imagenes" class="form-control producto-imagenes-input" id="id_${prefix}-${formNum}-imagenes" accept="image/*" multiple>
+                <div class="form-text producto-imagenes-feedback">Adjunta nuevas imágenes para este producto. Se conservarán las imágenes ya registradas.</div>
+            </div>
+            <div class="col-12 d-flex justify-content-end">
                 <div class="d-flex gap-1">
                     <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
                         <i class="bi bi-x-lg"></i>
@@ -526,8 +659,67 @@ document.addEventListener('DOMContentLoaded', function() {
         container.appendChild(newRow);
         setupProductoAutocomplete(newRow);
         setupPlacaAutocomplete(newRow);
+        setupProductoImagenes(newRow);
         totalForms.value = formNum + 1;
+
+        const nombreProducto = newRow.querySelector('.producto-nombre-input');
+        const productoId = newRow.querySelector('.producto-id-hidden');
+        const placa = newRow.querySelector('.placa-input');
+        const cantidad = newRow.querySelector('input[name$="-cantidad"]');
+        const precio = newRow.querySelector('input[name$="-precio_cobrado"]');
+
+        if (nombreProducto) nombreProducto.value = prefill.nombre || '';
+        if (productoId) productoId.value = prefill.productoId || '';
+        if (placa) placa.value = prefill.placa || '';
+        if (cantidad) cantidad.value = prefill.cantidad || '1';
+        if (precio) precio.value = prefill.precio || '';
+
+        updateTotal();
+
+        const focusField = newRow.querySelector(focusSelector);
+        if (focusField) {
+            focusField.focus();
+            if (typeof focusField.select === 'function') {
+                focusField.select();
+            }
+        }
+
+        return newRow;
+    }
+
+    function getVisibleRows() {
+        return Array.from(container.querySelectorAll('.producto-row')).filter(row => {
+            const deleteCheckbox = row.querySelector('input[name$="-DELETE"]');
+            return row.style.display !== 'none' && !(deleteCheckbox && deleteCheckbox.checked);
+        });
+    }
+
+    function getRowData(row) {
+        return {
+            nombre: row.querySelector('.producto-nombre-input')?.value || '',
+            productoId: row.querySelector('.producto-id-hidden')?.value || '',
+            placa: row.querySelector('.placa-input')?.value || '',
+            cantidad: row.querySelector('input[name$="-cantidad"]')?.value || '1',
+            precio: row.querySelector('input[name$="-precio_cobrado"]')?.value || '',
+        };
+    }
+
+    btnAdd.addEventListener('click', function() {
+        appendProductRow();
     });
+
+    if (btnDuplicate) {
+        btnDuplicate.addEventListener('click', function() {
+            const visibleRows = getVisibleRows();
+            const lastRow = visibleRows[visibleRows.length - 1];
+            if (!lastRow) {
+                appendProductRow();
+                return;
+            }
+
+            appendProductRow(getRowData(lastRow), 'input[name$="-cantidad"]');
+        });
+    }
     
     function updateFormIndexes() {
         const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');

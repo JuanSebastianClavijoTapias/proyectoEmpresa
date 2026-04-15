@@ -207,12 +207,15 @@
         <!-- Sección de Imágenes del Progreso -->
         <div class="card mb-4" style="border: none; border-left: 4px solid #9b59b6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; border: none;">
-                <span><i class="bi bi-images"></i> Imágenes del Progreso</span>
+                <span><i class="bi bi-images"></i> Registro Fotográfico por Producto</span>
+                {% if productos_tarea %}
                 <button class="btn btn-sm" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.5);" type="button" data-bs-toggle="collapse" data-bs-target="#formSubirImagen">
                     <i class="bi bi-images me-1"></i> Subir Imagen
                 </button>
+                {% endif %}
             </div>
             <div class="card-body" style="padding: 1.5rem;">
+                {% if productos_tarea %}
                 <!-- Formulario para subir imágenes (colapsable) -->
                 <div class="collapse mb-4" id="formSubirImagen">
                     <div class="card card-body" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.05), rgba(142, 68, 173, 0.05)); border: 1px solid #e9ecef;">
@@ -220,9 +223,13 @@
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             <div class="mb-3">
+                                <label for="id_producto_tarea" class="form-label fw-bold" style="color: #34495e;">Producto</label>
+                                {{ form_imagen.producto_tarea }}
+                            </div>
+                            <div class="mb-3">
                                 <label for="id_imagen" class="form-label fw-bold" style="color: #34495e;">Seleccionar imagen desde galería o cámara</label>
                                 {{ form_imagen.imagen }}
-                                <div class="form-text">Puedes seleccionar una imagen guardada de tu galería o tomar una foto en ese momento.</div>
+                                <div class="form-text">La imagen quedará asociada al producto seleccionado.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="id_descripcion" class="form-label fw-bold" style="color: #34495e;">Descripción (opcional)</label>
@@ -239,15 +246,82 @@
                         </form>
                     </div>
                 </div>
-                
-                <!-- Galería de imágenes -->
-                {% if imagenes %}
+
                 <div class="row g-3">
-                    {% for img in imagenes %}
+                    {% for pt in productos_tarea %}
+                    <div class="col-12">
+                        <div class="card" style="border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);">
+                            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, rgba(41, 128, 185, 0.08), rgba(31, 97, 141, 0.08)); border: none;">
+                                <div>
+                                    <strong style="color: #34495e;">{{ pt.nombre_producto }}</strong>
+                                    <div class="small text-muted">Cantidad: {{ pt.cantidad }}{% if pt.placa %} | Placa: {{ pt.placa }}{% endif %}</div>
+                                </div>
+                                <span class="badge text-bg-light" style="border: 1px solid #dfe6e9; color: #34495e;">
+                                    {% if pt.imagenes.all %}Con imágenes{% else %}Sin imágenes{% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                {% if pt.imagenes.all %}
+                                <div class="row g-3">
+                                    {% for img in pt.imagenes.all %}
+                                    <div class="col-6 col-md-4 col-lg-3">
+                                        <div class="card h-100 imagen-card" style="border: 1px solid #e9ecef; transition: all 0.3s ease;">
+                                            <a href="{{ img.imagen.url }}" target="_blank" class="imagen-link">
+                                                <img src="{{ img.imagen.url }}" class="card-img-top imagen-thumbnail" alt="{{ img.descripcion|default:pt.nombre_producto }}">
+                                            </a>
+                                            <div class="card-body p-2">
+                                                {% if img.descripcion %}
+                                                <p class="card-text small mb-1 text-truncate" title="{{ img.descripcion }}" style="color: #34495e;">{{ img.descripcion }}</p>
+                                                {% endif %}
+                                                <small class="text-muted d-block">{{ img.fecha_subida|date:"d/m/Y H:i" }}</small>
+                                            </div>
+                                            <div class="card-footer p-1 bg-transparent border-0">
+                                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                        <i class="bi bi-trash"></i> Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="bi bi-image" style="font-size: 2rem; color: #bdc3c7;"></i>
+                                    <p class="mt-2 mb-0" style="color: #7f8c8d;">Este producto todavía no tiene imágenes registradas.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% elif imagenes_generales %}
+                <div class="alert alert-info mb-3" style="border-left: 4px solid #3498db;">
+                    Esta tarea no tiene productos asociados todavía, pero conserva imágenes generales cargadas anteriormente.
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-box-seam" style="font-size: 3rem; color: #bdc3c7;"></i>
+                    <p class="mt-3 mb-0" style="color: #7f8c8d;">Agrega productos a la tarea para registrar imágenes por producto.</p>
+                </div>
+                {% endif %}
+
+                {% if imagenes_generales %}
+                <hr class="my-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h6 class="mb-0" style="color: #34495e;"><i class="bi bi-archive"></i> Imágenes Generales Existentes</h6>
+                    <small class="text-muted">Se muestran para no perder el historial anterior.</small>
+                </div>
+                <div class="row g-3">
+                    {% for img in imagenes_generales %}
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="card h-100 imagen-card" style="border: 1px solid #e9ecef; transition: all 0.3s ease;">
                             <a href="{{ img.imagen.url }}" target="_blank" class="imagen-link">
-                                <img src="{{ img.imagen.url }}" class="card-img-top imagen-thumbnail" alt="{{ img.descripcion|default:'Imagen del trabajo' }}">
+                                <img src="{{ img.imagen.url }}" class="card-img-top imagen-thumbnail" alt="{{ img.descripcion|default:'Imagen general de la tarea' }}">
                             </a>
                             <div class="card-body p-2">
                                 {% if img.descripcion %}
@@ -266,12 +340,6 @@
                         </div>
                     </div>
                     {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-image" style="font-size: 3rem; color: #bdc3c7;"></i>
-                    <p class="mt-3 mb-0" style="color: #7f8c8d;">No hay imágenes del progreso aún.</p>
-                    <p class="small" style="color: #95a5a6;">Sube fotos para documentar el avance del trabajo.</p>
                 </div>
                 {% endif %}
             </div>
