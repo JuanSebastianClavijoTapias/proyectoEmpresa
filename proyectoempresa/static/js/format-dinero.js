@@ -21,8 +21,13 @@ function formatoDinero(valor, decimales = 0) {
     }
     
     try {
-        // Convertir a número
-        let num = parseFloat(String(valor).replace('.', '').replace(',', '.'));
+        let num;
+        if (typeof valor === 'number') {
+            num = valor;
+        } else {
+            // String: quitar TODOS los puntos (miles) y cambiar coma por punto (decimal)
+            num = parseFloat(String(valor).replace(/\./g, '').replace(',', '.'));
+        }
         
         if (isNaN(num)) {
             return String(valor);
@@ -108,7 +113,12 @@ function parsearDinero(valor) {
  */
 function esGrande(valor, limite = 1000000) {
     try {
-        const num = parseFloat(String(valor).replace('.', '').replace(',', '.'));
+        let num;
+        if (typeof valor === 'number') {
+            num = valor;
+        } else {
+            num = parseFloat(String(valor).replace(/\./g, '').replace(',', '.'));
+        }
         return num >= limite;
     } catch (e) {
         return false;

@@ -460,6 +460,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const val = this.value.toLowerCase().trim();
             suggestions.innerHTML = '';
             if (hiddenId) hiddenId.value = '';
+            // Desbloquear precio al escribir manualmente
+            const precioInput = row.querySelector('.precio-cobrado-input');
+            const precioDisplay = row.querySelector('.precio-display');
+            if (precioInput) {
+                precioInput.readOnly = false;
+                precioInput.style.display = '';
+            }
+            if (precioDisplay) precioDisplay.style.display = '';
             
             if (val.length < 1) { suggestions.style.display = 'none'; updateTotal(); return; }
             
@@ -473,6 +481,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.addEventListener('click', function() {
                     nameInput.value = p.nombre;
                     if (hiddenId) hiddenId.value = p.id;
+                    const precioInput = row.querySelector('.precio-cobrado-input');
+                    const precioDisplay = row.querySelector('.precio-display');
+                    if (p.precio_fijo && !esJefe) {
+                        // Precio fijo + trabajador: ocultar precio completamente
+                        if (precioInput) {
+                            precioInput.value = '';
+                            precioInput.readOnly = true;
+                            precioInput.style.display = 'none';
+                        }
+                        if (precioDisplay) precioDisplay.style.display = 'none';
+                    } else {
+                        // Jefe o precio variable: mostrar y rellenar
+                        if (precioInput) {
+                            precioInput.value = p.precio_venta;
+                            precioInput.readOnly = false;
+                            precioInput.style.display = '';
+                        }
+                        if (precioDisplay) precioDisplay.style.display = '';
+                    }
                     suggestions.style.display = 'none';
                     updateTotal();
                 });
@@ -510,6 +537,25 @@ document.addEventListener('DOMContentLoaded', function() {
         setupPlacaAutocomplete(row);
         setupProductoImagenes(row);
     });
+
+    // Al cargar: ocultar precio/total de productos desactivados para trabajadores
+    if (!esJefe) {
+        container.querySelectorAll('.producto-row').forEach(row => {
+            const hiddenId = row.querySelector('.producto-id-hidden');
+            if (!hiddenId || !hiddenId.value) return;
+            const prod = productosData.find(p => String(p.id) === String(hiddenId.value));
+            if (prod && prod.precio_fijo) {
+                const precioInput = row.querySelector('.precio-cobrado-input');
+                const precioDisplay = row.querySelector('.precio-display');
+                if (precioInput) {
+                    precioInput.value = '';
+                    precioInput.readOnly = true;
+                    precioInput.style.display = 'none';
+                }
+                if (precioDisplay) precioDisplay.style.display = 'none';
+            }
+        });
+    }
 
     function getTodayString() {
         const now = new Date();
@@ -550,12 +596,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const precioInput = row.querySelector('input[name$="-precio_cobrado"]');
             const precioDisplay = row.querySelector('.precio-display');
             
+            // Si el precio está oculto (producto desactivado para trabajador), mostrar '---'
+            if (precioInput && precioInput.style.display === 'none') {
+                if (precioDisplay) {
+                    precioDisplay.value = '---';
+                    precioDisplay.style.display = 'none';
+                }
+                return;
+            }
+            
             const cant = parseInt(cantInput?.value) || 1;
             const precio = parseFloat(precioInput?.value) || 0;
             const subtotal = precio * cant;
             
             if (precioDisplay) {
                 precioDisplay.value = '$' + subtotal.toLocaleString('es-CO', {maximumFractionDigits: 0});
+                precioDisplay.style.display = '';
             }
             total += subtotal;
         });

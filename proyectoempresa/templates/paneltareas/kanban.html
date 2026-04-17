@@ -517,8 +517,13 @@ function formatoDinero(valor, decimales = 0) {
     }
     
     try {
-        // Convertir a número
-        let num = parseFloat(String(valor).replace('.', '').replace(',', '.'));
+        let num;
+        if (typeof valor === 'number') {
+            num = valor;
+        } else {
+            // String: quitar TODOS los puntos (miles) y cambiar coma por punto (decimal)
+            num = parseFloat(String(valor).replace(/\./g, '').replace(',', '.'));
+        }
         
         if (isNaN(num)) {
             return String(valor);

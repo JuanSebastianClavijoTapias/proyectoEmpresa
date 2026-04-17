@@ -62,7 +62,7 @@ class ProductoTareaForm(forms.ModelForm):
         required=False,
         widget=forms.NumberInput(attrs={
             'class': 'form-control precio-cobrado-input',
-            'step': '1',
+            'step': '0.01',
             'min': '0',
             'placeholder': 'Precio cobrado',
         }),
@@ -82,9 +82,10 @@ class ProductoTareaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['producto'].queryset = Producto.objects.all()
         self.fields['producto'].required = False
-        # Pre-fill nombre_producto_input if editing an existing ProductoTarea
+        # Pre-fill nombre_producto_input and precio_cobrado if editing an existing ProductoTarea
         if self.instance and self.instance.pk:
             self.fields['nombre_producto_input'].initial = self.instance.nombre_producto
+            self.fields['precio_cobrado'].initial = self.instance.precio_venta
 
 
 ProductoTareaFormSet = inlineformset_factory(

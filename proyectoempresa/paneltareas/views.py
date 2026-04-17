@@ -514,7 +514,12 @@ def crear_tarea(request):
     
     # Preparar datos de productos para JavaScript (autocompletar)
     productos_json = json.dumps([
-        {'id': p.id, 'nombre': p.nombre}
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_venta': float(p.precio_venta),
+            'precio_fijo': not p.es_precio_variable,
+        }
         for p in Producto.objects.all()
     ])
     
@@ -570,7 +575,12 @@ def editar_tarea(request, pk):
     
     # Preparar datos de productos para JavaScript (autocompletar)
     productos_json = json.dumps([
-        {'id': p.id, 'nombre': p.nombre}
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_venta': float(p.precio_venta),
+            'precio_fijo': not p.es_precio_variable,
+        }
         for p in Producto.objects.all()
     ])
     

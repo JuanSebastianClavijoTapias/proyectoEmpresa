@@ -447,6 +447,14 @@ document.addEventListener('DOMContentLoaded', function() {
             suggestions.innerHTML = '';
             // Limpiar el ID oculto cuando el usuario escribe manualmente
             if (hiddenId) hiddenId.value = '';
+            // Desbloquear precio al escribir manualmente
+            const precioInput = row.querySelector('.precio-cobrado-input');
+            const precioDisplay = row.querySelector('.precio-display');
+            if (precioInput) {
+                precioInput.readOnly = false;
+                precioInput.style.display = '';
+            }
+            if (precioDisplay) precioDisplay.style.display = '';
             
             if (val.length < 1) { suggestions.style.display = 'none'; updateTotal(); return; }
             
@@ -460,6 +468,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 div.addEventListener('click', function() {
                     nameInput.value = p.nombre;
                     if (hiddenId) hiddenId.value = p.id;
+                    const precioInput = row.querySelector('.precio-cobrado-input');
+                    const precioDisplay = row.querySelector('.precio-display');
+                    if (p.precio_fijo && !esJefe) {
+                        // Precio fijo + trabajador: ocultar precio completamente
+                        if (precioInput) {
+                            precioInput.value = '';
+                            precioInput.readOnly = true;
+                            precioInput.style.display = 'none';
+                        }
+                        if (precioDisplay) precioDisplay.style.display = 'none';
+                    } else {
+                        // Jefe o precio variable: mostrar y rellenar
+                        if (precioInput) {
+                            precioInput.value = p.precio_venta;
+                            precioInput.readOnly = false;
+                            precioInput.style.display = '';
+                        }
+                        if (precioDisplay) precioDisplay.style.display = '';
+                    }
                     suggestions.style.display = 'none';
                     updateTotal();
                 });
@@ -537,12 +564,22 @@ document.addEventListener('DOMContentLoaded', function() {
             const precioInput = row.querySelector('input[name$="-precio_cobrado"]');
             const precioDisplay = row.querySelector('.precio-display');
             
+            // Si el precio está oculto (producto desactivado para trabajador), mostrar '---'
+            if (precioInput && precioInput.style.display === 'none') {
+                if (precioDisplay) {
+                    precioDisplay.value = '---';
+                    precioDisplay.style.display = 'none';
+                }
+                return;
+            }
+            
             const cant = parseInt(cantInput?.value) || 1;
             const precio = parseFloat(precioInput?.value) || 0;
             const subtotal = precio * cant;
             
             if (precioDisplay) {
                 precioDisplay.value = '$' + subtotal.toLocaleString('es-CO', {maximumFractionDigits: 0});
+                precioDisplay.style.display = '';
             }
             total += subtotal;
         });
