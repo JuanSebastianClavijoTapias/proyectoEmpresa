@@ -118,11 +118,13 @@
                             <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
                             <input type="file" name="{{ form_producto.prefix }}-imagenes" id="id_{{ form_producto.prefix }}-imagenes" class="form-control producto-imagenes-input" accept="image/*" multiple>
                             <div class="form-text producto-imagenes-feedback">Adjunta nuevas imágenes para este producto. Se conservarán las imágenes ya registradas.</div>
+                            {% if form_producto.instance.pk %}
                             {% with total_imagenes=form_producto.instance.imagenes.count %}
                             {% if total_imagenes %}
                             <div class="form-text text-success">Actualmente hay {{ total_imagenes }} imagen(es) asociadas a este producto.</div>
                             {% endif %}
                             {% endwith %}
+                            {% endif %}
                         </div>
                         <div class="col-12 d-flex justify-content-end">
                             <div class="d-flex gap-1">
