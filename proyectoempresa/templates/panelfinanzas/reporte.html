@@ -98,6 +98,47 @@
     </div>
 </div>
 
+<!-- Cobros del período -->
+<h5 class="text-muted mb-3 mt-2"><i class="bi bi-wallet2"></i> Estado de Cobros del Período</h5>
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card proceso">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Total Facturado</h6>
+                    <h3>${{ total_facturado_periodo|formato_dinero }}</h3>
+                    <small>Valor de tareas del período</small>
+                </div>
+                <i class="bi bi-receipt" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card completadas">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Ya Cobrado</h6>
+                    <h3>${{ total_cobrado|formato_dinero }}</h3>
+                    <small>Abonos recibidos</small>
+                </div>
+                <i class="bi bi-cash-coin" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card urgentes">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 opacity-75">Saldo Pendiente</h6>
+                    <h3>${{ saldo_pendiente_periodo|formato_dinero }}</h3>
+                    <small>Por cobrar aún</small>
+                </div>
+                <i class="bi bi-clock-history" style="font-size: 2.5rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row w-100 justify-content-center">
     
     <!-- Top Productos más Rentables -->
@@ -115,6 +156,7 @@
                                 <th>#</th>
                                 <th>Producto</th>
                                 <th class="text-center">Cantidad</th>
+                                <th class="text-end">Costo Total</th>
                                 <th class="text-end">Ganancia</th>
                             </tr>
                         </thead>
@@ -130,6 +172,7 @@
                                 </td>
                                 <td>{{ item.nombre_producto }}</td>
                                 <td class="text-center">{{ item.total_cant }}</td>
+                                <td class="text-end text-danger fw-bold">${{ item.total_cos|formato_dinero }}</td>
                                 <td class="text-end text-success fw-bold">${{ item.total_gan|formato_dinero }}</td>
                             </tr>
                             {% endfor %}

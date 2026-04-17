@@ -155,10 +155,9 @@ def editar_producto(request, pk):
         form = ProductoForm(request.POST, instance=producto)
         if form.is_valid():
             form.save()
-            # Actualizar precio_costo en tareas activas que usan este producto
+            # Actualizar precio_costo en todas las tareas que usan este producto
             ProductoTarea.objects.filter(
                 producto=producto,
-                tarea__estado__in=['pendiente', 'en_proceso']
             ).update(precio_costo=producto.precio_costo)
             messages.success(request, 'Producto actualizado correctamente.')
             return redirect('finanzas:detalle', pk=pk)
@@ -246,11 +245,22 @@ def reporte_finanzas(request):
     else:
         fecha_hasta = hoy
     
+    from paneltareas.models import TareaPlanificada
+
     # Filtrar entregas por rango de fechas
     entregas = ProductoTarea.objects.filter(
-        fecha_registro__date__gte=fecha_desde, 
+        fecha_registro__date__gte=fecha_desde,
         fecha_registro__date__lte=fecha_hasta
     ).select_related('producto', 'tarea')
+
+    # Total cobrado: suma de monto_abonado de tareas con entregas en el período
+    tareas_en_periodo = TareaPlanificada.objects.exclude(estado='cancelado').filter(
+        fecha_ingreso__gte=fecha_desde,
+        fecha_ingreso__lte=fecha_hasta
+    )
+    total_cobrado = sum(t.monto_abonado for t in tareas_en_periodo)
+    total_facturado_periodo = sum(t.precio_total for t in tareas_en_periodo)
+    saldo_pendiente_periodo = total_facturado_periodo - total_cobrado
     
     # Estadísticas generales
     total_entregas = entregas.count()
@@ -277,8 +287,9 @@ def reporte_finanzas(request):
     for e in entregas:
         nombre = e.nombre_producto
         if nombre not in prod_dict:
-            prod_dict[nombre] = {'nombre_producto': nombre, 'total_cant': 0, 'total_gan': Decimal('0')}
+            prod_dict[nombre] = {'nombre_producto': nombre, 'total_cant': 0, 'total_cos': Decimal('0'), 'total_gan': Decimal('0')}
         prod_dict[nombre]['total_cant'] += e.cantidad
+        prod_dict[nombre]['total_cos'] += e.total_costo
         prod_dict[nombre]['total_gan'] += e.ganancia_total
     top_productos = sorted(prod_dict.values(), key=lambda x: x['total_cant'], reverse=True)[:5]
     
@@ -320,6 +331,9 @@ def reporte_finanzas(request):
         'gastos_por_categoria': gastos_por_categoria,
         'ganancia_real': ganancia_real,
         'gastos_lista': gastos,
+        'total_cobrado': total_cobrado,
+        'total_facturado_periodo': total_facturado_periodo,
+        'saldo_pendiente_periodo': saldo_pendiente_periodo,
     }
     
     return render(request, 'panelfinanzas/reporte.html', context)

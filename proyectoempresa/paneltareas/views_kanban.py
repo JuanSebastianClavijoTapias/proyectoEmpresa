@@ -138,8 +138,8 @@ def get_tareas_kanban(request):
                 prioridad=filtro_prioridad
             )
         
-        # Ordenar por fecha de entrega
-        tareas = tareas.order_by('fecha_entrega')
+        # Ordenar por fecha de creación descendente (más recientes primero)
+        tareas = tareas.order_by('-creado_en')
         
         # Paginación
         paginator = Paginator(tareas, items_por_pagina)

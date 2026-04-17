@@ -30,7 +30,7 @@
 <div class="card mb-4" style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.05), rgba(41, 128, 185, 0.05)); border: 1px solid #cce5ff; border-left: 4px solid #3498db;">
     <div class="card-body">
         <form method="get" class="row g-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label fw-bold" style="color: #34495e;">Estado</label>
                 <select name="estado" class="form-select" style="border: 1px solid #3498db; border-radius: 0.5rem;">
                     <option value="">Todos</option>
@@ -39,7 +39,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label fw-bold" style="color: #34495e;">Prioridad</label>
                 <select name="prioridad" class="form-select" style="border: 1px solid #3498db; border-radius: 0.5rem;">
                     <option value="">Todas</option>
@@ -48,11 +48,15 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label fw-bold" style="color: #34495e;">Placa</label>
                 <input type="text" name="placa" class="form-control" placeholder="Buscar placa..." value="{{ request.GET.placa }}" style="border: 1px solid #3498db; border-radius: 0.5rem;">
             </div>
-            <div class="col-md-3 d-flex align-items-end gap-2">
+            <div class="col-md-4">
+                <label class="form-label fw-bold" style="color: #34495e;"><i class="bi bi-search"></i> Buscar Cliente</label>
+                <input type="text" name="cliente" class="form-control" placeholder="Nombre del cliente..." value="{{ request.GET.cliente }}" style="border: 1px solid #3498db; border-radius: 0.5rem;">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
                 <button type="submit" class="btn flex-grow-1" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; font-weight: 500;">
                     <i class="bi bi-search"></i> Filtrar
                 </button>

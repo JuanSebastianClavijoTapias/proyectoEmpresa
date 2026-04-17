@@ -170,13 +170,17 @@
             <div class="card-body">
                 {% if alertas_cobranza %}
                 <div class="mb-3">
-                    <h6 class="text-muted mb-3"><i class="bi bi-credit-card"></i> <strong>Cobranzas Vencidas</strong></h6>
+                    <h6 class="text-muted mb-3"><i class="bi bi-credit-card"></i> <strong>Cuentas por Cobrar</strong></h6>
                     {% for alerta in alertas_cobranza %}
-                    <div class="alert alert-{% if alerta.severidad == 'crítica' %}danger{% elif alerta.severidad == 'alta' %}warning{% else %}info{% endif %} mb-2 py-2" role="alert">
+                    <div class="alert alert-{% if alerta.severidad == 'crítica' %}danger{% elif alerta.severidad == 'alta' %}warning{% elif alerta.severidad == 'media' %}warning{% else %}secondary{% endif %} mb-2 py-2" role="alert">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong class="d-block">{{ alerta.cliente }}</strong>
-                                <small>Vencido hace <strong>{{ alerta.dias_vencidos }} días</strong> • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                                {% if alerta.dias_vencidos > 0 %}
+                                <small>Vencido hace <strong>{{ alerta.dias_vencidos }} días</strong> • <span class="badge bg-secondary">{{ alerta.estado }}</span> • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                                {% else %}
+                                <small><span class="badge bg-secondary">{{ alerta.estado }}</span> • Entrega: {{ alerta.fecha_entrega|date:"d/m/Y" }} • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                                {% endif %}
                             </div>
                             <a href="{% url 'tareas:detalle' alerta.tarea_id %}" class="btn btn-sm btn-outline-primary">Ver</a>
                         </div>
@@ -217,14 +221,31 @@
             </div>
             <div class="card-body">
                 <div style="text-align: center; padding: 1rem 0;">
-                    <h2 style="color: #667eea; font-weight: bold; margin: 0.5rem 0;">${{ saldo_total_pendiente|floatformat:2 }}</h2>
-                    <p class="text-muted mb-3">Saldo Pendiente</p>
-                    <div class="progress" style="height: 8px; border-radius: 10px;">
+                    <div class="row g-2 text-center mb-2">
+                        <div class="col-6">
+                            <div style="background: #fff0f0; border-radius: 0.5rem; padding: 0.6rem;">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Por cobrar</small>
+                                <strong style="color: #e74c3c; font-size: 1.1rem;">${{ saldo_total_pendiente|floatformat:0 }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div style="background: #f0fff4; border-radius: 0.5rem; padding: 0.6rem;">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">Ya cobrado</small>
+                                <strong style="color: #27ae60; font-size: 1.1rem;">${{ total_cobrado|floatformat:0 }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 10px; margin-top: 0.5rem;">
                         <div class="progress-bar" style="width: 100%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
                     </div>
                     <small class="text-muted d-block mt-3">
                         <i class="bi bi-file-earmark"></i> {{ tareas_sin_pagar_total }} tarea(s) sin pagar
                     </small>
+                    {% if morosos_modal %}
+                    <button type="button" class="btn btn-sm mt-3 w-100" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;" data-bs-toggle="modal" data-bs-target="#modalCuentasCobrar">
+                        <i class="bi bi-list-ul me-1"></i> Ver Cuentas por Cobrar
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -311,6 +332,113 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Cuentas por Cobrar -->
+{% if morosos_modal %}
+<div class="modal fade" id="modalCuentasCobrar" tabindex="-1" aria-labelledby="modalCuentasCobrarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="border: none; border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 0.75rem 0.75rem 0 0;">
+                <h5 class="modal-title" id="modalCuentasCobrarLabel">
+                    <i class="bi bi-credit-card me-2"></i>Cuentas por Cobrar
+                    <span class="badge bg-white ms-2" style="color: #667eea; font-size: 0.85rem;">{{ tareas_sin_pagar_total }}</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <!-- Resumen -->
+                <div class="row mb-4 g-3">
+                    <div class="col-6">
+                        <div class="card text-center" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 0.5rem;">
+                            <div class="card-body py-3">
+                                <small class="d-block" style="opacity: 0.85;">Total Pendiente</small>
+                                <h4 class="mb-0 mt-1 fw-bold">${{ saldo_total_pendiente|floatformat:0 }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card text-center" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; border-radius: 0.5rem;">
+                            <div class="card-body py-3">
+                                <small class="d-block" style="opacity: 0.85;">Tareas con Deuda</small>
+                                <h4 class="mb-0 mt-1 fw-bold">{{ tareas_sin_pagar_total }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de deudores -->
+                <div class="row g-3">
+                    {% for m in morosos_modal %}
+                    <div class="col-12">
+                        <div class="card" style="border: none; border-left: 4px solid {% if m.severidad == 'crítica' %}#e74c3c{% elif m.severidad == 'alta' %}#f39c12{% elif m.severidad == 'media' %}#3498db{% else %}#95a5a6{% endif %}; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
+                            <div class="card-body" style="padding: 1rem;">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ m.cliente }}</h6>
+                                        <small class="text-muted">
+                                            {% if m.placa != 'Sin placa' %}<i class="bi bi-car-front"></i> {{ m.placa }} •{% endif %}
+                                            <i class="bi bi-telephone"></i> {{ m.telefono }}
+                                        </small>
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <span class="badge" style="background: {% if m.severidad == 'crítica' %}#e74c3c{% elif m.severidad == 'alta' %}#f39c12{% elif m.severidad == 'media' %}#3498db{% else %}#95a5a6{% endif %}; font-size: 0.75rem;">
+                                            {% if m.dias_vencidos > 0 %}Vencido {{ m.dias_vencidos }}d{% else %}{{ m.estado }}{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <p class="small text-muted mb-2" style="line-height: 1.4;">
+                                    <i class="bi bi-wrench"></i> {{ m.descripcion|truncatewords:20 }}
+                                </p>
+
+                                <div class="row g-2 text-center mb-3" style="font-size: 0.85rem;">
+                                    <div class="col-4">
+                                        <div style="background: #f8f9fa; border-radius: 0.4rem; padding: 0.4rem;">
+                                            <small class="text-muted d-block">Total</small>
+                                            <strong style="color: #34495e;">${{ m.total|floatformat:0 }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div style="background: #f8f9fa; border-radius: 0.4rem; padding: 0.4rem;">
+                                            <small class="text-muted d-block">Abonado</small>
+                                            <strong style="color: #27ae60;">${{ m.abonado|floatformat:0 }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div style="background: #fff0f0; border-radius: 0.4rem; padding: 0.4rem;">
+                                            <small class="text-muted d-block">Saldo</small>
+                                            <strong style="color: #e74c3c;">${{ m.saldo|floatformat:0 }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'tareas:detalle' m.tarea_id %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                        <i class="bi bi-eye"></i> Ver Tarea
+                                    </a>
+                                    <a href="{% url 'tareas:abonar' m.tarea_id %}" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-cash-coin"></i> Abonar
+                                    </a>
+                                    <form method="post" action="{% url 'tareas:completar_pago' m.tarea_id %}" class="d-inline" onsubmit="return confirm('¿Confirmar pago completo de ${{ m.saldo|floatformat:0 }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle"></i> Pago completo
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

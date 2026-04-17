@@ -394,30 +394,42 @@ def dashboard_analisis(request):
     # -------------------------
     # COBRANZA Y CUENTAS POR COBRAR
     # -------------------------
-    tareas_completadas_qs = TareaPlanificada.objects.filter(estado='completado')
+    tareas_con_saldo_qs = TareaPlanificada.objects.exclude(estado='cancelado')
     saldo_total_pendiente = Decimal('0')
     tareas_sin_pagar_total = 0
     alertas_cobranza = []
-    
-    for tarea in tareas_completadas_qs:
+    morosos_modal = []
+
+    for tarea in tareas_con_saldo_qs:
         saldo = tarea.saldo_pendiente
         if saldo > 0:
             saldo_total_pendiente += saldo
             tareas_sin_pagar_total += 1
-            # Dias vencidos desde entrega
             dias_vencidos_desde_entrega = (hoy - tarea.fecha_entrega).days
-            if dias_vencidos_desde_entrega > 0:
-                alertas_cobranza.append({
-                    'tarea_id': tarea.id,
-                    'cliente': tarea.nombre_cliente,
-                    'saldo': saldo,
-                    'dias_vencidos': dias_vencidos_desde_entrega,
-                    'fecha_entrega': tarea.fecha_entrega,
-                    'severidad': 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media',
-                })
-    
-    # Ordenar por severidad y días
-    alertas_cobranza = sorted(alertas_cobranza, key=lambda x: (x['severidad'] != 'crítica', -x['dias_vencidos']))[:10]
+            severidad = 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media' if dias_vencidos_desde_entrega > 0 else 'pendiente'
+            entry = {
+                'tarea_id': tarea.id,
+                'cliente': tarea.nombre_cliente,
+                'telefono': tarea.telefono_cliente,
+                'descripcion': tarea.descripcion_trabajo,
+                'placa': tarea.placa or 'Sin placa',
+                'total': tarea.precio_total,
+                'abonado': tarea.monto_abonado,
+                'saldo': saldo,
+                'estado': tarea.get_estado_display(),
+                'dias_vencidos': max(0, dias_vencidos_desde_entrega),
+                'fecha_entrega': tarea.fecha_entrega,
+                'severidad': severidad,
+            }
+            alertas_cobranza.append(entry)
+            morosos_modal.append(entry)
+
+    sort_key = lambda x: (x['severidad'] == 'pendiente', x['severidad'] != 'crítica', -x['dias_vencidos'])
+    # Ordenar por severidad y días (vencidos primero, luego pendientes)
+    alertas_cobranza = sorted(alertas_cobranza, key=sort_key)[:10]
+    morosos_modal = sorted(morosos_modal, key=sort_key)
+
+    total_cobrado = tareas_con_saldo_qs.aggregate(total=Sum('monto_abonado'))['total'] or Decimal('0')
     
     # -------------------------
     # GASTOS Y PRESUPUESTO
@@ -553,6 +565,8 @@ def dashboard_analisis(request):
         'saldo_total_pendiente': saldo_total_pendiente,
         'tareas_sin_pagar_total': tareas_sin_pagar_total,
         'alertas_cobranza': alertas_cobranza,
+        'morosos_modal': morosos_modal,
+        'total_cobrado': total_cobrado,
         # Gastos
         'total_gastos_mes': total_gastos_mes,
         'gastos_por_categoria': gastos_con_porcentaje,
@@ -689,22 +703,26 @@ def analisis_financiero(request):
     total_ganancia = total_ingresos - total_costos
     margen_promedio = round(float(total_ganancia / total_ingresos * 100), 1) if total_ingresos > 0 else 0
     
-    # Productos más rentables
+    # Productos más rentables (acumulación en dict para evitar duplicados)
+    prod_acum = {}
+    for e in entregas:
+        nombre = e.nombre_producto
+        if nombre not in prod_acum:
+            prod_acum[nombre] = {'ingresos': Decimal('0'), 'costos': Decimal('0'), 'cantidad': 0}
+        prod_acum[nombre]['ingresos'] += e.total_venta
+        prod_acum[nombre]['costos'] += e.total_costo
+        prod_acum[nombre]['cantidad'] += e.cantidad
+
     productos_rentabilidad = []
-    productos_unicos = entregas.values('nombre_producto').distinct()
-    for p in productos_unicos:
-        entregas_prod = entregas.filter(nombre_producto=p['nombre_producto'])
-        ing = sum(e.total_venta for e in entregas_prod)
-        cos = sum(e.total_costo for e in entregas_prod)
-        gan = ing - cos
-        cant = sum(e.cantidad for e in entregas_prod)
+    for nombre, datos in prod_acum.items():
+        gan = datos['ingresos'] - datos['costos']
         productos_rentabilidad.append({
-            'nombre': p['nombre_producto'],
-            'ingresos': ing,
-            'costos': cos,
+            'nombre': nombre,
+            'ingresos': datos['ingresos'],
+            'costos': datos['costos'],
             'ganancia': gan,
-            'cantidad': cant,
-            'margen': round(float(gan / ing * 100), 1) if ing > 0 else 0,
+            'cantidad': datos['cantidad'],
+            'margen': round(float(gan / datos['ingresos'] * 100), 1) if datos['ingresos'] > 0 else 0,
         })
     productos_rentabilidad.sort(key=lambda x: float(x['ganancia']), reverse=True)
     

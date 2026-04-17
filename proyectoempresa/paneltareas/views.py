@@ -345,29 +345,42 @@ def home(request):
     # -------------------------
     # COBRANZA Y CUENTAS POR COBRAR
     # -------------------------
-    tareas_completadas_qs = TareaPlanificada.objects.filter(estado='completado')
+    tareas_con_saldo_qs = TareaPlanificada.objects.exclude(estado='cancelado')
     saldo_total_pendiente = Decimal('0')
     tareas_sin_pagar_total = 0
     alertas_cobranza = []
-    
-    for tarea in tareas_completadas_qs:
+    morosos_modal = []
+
+    for tarea in tareas_con_saldo_qs:
         saldo = tarea.saldo_pendiente
         if saldo > 0:
             saldo_total_pendiente += saldo
             tareas_sin_pagar_total += 1
             dias_vencidos_desde_entrega = (hoy - tarea.fecha_entrega).days
-            if dias_vencidos_desde_entrega > 0:
-                alertas_cobranza.append({
-                    'tarea_id': tarea.id,
-                    'cliente': tarea.nombre_cliente,
-                    'saldo': saldo,
-                    'dias_vencidos': dias_vencidos_desde_entrega,
-                    'fecha_entrega': tarea.fecha_entrega,
-                    'severidad': 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media',
-                })
-    
-    alertas_cobranza = sorted(alertas_cobranza, key=lambda x: (x['severidad'] != 'crítica', -x['dias_vencidos']))[:5]
-    
+            severidad = 'crítica' if dias_vencidos_desde_entrega > 30 else 'alta' if dias_vencidos_desde_entrega > 14 else 'media' if dias_vencidos_desde_entrega > 0 else 'pendiente'
+            entry = {
+                'tarea_id': tarea.id,
+                'cliente': tarea.nombre_cliente,
+                'telefono': tarea.telefono_cliente,
+                'descripcion': tarea.descripcion_trabajo,
+                'placa': tarea.placa or 'Sin placa',
+                'total': tarea.precio_total,
+                'abonado': tarea.monto_abonado,
+                'saldo': saldo,
+                'estado': tarea.get_estado_display(),
+                'dias_vencidos': max(0, dias_vencidos_desde_entrega),
+                'fecha_entrega': tarea.fecha_entrega,
+                'severidad': severidad,
+            }
+            alertas_cobranza.append(entry)
+            morosos_modal.append(entry)
+
+    sort_key = lambda x: (x['severidad'] == 'pendiente', x['severidad'] != 'crítica', -x['dias_vencidos'])
+    alertas_cobranza = sorted(alertas_cobranza, key=sort_key)[:5]
+    morosos_modal = sorted(morosos_modal, key=sort_key)
+
+    total_cobrado = tareas_con_saldo_qs.aggregate(total=Sum('monto_abonado'))['total'] or Decimal('0')
+
     # -------------------------
     # GASTOS Y PRESUPUESTO
     # -------------------------
@@ -452,6 +465,8 @@ def home(request):
         'saldo_total_pendiente': saldo_total_pendiente,
         'tareas_sin_pagar_total': tareas_sin_pagar_total,
         'alertas_cobranza': alertas_cobranza,
+        'morosos_modal': morosos_modal,
+        'total_cobrado': total_cobrado,
         # Gastos
         'total_gastos_mes': total_gastos_mes,
         'gastos_por_categoria': gastos_por_categoria,
@@ -473,8 +488,47 @@ def home(request):
 
 @login_required
 def lista_tareas(request):
-    """Redirige a la página principal del Kanban"""
-    return redirect('tareas:kanban')
+    """Vista de lista de tareas con filtros y buscador"""
+    usuario_es_jefe = es_jefe(request.user)
+
+    filtro_estado = request.GET.get('estado', '').strip()
+    filtro_prioridad = request.GET.get('prioridad', '').strip()
+    filtro_placa = request.GET.get('placa', '').strip()
+    filtro_cliente = request.GET.get('cliente', '').strip()
+
+    tareas = TareaPlanificada.objects.all().order_by('-creado_en')
+
+    if filtro_estado:
+        tareas = tareas.filter(estado=filtro_estado)
+    if filtro_prioridad:
+        tareas = tareas.filter(prioridad=filtro_prioridad)
+    if filtro_placa:
+        tareas = tareas.filter(placa__icontains=filtro_placa)
+    if filtro_cliente:
+        tareas = tareas.filter(nombre_cliente__icontains=filtro_cliente)
+
+    # Morosos: tareas completadas con saldo pendiente
+    morosos = []
+    total_saldo_pendiente = Decimal('0')
+    for tarea in TareaPlanificada.objects.filter(estado='completado'):
+        saldo = tarea.saldo_pendiente
+        if saldo > 0:
+            morosos.append({
+                'tarea': tarea,
+                'total': tarea.precio_total,
+                'abonado': tarea.monto_abonado,
+                'saldo': saldo,
+            })
+            total_saldo_pendiente += saldo
+
+    return render(request, 'paneltareas/lista.html', {
+        'tareas': tareas,
+        'estados': TareaPlanificada.ESTADO_CHOICES,
+        'prioridades': TareaPlanificada.PRIORIDAD_CHOICES,
+        'morosos': morosos,
+        'total_saldo_pendiente': total_saldo_pendiente,
+        'es_jefe': usuario_es_jefe,
+    })
 
 
 @login_required
