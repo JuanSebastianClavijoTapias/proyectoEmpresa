@@ -105,6 +105,16 @@ ProductoTareaFormSet = inlineformset_factory(
     fields=['producto', 'placa', 'cantidad'],
 )
 
+# Formset para editar tareas (sin extra)
+ProductoTareaFormSetEdit = inlineformset_factory(
+    TareaPlanificada,
+    ProductoTarea,
+    form=ProductoTareaForm,
+    extra=0,
+    can_delete=True,
+    fields=['producto', 'placa', 'cantidad'],
+)
+
 
 class ClienteForm(forms.ModelForm):
     class Meta:

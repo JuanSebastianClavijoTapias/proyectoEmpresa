@@ -29,7 +29,7 @@
                         <select id="cliente-selector" class="form-select" style="border: 1px solid #3498db; border-radius: 0.4rem;">
                             <option value="">-- Nuevo cliente / Escribir manualmente --</option>
                         </select>
-                        <small class="text-muted d-block mt-1">Los clientes con saldo pendiente aparecen primero y muestran cuánto deben.</small>
+                        {% if es_jefe %}<small class="text-muted d-block mt-1">Los clientes con saldo pendiente aparecen primero y muestran cuánto deben.</small>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold" style="color: #34495e;">Nombre del Cliente *</label>

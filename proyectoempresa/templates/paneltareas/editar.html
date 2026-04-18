@@ -29,7 +29,7 @@
                         <select id="cliente-selector" class="form-select" style="border: 1px solid #3498db; border-radius: 0.4rem;">
                             <option value="">-- Nuevo cliente / Escribir manualmente --</option>
                         </select>
-                        <small class="text-muted d-block mt-1">Los clientes con saldo pendiente aparecen primero y muestran cuánto deben.</small>
+                        {% if es_jefe %}<small class="text-muted d-block mt-1">Los clientes con saldo pendiente aparecen primero y muestran cuánto deben.</small>{% endif %}
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold" style="color: #34495e;">Nombre del Cliente *</label>
@@ -133,8 +133,8 @@
                                 {% if form_producto.DELETE %}
                                 <div class="d-none">{{ form_producto.DELETE }}</div>
                                 {% endif %}
-                                <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
-                                    <i class="bi bi-x-lg"></i>
+                                <button type="button" class="btn btn-danger btn-sm btn-remove-producto" title="Quitar">
+                                    <i class="bi bi-x-lg"></i> Eliminar producto
                                 </button>
                             </div>
                         </div>
@@ -152,7 +152,8 @@
                 </div>
                 <div class="form-text mt-2">Al duplicar se copian producto, placa, cantidad y precio del último renglón visible.</div>
                 
-                <!-- Resumen de pago en tiempo real -->
+                <!-- Resumen de pago en tiempo real (solo para jefes/admins) -->
+                {% if es_jefe %}
                 <div class="card mt-4 mb-0" style="border: none; border-left: 4px solid #9b59b6; background: linear-gradient(135deg, rgba(155, 89, 182, 0.05), rgba(142, 68, 173, 0.05));">
                     <div class="card-body p-3">
                         <div class="row text-center g-2">
@@ -180,6 +181,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
             </div>
         </div>
         
@@ -715,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="col-12 d-flex justify-content-end">
                 <div class="d-flex gap-1">
-                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-producto" title="Quitar">
+                    <button type="button" class="btn btn-danger btn-sm btn-remove-producto" title="Quitar">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>

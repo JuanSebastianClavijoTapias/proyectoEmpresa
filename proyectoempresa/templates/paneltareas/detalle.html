@@ -118,12 +118,24 @@
         {% endif %}
 
         {% if productos_tarea %}
-        <!-- Finanzas -->
+        <!-- Finanzas (Solo visible para jefes/admins) -->
+        {% if es_jefe %}
         <div class="card mb-4" style="border: none; border-left: 4px solid #f39c12; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="card-header" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none;">
                 <i class="bi bi-cash-coin"></i> Finanzas
             </div>
             <div class="card-body" style="padding: 1.5rem;">
+                {% if tarea.precio_total == 0 %}
+                <!-- Mensaje si no hay precios ingresados -->
+                <div class="alert alert-warning border-left-4" style="background: linear-gradient(135deg, #fff3cd, #ffe69c); border-left: 4px solid #f39c12;" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2" style="color: #856404;"></i>
+                    <strong style="color: #856404;">Precios no configurados</strong>
+                    <p class="mb-3 mt-1" style="color: #856404; font-size: 0.95rem;">Por favor, ingrese el precio de los productos en esta tarea para visualizar la información de finanzas.</p>
+                    <a href="{% url 'tareas:editar' tarea.pk %}" class="btn btn-sm" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border: none; font-weight: 500;">
+                        <i class="bi bi-pencil me-1"></i> Agregar Precios
+                    </a>
+                </div>
+                {% else %}
                 <div class="row g-2 mb-4">
                     <div class="col-md-4">
                         <div class="text-center p-3" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-radius: 0.5rem;">
@@ -200,8 +212,10 @@
                     <p class="mb-0 text-success fw-bold mt-2" style="font-size: 1.1rem;">¡Pago Completo!</p>
                 </div>
                 {% endif %}
+                {% endif %}
             </div>
         </div>
+        {% endif %}
         {% endif %}
 
         <!-- Sección de Imágenes del Progreso -->

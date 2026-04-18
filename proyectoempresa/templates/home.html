@@ -79,7 +79,7 @@
 <!-- Sección Principal: Gráficos y Acciones -->
 <div class="row">
     <!-- Accesos rápidos (Sidebar) -->
-    <div class="col-lg-3 mb-4">
+    <div class="col-12 col-lg-3 mb-4">
         <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
             <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
                 <i class="bi bi-lightning-fill"></i> Acciones Rápidas
@@ -101,7 +101,7 @@
     </div>
     
     <!-- Próximas entregas -->
-    <div class="col-lg-9 mb-4">
+    <div class="col-12 col-lg-9 mb-4">
         <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
             <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none; color: white;">
                 <span><i class="bi bi-calendar-event"></i> Próximas Entregas (7 días)</span>
@@ -116,7 +116,7 @@
                                 <th style="border-top: none; color: rgb(0, 0, 0);">Placa</th>
                                 <th style="border-top: none; color: rgb(0, 0, 0);">Cliente</th>
                                 <th style="border-top: none; color: rgb(0, 0, 0);">Trabajo</th>
-                                <th style="border-top: none; color: white;">Entrega</th>
+                                <th style="border-top: none; color: rgb(251, 0, 0);">Entrega</th>
                                 <th style="border-top: none; color: rgb(0, 0, 0);">Estado</th>
                             </tr>
                         </thead>
@@ -213,19 +213,19 @@
 <!-- Gráficos -->
 <div class="row mb-4">
     <!-- Gráfico de Tareas por Estado (Pie) -->
-    <div class="col-lg-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <div class="card-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: none; color: white; padding: 1.25rem;">
                 <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i> Tareas por Estado</h6>
             </div>
-            <div class="card-body" style="padding: 1rem 1rem; height: 250px;">
-                <canvas id="chartEstados"></canvas>
+            <div class="card-body" style="padding: 1rem; position: relative; height: 300px;">
+                <canvas id="chartEstados" style="max-height: 100%;"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Gráfico de Tareas por Día de la Semana (Barras) -->
-    <div class="col-lg-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4 d-none d-lg-block">
         <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
             <div class="card-header" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; color: white; padding: 1.25rem;">
                 <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i> Tareas Completadas por Día</h6>
@@ -238,7 +238,7 @@
 
     {% if not es_trabajador %}
     <!-- Cuentas por Cobrar -->
-    <div class="col-lg-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #667eea;">
             <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 1.25rem;">
                 <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i> Cuentas por Cobrar</h6>
@@ -278,7 +278,7 @@
     </div>
 
     <!-- Gastos Este Mes -->
-    <div class="col-lg-6 mb-4">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #fa709a;">
             <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; color: white; padding: 1.25rem;">
                 <h6 class="mb-0"><i class="bi bi-receipt me-2"></i> Gastos Este Mes</h6>

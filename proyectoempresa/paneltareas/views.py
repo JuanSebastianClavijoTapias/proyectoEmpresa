@@ -10,7 +10,7 @@ from decimal import Decimal
 import calendar
 import json
 from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
-from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, AbonarForm
+from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm
 from panelfinanzas.models import Producto, PerfilUsuario
 
 
@@ -165,8 +165,8 @@ def guardar_productos_tarea(formset, tarea, usuario, files):
     return total_imagenes
 
 
-def construir_clientes_formulario():
-    """Construye la lista de clientes para el selector y autocompletado, incluyendo saldos pendientes."""
+def construir_clientes_formulario(mostrar_saldos=True):
+    """Construye la lista de clientes para el selector y autocompletado, incluyendo saldos pendientes (solo si mostrar_saldos=True)."""
     clientes_map = {}
 
     def clave_cliente(nombre, telefono):
@@ -188,32 +188,33 @@ def construir_clientes_formulario():
             'tiene_saldo': False,
         })
 
-    tareas_con_cliente = (
-        TareaPlanificada.objects
-        .prefetch_related('productos_tarea')
-        .exclude(nombre_cliente__isnull=True)
-        .exclude(nombre_cliente='')
-    )
+    if mostrar_saldos:
+        tareas_con_cliente = (
+            TareaPlanificada.objects
+            .prefetch_related('productos_tarea')
+            .exclude(nombre_cliente__isnull=True)
+            .exclude(nombre_cliente='')
+        )
 
-    for tarea in tareas_con_cliente:
-        saldo_pendiente = tarea.saldo_pendiente
-        nombre = (tarea.nombre_cliente or '').strip()
-        telefono = (tarea.telefono_cliente or '').strip()
-        clave = clave_cliente(nombre, telefono)
+        for tarea in tareas_con_cliente:
+            saldo_pendiente = tarea.saldo_pendiente
+            nombre = (tarea.nombre_cliente or '').strip()
+            telefono = (tarea.telefono_cliente or '').strip()
+            clave = clave_cliente(nombre, telefono)
 
-        if clave not in clientes_map:
-            clientes_map[clave] = {
-                'selector_value': f'deudor:{nombre}:{telefono}',
-                'id': None,
-                'nombre': nombre,
-                'telefono': telefono,
-                'saldo_pendiente': Decimal('0'),
-                'tiene_saldo': False,
-            }
+            if clave not in clientes_map:
+                clientes_map[clave] = {
+                    'selector_value': f'deudor:{nombre}:{telefono}',
+                    'id': None,
+                    'nombre': nombre,
+                    'telefono': telefono,
+                    'saldo_pendiente': Decimal('0'),
+                    'tiene_saldo': False,
+                }
 
-        if saldo_pendiente > 0:
-            clientes_map[clave]['saldo_pendiente'] += saldo_pendiente
-            clientes_map[clave]['tiene_saldo'] = True
+            if saldo_pendiente > 0:
+                clientes_map[clave]['saldo_pendiente'] += saldo_pendiente
+                clientes_map[clave]['tiene_saldo'] = True
 
     clientes = list(clientes_map.values())
     clientes.sort(key=lambda cliente: (not cliente['tiene_saldo'], cliente['nombre'].lower(), cliente['telefono']))
@@ -544,19 +545,21 @@ def lista_tareas(request):
     if filtro_cliente:
         tareas = tareas.filter(nombre_cliente__icontains=filtro_cliente)
 
-    # Morosos: tareas completadas con saldo pendiente
+    # Morosos: tareas completadas con saldo pendiente (solo visible para jefes/admins)
     morosos = []
     total_saldo_pendiente = Decimal('0')
-    for tarea in TareaPlanificada.objects.filter(estado='completado'):
-        saldo = tarea.saldo_pendiente
-        if saldo > 0:
-            morosos.append({
-                'tarea': tarea,
-                'total': tarea.precio_total,
-                'abonado': tarea.monto_abonado,
-                'saldo': saldo,
-            })
-            total_saldo_pendiente += saldo
+    
+    if usuario_es_jefe:
+        for tarea in TareaPlanificada.objects.filter(estado='completado'):
+            saldo = tarea.saldo_pendiente
+            if saldo > 0:
+                morosos.append({
+                    'tarea': tarea,
+                    'total': tarea.precio_total,
+                    'abonado': tarea.monto_abonado,
+                    'saldo': saldo,
+                })
+                total_saldo_pendiente += saldo
 
     return render(request, 'paneltareas/lista.html', {
         'tareas': tareas,
@@ -614,8 +617,8 @@ def crear_tarea(request):
         for p in Producto.objects.all()
     ])
     
-    # Preparar datos de clientes para autocompletar, incluyendo saldos pendientes
-    clientes_json = json.dumps(construir_clientes_formulario())
+    # Preparar datos de clientes para autocompletar, incluyendo saldos pendientes solo para jefes
+    clientes_json = json.dumps(construir_clientes_formulario(mostrar_saldos=usuario_es_jefe))
     
     # Placas existentes para autocompletar
     placas_json = json.dumps(list(
@@ -641,7 +644,7 @@ def editar_tarea(request, pk):
     
     if request.method == 'POST':
         form = FormClass(request.POST, instance=tarea)
-        formset = ProductoTareaFormSet(request.POST, instance=tarea, prefix='productos')
+        formset = ProductoTareaFormSetEdit(request.POST, instance=tarea, prefix='productos')
         if form.is_valid() and formset.is_valid() and validar_imagenes_por_producto(formset, request.FILES):
             try:
                 with transaction.atomic():
@@ -662,7 +665,7 @@ def editar_tarea(request, pk):
                 return redirect('tareas:lista')
     else:
         form = FormClass(instance=tarea)
-        formset = ProductoTareaFormSet(instance=tarea, prefix='productos')
+        formset = ProductoTareaFormSetEdit(instance=tarea, prefix='productos')
     
     # Preparar datos de productos para JavaScript (autocompletar)
     productos_json = json.dumps([
@@ -675,8 +678,8 @@ def editar_tarea(request, pk):
         for p in Producto.objects.all()
     ])
     
-    # Preparar datos de clientes para autocompletar, incluyendo saldos pendientes
-    clientes_json = json.dumps(construir_clientes_formulario())
+    # Preparar datos de clientes para autocompletar, incluyendo saldos pendientes solo para jefes
+    clientes_json = json.dumps(construir_clientes_formulario(mostrar_saldos=usuario_es_jefe))
     
     # Placas existentes para autocompletar
     placas_json = json.dumps(list(
@@ -827,8 +830,18 @@ def lista_clientes(request):
         clientes = clientes.filter(nombre__icontains=buscar) | clientes.filter(telefono__icontains=buscar)
 
     clientes = enriquecer_clientes_con_historial(clientes)
+    
+    # Verificar si el usuario es trabajador
+    es_trabajador_logueado = False
+    try:
+        es_trabajador_logueado = request.user.perfil.es_trabajador and not request.user.is_superuser
+    except (PerfilUsuario.DoesNotExist, AttributeError):
+        es_trabajador_logueado = hasattr(request.user, 'trabajador') and not es_jefe(request.user)
 
-    return render(request, 'paneltareas/clientes/lista.html', {'clientes': clientes})
+    return render(request, 'paneltareas/clientes/lista.html', {
+        'clientes': clientes,
+        'es_trabajador': es_trabajador_logueado
+    })
 
 
 @login_required
