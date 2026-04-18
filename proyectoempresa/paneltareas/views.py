@@ -287,8 +287,20 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
+            # Validar que el usuario tiene un perfil con rol válido
+            try:
+                perfil = user.perfil
+                # Verificar que el rol sea válido
+                if perfil.rol not in [choice[0] for choice in perfil._meta.get_field('rol').choices]:
+                    messages.error(request, 'Tu usuario tiene un rol inválido. Contacta al administrador.')
+                    return render(request, 'login.html')
+            except Exception as e:
+                messages.error(request, f'Error al validar tu perfil: {str(e)}')
+                return render(request, 'login.html')
+            
             login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.username}!')
+            rol_display = perfil.get_rol_display()
+            messages.success(request, f'¡Bienvenido {user.username}! ({rol_display})')
             return redirect('dashboard')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
@@ -453,6 +465,28 @@ def home(request):
     registrados_hoy_ids = [r['trabajador_id'] for r in registrados_hoy]
     trabajadores_sin_registrar = todos_trabajadores.exclude(id__in=registrados_hoy_ids)
     
+    # -------------------------
+    # TAREAS POR DÍA DE LA SEMANA
+    # -------------------------
+    # Calcular tareas completadas por día de la semana (últimos 7 días)
+    dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    tareas_por_dia = [0] * 7
+    
+    # Obtener el lunes de la semana actual
+    lunes_semana = hoy - timedelta(days=hoy.weekday())
+    
+    for i in range(7):
+        dia_fecha = lunes_semana + timedelta(days=i)
+        # Contar tareas completadas en esa fecha (usando fecha de actualización como aproximación)
+        tareas_count = TareaPlanificada.objects.filter(
+            estado='completado',
+            actualizado_en__date=dia_fecha
+        ).count()
+        tareas_por_dia[i] = tareas_count
+    
+    tareas_semana_labels = json.dumps(dias_semana)
+    tareas_semana_data = json.dumps(tareas_por_dia)
+    
     context = {
         'tareas_pendientes': tareas_pendientes,
         'tareas_en_proceso': tareas_en_proceso,
@@ -482,6 +516,9 @@ def home(request):
         'trabajadores_sin_registrar': list(trabajadores_sin_registrar),
         'primer_dia_mes': mes_actual,
         'ultimo_dia_mes': ultimo_dia_mes,
+        # Tareas por día de la semana
+        'tareas_semana_labels': tareas_semana_labels,
+        'tareas_semana_data': tareas_semana_data,
     }
     return render(request, 'home.html', context)
 

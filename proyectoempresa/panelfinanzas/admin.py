@@ -2,6 +2,40 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from .models import PerfilUsuario, Producto, Gasto
+from core.permissions import ROLE_ADMINISTRADOR
+
+
+# Extender la clase AdminSite default para agregar verificación de roles
+original_has_permission = admin.site.__class__.has_permission
+
+
+def role_based_has_permission(self, request):
+    """
+    Verifica que el usuario sea superusuario O tenga rol 'administrador'.
+    
+    Solo los usuarios con PerfilUsuario.rol = 'administrador' pueden acceder al panel de admin.
+    Los superusuarios también tienen acceso automático.
+    """
+    # El usuario debe estar autenticado
+    if not request.user.is_active or not request.user.is_authenticated:
+        return False
+    
+    # Los superusuarios tienen acceso total
+    if request.user.is_superuser:
+        return True
+    
+    # Para usuarios normales, verificar que tengan rol administrador
+    try:
+        return request.user.perfil.rol == ROLE_ADMINISTRADOR
+    except (PerfilUsuario.DoesNotExist, AttributeError):
+        return False
+
+
+# Aplicar el control de roles al admin site default
+admin.site.has_permission = lambda request: role_based_has_permission(admin.site, request)
+admin.site.site_header = "Administración - Cuir Tapicería"
+admin.site.site_title = "Admin Cuir"
+admin.site.index_title = "Panel de Administración"
 
 
 class PerfilUsuarioInline(admin.StackedInline):

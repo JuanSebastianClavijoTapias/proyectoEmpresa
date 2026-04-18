@@ -5,13 +5,14 @@ from django.db.models import Count
 
 from .models import CategoriaEstandar, Estandar
 from .forms import CategoriaEstandarForm, EstandarForm
+from core.permissions import require_administrador
 
 
 # =============================================
 # ESTÁNDARES
 # =============================================
 
-@login_required
+@require_administrador
 def lista_estandares(request):
     """Lista todos los estándares agrupados por categoría"""
     categorias = CategoriaEstandar.objects.prefetch_related('estandares').all()
@@ -20,7 +21,7 @@ def lista_estandares(request):
     })
 
 
-@login_required
+@require_administrador
 def crear_estandar(request):
     if request.method == 'POST':
         form = EstandarForm(request.POST)
@@ -35,7 +36,7 @@ def crear_estandar(request):
     return render(request, 'panelestandares/crear.html', {'form': form})
 
 
-@login_required
+@require_administrador
 def editar_estandar(request, pk):
     estandar = get_object_or_404(Estandar, pk=pk)
     if request.method == 'POST':
@@ -49,7 +50,7 @@ def editar_estandar(request, pk):
     return render(request, 'panelestandares/editar.html', {'form': form, 'estandar': estandar})
 
 
-@login_required
+@require_administrador
 def eliminar_estandar(request, pk):
     estandar = get_object_or_404(Estandar, pk=pk)
     if request.method == 'POST':
@@ -63,7 +64,7 @@ def eliminar_estandar(request, pk):
 # CATEGORÍAS
 # =============================================
 
-@login_required
+@require_administrador
 def lista_categorias(request):
     categorias = CategoriaEstandar.objects.annotate(
         total=Count('estandares')
@@ -73,7 +74,7 @@ def lista_categorias(request):
     })
 
 
-@login_required
+@require_administrador
 def crear_categoria(request):
     if request.method == 'POST':
         form = CategoriaEstandarForm(request.POST)
@@ -88,7 +89,7 @@ def crear_categoria(request):
     return render(request, 'panelestandares/categorias/crear.html', {'form': form})
 
 
-@login_required
+@require_administrador
 def editar_categoria(request, pk):
     categoria = get_object_or_404(CategoriaEstandar, pk=pk)
     if request.method == 'POST':
@@ -102,7 +103,7 @@ def editar_categoria(request, pk):
     return render(request, 'panelestandares/categorias/editar.html', {'form': form, 'categoria': categoria})
 
 
-@login_required
+@require_administrador
 def eliminar_categoria(request, pk):
     categoria = get_object_or_404(CategoriaEstandar, pk=pk)
     if request.method == 'POST':

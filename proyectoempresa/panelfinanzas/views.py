@@ -12,35 +12,20 @@ from decimal import Decimal
 from .models import Producto, PerfilUsuario, Gasto
 from .forms import ProductoForm, FiltroProductoForm, FiltroHistorialForm, GastoForm
 from paneltareas.models import ProductoTarea
+from core.permissions import require_not_trabajador, require_administrador
 
 
 # =============================================
-# DECORADORES PERSONALIZADOS
+# DECORADORES PERSONALIZADOS (HEREDADOS)
 # =============================================
 
+# Mantener la función solo_jefes para compatibilidad hacia atrás
 def solo_jefes(view_func):
-    """Decorador que solo permite acceso a usuarios con rol de jefe"""
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            messages.error(request, 'Debes iniciar sesión para acceder.')
-            return redirect('finanzas:login')
-        
-        # Superusuarios siempre tienen acceso
-        if request.user.is_superuser:
-            return view_func(request, *args, **kwargs)
-        
-        # Verificar si tiene perfil y es jefe
-        try:
-            if not request.user.perfil.es_jefe:
-                messages.error(request, 'No tienes permisos para acceder a esta sección.')
-                return redirect('home')
-        except PerfilUsuario.DoesNotExist:
-            messages.error(request, 'Tu usuario no tiene un perfil configurado.')
-            return redirect('home')
-        
-        return view_func(request, *args, **kwargs)
-    return wrapper
+    """
+    Decorador heredado para compatibilidad.
+    Ahora usa require_not_trabajador que permite administrador y gerente.
+    """
+    return require_not_trabajador(view_func)
 
 
 # =============================================
@@ -79,10 +64,10 @@ def logout_view(request):
 
 
 # =============================================
-# VISTAS DE PRODUCTOS / CATÁLOGO (SOLO JEFES)
+# VISTAS DE PRODUCTOS / CATÁLOGO (ADMIN + GERENTE)
 # =============================================
 
-@solo_jefes
+@require_not_trabajador  # Permite: administrador, gerente | Bloquea: trabajador
 def lista_productos(request):
     """Lista del catálogo de productos"""
     productos = Producto.objects.all()
@@ -117,7 +102,7 @@ def lista_productos(request):
     return render(request, 'panelfinanzas/lista.html', context)
 
 
-@solo_jefes
+@require_not_trabajador
 def crear_producto(request):
     """Crear un nuevo producto en el catálogo"""
     if request.method == 'POST':
@@ -134,7 +119,7 @@ def crear_producto(request):
     return render(request, 'panelfinanzas/crear.html', {'form': form})
 
 
-@solo_jefes
+@require_not_trabajador
 def detalle_producto(request, pk):
     """Ver detalle de un producto del catálogo"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -146,7 +131,7 @@ def detalle_producto(request, pk):
     })
 
 
-@solo_jefes
+@require_not_trabajador
 def editar_producto(request, pk):
     """Editar un producto existente"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -167,7 +152,7 @@ def editar_producto(request, pk):
     return render(request, 'panelfinanzas/editar.html', {'form': form, 'producto': producto})
 
 
-@solo_jefes
+@require_not_trabajador
 def eliminar_producto(request, pk):
     """Eliminar un producto"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -184,7 +169,7 @@ def eliminar_producto(request, pk):
 # VISTAS DE HISTORIAL DE ENTREGAS (SOLO JEFES)
 # =============================================
 
-@solo_jefes
+@require_not_trabajador
 def historial_entregas(request):
     """Historial de productos entregados con sus finanzas"""
     entregas = ProductoTarea.objects.all().select_related('tarea', 'producto')
@@ -227,7 +212,7 @@ def historial_entregas(request):
 # VISTAS DE REPORTES (SOLO JEFES)
 # =============================================
 
-@solo_jefes
+@require_administrador
 def reporte_finanzas(request):
     """Reporte general de finanzas basado en entregas"""
     hoy = date.today()
@@ -343,7 +328,7 @@ def reporte_finanzas(request):
 # VISTAS DE GASTOS (SOLO JEFES)
 # =============================================
 
-@solo_jefes
+@require_administrador
 def lista_gastos(request):
     """Lista de gastos del negocio"""
     gastos = Gasto.objects.all()
@@ -370,7 +355,7 @@ def lista_gastos(request):
     return render(request, 'panelfinanzas/gastos/lista.html', context)
 
 
-@solo_jefes
+@require_administrador
 def crear_gasto(request):
     """Crear un nuevo gasto"""
     if request.method == 'POST':
@@ -387,7 +372,7 @@ def crear_gasto(request):
     return render(request, 'panelfinanzas/gastos/crear.html', {'form': form})
 
 
-@solo_jefes
+@require_administrador
 def editar_gasto(request, pk):
     """Editar un gasto existente"""
     gasto = get_object_or_404(Gasto, pk=pk)
@@ -404,7 +389,7 @@ def editar_gasto(request, pk):
     return render(request, 'panelfinanzas/gastos/editar.html', {'form': form, 'gasto': gasto})
 
 
-@solo_jefes
+@require_administrador
 def eliminar_gasto(request, pk):
     """Eliminar un gasto"""
     gasto = get_object_or_404(Gasto, pk=pk)

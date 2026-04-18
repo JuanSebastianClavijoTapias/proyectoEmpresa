@@ -5,15 +5,22 @@ from django.dispatch import receiver
 
 
 class PerfilUsuario(models.Model):
-    """Modelo para extender el usuario con rol"""
+    """Modelo para extender el usuario con rol - Sistema RBAC de tres niveles"""
     
     ROL_CHOICES = [
-        ('jefe', 'Jefe'),
-        ('trabajador', 'Trabajador'),
+        ('administrador', 'Administrador (Acceso total)'),
+        ('gerente', 'Gerente (Tareas, Productividad, Finanzas Básico)'),
+        ('trabajador', 'Trabajador (Tareas y Productividad)'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
-    rol = models.CharField(max_length=20, choices=ROL_CHOICES, default='trabajador', verbose_name='Rol')
+    rol = models.CharField(
+        max_length=20, 
+        choices=ROL_CHOICES, 
+        default='trabajador', 
+        verbose_name='Rol',
+        help_text='Define el nivel de acceso del usuario a los módulos de la aplicación'
+    )
     
     class Meta:
         verbose_name = 'Perfil de Usuario'
@@ -22,13 +29,27 @@ class PerfilUsuario(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.get_rol_display()}"
     
+    # Propiedades para verificación de rol
     @property
-    def es_jefe(self):
-        return self.rol == 'jefe'
+    def es_administrador(self):
+        """Usuario con acceso a todos los módulos"""
+        return self.rol == 'administrador'
+    
+    @property
+    def es_gerente(self):
+        """Usuario con acceso a tareas, productividad y finanzas (solo productos)"""
+        return self.rol == 'gerente'
     
     @property
     def es_trabajador(self):
+        """Usuario con acceso solo a tareas y productividad"""
         return self.rol == 'trabajador'
+    
+    # Propiedades para compatibilidad hacia atrás con código existente
+    @property
+    def es_jefe(self):
+        """Compatibilidad: jefe = administrador + gerente"""
+        return self.rol in ['administrador', 'gerente']
 
 
 # Señales para crear perfil automáticamente

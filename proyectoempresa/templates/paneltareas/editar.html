@@ -96,12 +96,13 @@
                                 <div class="placa-suggestions autocomplete-list"></div>
                             </div>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             {% if forloop.first %}
                             <label class="form-label fw-bold" style="color: #34495e;">Cant.</label>
                             {% endif %}
                             {{ form_producto.cantidad }}
                         </div>
+                        {% if es_jefe %}
                         <div class="col-md-2">
                             {% if forloop.first %}
                             <label class="form-label fw-bold" style="color: #34495e;">Precio</label>
@@ -114,6 +115,7 @@
                             {% endif %}
                             <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1" style="border: 1px solid #27ae60; background-color: #f0f8f5;">
                         </div>
+                        {% endif %}
                         <div class="col-12">
                             <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
                             <input type="file" name="{{ form_producto.prefix }}-imagenes" id="id_{{ form_producto.prefix }}-imagenes" class="form-control producto-imagenes-input" accept="image/*" multiple>
@@ -227,6 +229,7 @@
             </div>
         </div>
         
+        {% if es_jefe %}
         <!-- Monto Abonado -->
         <div class="card mb-4" style="border: none; border-left: 4px solid #e74c3c; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="card-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none;">
@@ -242,6 +245,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
         
         <div class="d-flex gap-2 mb-4">
             <button type="submit" class="btn" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
@@ -673,10 +677,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = document.createElement('div');
         newRow.className = 'producto-row row g-2 mb-2 align-items-end';
         
-        let precioCol = `
+        // Generar columna de precio y total solo para jefes
+        let precioYTotalCols = '';
+        if (esJefe) {
+            precioYTotalCols = `
+            <div class="col-md-2">
+                <input type="number" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input" step="1" min="0" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
+            </div>
             <div class="col-md-2">
                 <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
             </div>`;
+        }
         
         newRow.innerHTML = `
             <div class="col-md-3">
@@ -696,10 +707,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="col-md-1">
                 <input type="number" name="${prefix}-${formNum}-cantidad" class="form-control" min="1" value="1" id="id_${prefix}-${formNum}-cantidad">
             </div>
-            <div class="col-md-2">
-                <input type="number" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input" step="1" min="0" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
-            </div>
-            ${precioCol}
+            ${precioYTotalCols}
             <div class="col-12">
                 <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
                 <input type="file" name="${prefix}-${formNum}-imagenes" class="form-control producto-imagenes-input" id="id_${prefix}-${formNum}-imagenes" accept="image/*" multiple>

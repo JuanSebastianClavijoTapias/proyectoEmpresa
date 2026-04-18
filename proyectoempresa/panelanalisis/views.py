@@ -14,29 +14,19 @@ from .forms import FiltroAnalisisForm, ObjetivoMensualForm, NotaAnalisisForm
 from paneltareas.models import TareaPlanificada, Cliente, ProductoTarea
 from panelproductividad.models import RegistroProductividad, Trabajador
 from panelfinanzas.models import Producto, PerfilUsuario, Gasto
+from core.permissions import require_administrador
 
 
 # =============================================
-# DECORADORES
+# DECORADORES (HEREDADOS)
 # =============================================
 
 def solo_jefes(view_func):
-    """Solo permite acceso a jefes y superusuarios"""
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('login')
-        if request.user.is_superuser:
-            return view_func(request, *args, **kwargs)
-        try:
-            if not request.user.perfil.es_jefe:
-                messages.error(request, 'No tienes permisos para acceder al panel de análisis.')
-                return redirect('home')
-        except PerfilUsuario.DoesNotExist:
-            messages.error(request, 'Tu usuario no tiene un perfil configurado.')
-            return redirect('home')
-        return view_func(request, *args, **kwargs)
-    return wrapper
+    """
+    Decorador heredado para compatibilidad.
+    Ahora usa require_administrador que permite solo administrador.
+    """
+    return require_administrador(view_func)
 
 
 def _obtener_rango_fechas(request):
@@ -70,7 +60,7 @@ def _calcular_variacion(actual, anterior):
 # VISTA PRINCIPAL - DASHBOARD DE KPIs
 # =============================================
 
-@solo_jefes
+@require_administrador
 def dashboard_analisis(request):
     """Dashboard principal de análisis con KPIs clave"""
     fecha_desde, fecha_hasta = _obtener_rango_fechas(request)
@@ -676,7 +666,7 @@ def analisis_trabajadores(request):
 # ANÁLISIS FINANCIERO DETALLADO
 # =============================================
 
-@solo_jefes
+@require_administrador
 def analisis_financiero(request):
     """Análisis financiero detallado con tendencias"""
     fecha_desde, fecha_hasta = _obtener_rango_fechas(request)
@@ -785,7 +775,7 @@ def lista_objetivos(request):
     })
 
 
-@solo_jefes
+@require_administrador
 def crear_objetivo(request):
     """Crear un nuevo objetivo mensual"""
     if request.method == 'POST':
@@ -801,7 +791,7 @@ def crear_objetivo(request):
     return render(request, 'panelanalisis/objetivos/crear.html', {'form': form})
 
 
-@solo_jefes
+@require_administrador
 def editar_objetivo(request, pk):
     """Editar un objetivo mensual"""
     objetivo = get_object_or_404(ObjetivoMensual, pk=pk)
@@ -818,7 +808,7 @@ def editar_objetivo(request, pk):
     })
 
 
-@solo_jefes
+@require_administrador
 def eliminar_objetivo(request, pk):
     """Eliminar un objetivo mensual"""
     objetivo = get_object_or_404(ObjetivoMensual, pk=pk)

@@ -5,11 +5,8 @@
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1><i class="bi bi-speedometer2"></i> Dashboard Principal</h1>
+        <h1><i class="bi bi-speedometer2"></i> <strong>Dashboard Principal</strong></h1>
         <p class="text-white mb-0">Resumen de operaciones y finanzas de tu taller</p>
-    </div>
-    <div>
-        <span class="badge bg-primary fs-6"><i class="bi bi-calendar-event"></i> Hoy: {{ "now"|date:"d/m/Y" }}</span>
     </div>
 </div>
 
@@ -83,7 +80,7 @@
 <div class="row">
     <!-- Accesos rápidos (Sidebar) -->
     <div class="col-lg-3 mb-4">
-        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+        <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
             <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
                 <i class="bi bi-lightning-fill"></i> Acciones Rápidas
             </div>
@@ -105,7 +102,7 @@
     
     <!-- Próximas entregas -->
     <div class="col-lg-9 mb-4">
-        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+        <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
             <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border: none; color: white;">
                 <span><i class="bi bi-calendar-event"></i> Próximas Entregas (7 días)</span>
                 <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-light">Ver todas</a>
@@ -115,21 +112,21 @@
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
-                            <tr class="text-white mb-0">
-                                <th style="border-top: none;">Placa</th>
-                                <th style="border-top: none;">Cliente</th>
-                                <th style="border-top: none;">Trabajo</th>
-                                <th style="border-top: none;">Entrega</th>
-                                <th style="border-top: none;">Estado</th>
+                            <tr style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white;">
+                                <th style="border-top: none; color: rgb(0, 0, 0);">Placa</th>
+                                <th style="border-top: none; color: rgb(0, 0, 0);">Cliente</th>
+                                <th style="border-top: none; color: rgb(0, 0, 0);">Trabajo</th>
+                                <th style="border-top: none; color: white;">Entrega</th>
+                                <th style="border-top: none; color: rgb(0, 0, 0);">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for tarea in tareas_proximas %}
-                            <tr style="cursor: pointer; transition: background 0.15s;" onclick="window.location='{% url 'tareas:detalle' tarea.pk %}'">
-                                <td><strong>{{ tarea.placa }}</strong></td>
-                                <td>{{ tarea.nombre_cliente }}</td>
-                                <td><small class="text-white mb-0">{{ tarea.get_tipo_trabajo_display }}</small></td>
-                                <td>
+                            <tr style="cursor: pointer; transition: background 0.15s; color: #333 !important;" onclick="window.location='{% url 'tareas:detalle' tarea.pk %}'">
+                                <td style="color: #333 !important;"><strong>{{ tarea.placa|default:"No asignada" }}</strong></td>
+                                <td style="color: #333 !important;">{{ tarea.nombre_cliente }}</td>
+                                <td style="color: #333 !important;"><small>{{ tarea.get_tipo_trabajo_display|default:"No especificado" }}</small></td>
+                                <td style="color: #333 !important;">
                                     {% if tarea.dias_restantes < 0 %}
                                         <span class="text-danger"><i class="bi bi-exclamation-circle"></i> Vencido</span>
                                     {% elif tarea.dias_restantes == 0 %}
@@ -138,8 +135,8 @@
                                         <span class="badge bg-info">{{ tarea.fecha_entrega|date:"d/m" }}</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <span class="badge badge-estado badge-{{ tarea.estado }}">
+                                <td style="color: #333 !important;">
+                                    <span style="color: #333;" class="badge badge-estado badge-{{ tarea.estado }}">
                                         {{ tarea.get_estado_display }}
                                     </span>
                                 </td>
@@ -161,6 +158,7 @@
 
 <!-- Alertas Críticas -->
 {% if alertas_cobranza or trabajadores_sin_registrar %}
+{% if not es_trabajador %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
@@ -191,7 +189,7 @@
                 
                 {% if trabajadores_sin_registrar %}
                 <div>
-                    <h6 class="text-muted mb-3"><i class="bi bi-person-exclamation"></i> <strong>Trabajadores Sin Registrar</strong></h6>
+                    <h6 class="text-muted mb-3"><i class="bi bi-person-exclamation"></i> <strong>Trabajadores Sin registrar productividad</strong></h6>
                     {% for trabajador in trabajadores_sin_registrar %}
                     <div class="alert alert-info mb-2 py-2" role="alert">
                         <div class="d-flex justify-content-between align-items-center">
@@ -210,83 +208,101 @@
     </div>
 </div>
 {% endif %}
+{% endif %}
 
 <!-- Gráficos -->
 <div class="row mb-4">
-    <!-- Cuentas por Cobrar -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden; border-left: 5px solid #667eea;">
-            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
-                <i class="bi bi-credit-card"></i> Cuentas por Cobrar
+    <!-- Gráfico de Tareas por Estado (Pie) -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: none; color: white; padding: 1.25rem;">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i> Tareas por Estado</h6>
             </div>
-            <div class="card-body">
-                <div style="text-align: center; padding: 1rem 0;">
-                    <div class="row g-2 text-center mb-2">
-                        <div class="col-6">
-                            <div style="background: #fff0f0; border-radius: 0.5rem; padding: 0.6rem;">
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">Por cobrar</small>
-                                <strong style="color: #e74c3c; font-size: 1.1rem;">${{ saldo_total_pendiente|floatformat:0 }}</strong>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div style="background: #f0fff4; border-radius: 0.5rem; padding: 0.6rem;">
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">Ya cobrado</small>
-                                <strong style="color: #27ae60; font-size: 1.1rem;">${{ total_cobrado|floatformat:0 }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 8px; border-radius: 10px; margin-top: 0.5rem;">
-                        <div class="progress-bar" style="width: 100%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
-                    </div>
-                    <small class="text-muted d-block mt-3">
-                        <i class="bi bi-file-earmark"></i> {{ tareas_sin_pagar_total }} tarea(s) sin pagar
-                    </small>
-                    {% if morosos_modal %}
-                    <button type="button" class="btn btn-sm mt-3 w-100" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none;" data-bs-toggle="modal" data-bs-target="#modalCuentasCobrar">
-                        <i class="bi bi-list-ul me-1"></i> Ver Cuentas por Cobrar
-                    </button>
-                    {% endif %}
-                </div>
+            <div class="card-body" style="padding: 1rem 1rem; height: 250px;">
+                <canvas id="chartEstados"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Gráfico de Tareas por Estado (Pie) -->
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm border-0 h-100" style="border-radius: 10px; overflow: hidden;">
-            <div class="card-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: none; color: white;">
-                <i class="bi bi-pie-chart"></i> Tareas por Estado
+    <!-- Gráfico de Tareas por Día de la Semana (Barras) -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+            <div class="card-header" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); border: none; color: white; padding: 1.25rem;">
+                <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i> Tareas Completadas por Día</h6>
             </div>
-            <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="chartEstados" height="80"></canvas>
+            <div class="card-body d-flex align-items-center justify-content-center" style="padding: 1.5rem 1rem; min-height: 220px;">
+                <canvas id="chartSemana" height="60"></canvas>
             </div>
         </div>
     </div>
 
     {% if not es_trabajador %}
-    <!-- Gastos este Mes -->
-    <div class="col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm border-0" style="border-radius: 10px; overflow: hidden; border-left: 5px solid #fa709a;">
-            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; color: white;">
-                <i class="bi bi-receipt"></i> Gastos Este Mes
+    <!-- Cuentas por Cobrar -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #667eea;">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 1.25rem;">
+                <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i> Cuentas por Cobrar</h6>
             </div>
-            <div class="card-body" style="padding: 1rem;">
-                <div style="text-align: center; padding: 0.5rem 0;">
-                    <h3 style="color: #fa709a; font-weight: bold; margin: 0.25rem 0; font-size: 1.5rem;">${{ total_gastos_mes|floatformat:2 }}</h3>
-                    <p class="text-muted mb-2" style="font-size: 0.85rem;">Total</p>
-                    {% if gastos_por_categoria %}
-                    <div style="text-align: left; font-size: 0.75rem; max-height: 100px; overflow-y: auto;">
-                        {% for gasto in gastos_por_categoria %}
-                        <div class="d-flex justify-content-between mb-1" style="padding: 2px 0;">
-                            <small class="text-white mb-0">{{ gasto.categoria }}</small>
-                            <small><strong style="color: #fa709a;">${{ gasto.total|floatformat:0 }}</strong></small>
+            <div class="card-body" style="padding: 1.75rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <div class="row g-3 text-center mb-3">
+                        <div class="col-6">
+                            <div style="background: linear-gradient(135deg, #fff0f0, #ffe6e6); border-radius: 0.75rem; padding: 1rem; border: 1px solid #f5d6d6;">
+                                <small class="text-muted d-block fw-600" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Por Cobrar</small>
+                                <strong style="color: #e74c3c; font-size: 1.4rem; display: block;">${{ saldo_total_pendiente|floatformat:0 }}</strong>
+                            </div>
                         </div>
-                        {% endfor %}
+                        <div class="col-6">
+                            <div style="background: linear-gradient(135deg, #f0fff4, #e6ffe8); border-radius: 0.75rem; padding: 1rem; border: 1px solid #d6f5e6;">
+                                <small class="text-muted d-block fw-600" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Ya Cobrado</small>
+                                <strong style="color: #27ae60; font-size: 1.4rem; display: block;">${{ total_cobrado|floatformat:0 }}</strong>
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <p class="text-muted small">Sin gastos registrados</p>
-                    {% endif %}
+                    <div class="progress" style="height: 10px; border-radius: 10px; background: #e9ecef; margin: 1.5rem 0;">
+                        <div class="progress-bar" style="width: 100%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                    </div>
+                    <div class="text-center">
+                        <small class="text-muted d-block" style="font-size: 0.9rem;">
+                            <i class="bi bi-file-earmark me-1"></i> {{ tareas_sin_pagar_total }} tarea(s) sin pagar
+                        </small>
+                    </div>
                 </div>
+                {% if morosos_modal %}
+                <button type="button" class="btn btn-sm w-100 mt-2" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 0.6rem; border-radius: 0.5rem; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#modalCuentasCobrar">
+                    <i class="bi bi-list-ul me-1"></i> Ver Detalles
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Gastos Este Mes -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-left: 5px solid #fa709a;">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; color: white; padding: 1.25rem;">
+                <h6 class="mb-0"><i class="bi bi-receipt me-2"></i> Gastos Este Mes</h6>
+            </div>
+            <div class="card-body" style="padding: 1.75rem;">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h3 style="color: #fa709a; font-weight: 700; margin: 0 0 0.5rem 0; font-size: 2.2rem;">${{ total_gastos_mes|floatformat:2 }}</h3>
+                    <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Total de Gastos</p>
+                </div>
+                {% if gastos_por_categoria %}
+                <div style="text-align: left; font-size: 0.9rem; max-height: 180px; overflow-y: auto; padding: 0.5rem 0;">
+                    {% for gasto in gastos_por_categoria %}
+                    <div class="d-flex justify-content-between align-items-center mb-2" style="padding: 0.75rem 0.5rem; border-bottom: 1px solid #f0f0f0;">
+                        <small class="text-dark mb-0" style="font-weight: 500;">{{ gasto.categoria }}</small>
+                        <small><strong style="color: #fa709a; font-size: 0.95rem;">${{ gasto.total|floatformat:0 }}</strong></small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox" style="font-size: 2rem; color: #ddd;"></i>
+                    <p class="text-muted small mt-2 mb-0">Sin gastos registrados</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -339,7 +355,7 @@
 {% endif %}
 
 <!-- Modal Cuentas por Cobrar -->
-{% if morosos_modal %}
+{% if not es_trabajador and morosos_modal %}
 <div class="modal fade" id="modalCuentasCobrar" tabindex="-1" aria-labelledby="modalCuentasCobrarLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content" style="border: none; border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
@@ -470,10 +486,54 @@ if (chartEstadosCtx) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Gráfico de Tareas por Día de la Semana (Barras)
+const chartSemanaCtx = document.getElementById('chartSemana');
+if (chartSemanaCtx) {
+    const diasLabels = {{ tareas_semana_labels|safe }};
+    const diasData = {{ tareas_semana_data|safe }};
+    
+    new Chart(chartSemanaCtx, {
+        type: 'bar',
+        data: {
+            labels: diasLabels,
+            datasets: [{
+                label: 'Tareas Completadas',
+                data: diasData,
+                backgroundColor: '#27ae60',
+                borderColor: '#229954',
+                borderWidth: 1,
+                borderRadius: 5,
+                hoverBackgroundColor: '#229954',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
                     labels: {
                         padding: 15,
                         font: { size: 12 }

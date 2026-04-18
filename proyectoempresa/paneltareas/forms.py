@@ -11,6 +11,29 @@ class TareaPlanificadaForm(forms.ModelForm):
             'nombre_cliente', 'telefono_cliente', 'placa',
             'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
+            'observaciones'
+        ]
+        widgets = {
+            'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
+            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
+            'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
+            'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer...'}),
+            'fecha_ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_entrega': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-select'}),
+            'prioridad': forms.Select(attrs={'class': 'form-select'}),
+            'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Observaciones adicionales...'}),
+        }
+
+
+class TareaPlanificadaFormJefe(TareaPlanificadaForm):
+    """Formulario extendido para jefes que incluye monto abonado"""
+    class Meta:
+        model = TareaPlanificada
+        fields = [
+            'nombre_cliente', 'telefono_cliente', 'placa',
+            'descripcion_trabajo',
+            'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
             'observaciones', 'monto_abonado'
         ]
         widgets = {
@@ -23,21 +46,6 @@ class TareaPlanificadaForm(forms.ModelForm):
             'estado': forms.Select(attrs={'class': 'form-select'}),
             'prioridad': forms.Select(attrs={'class': 'form-select'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Observaciones adicionales...'}),
-            'monto_abonado': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01',
-                'min': '0'
-            }),
-        }
-
-
-class TareaPlanificadaFormJefe(TareaPlanificadaForm):
-    """Formulario extendido para jefes que incluye monto abonado"""
-    class Meta(TareaPlanificadaForm.Meta):
-        fields = TareaPlanificadaForm.Meta.fields + ['monto_abonado']
-        widgets = {
-            **TareaPlanificadaForm.Meta.widgets,
             'monto_abonado': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': '0.00',
