@@ -165,7 +165,23 @@
                             <span class="input-group-text"><i class="bi bi-lock-fill text-muted"></i></span>
                             <input type="password" class="form-control" id="password" name="password" 
                                    placeholder="Ingresa tu contraseña" required>
+                            <button type="button" class="input-group-text btn btn-outline-secondary" id="togglePassword" tabindex="-1" style="cursor:pointer;">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </button>
                         </div>
+                        <script>
+                            document.getElementById('togglePassword').addEventListener('click', function() {
+                                var input = document.getElementById('password');
+                                var icon = document.getElementById('toggleIcon');
+                                if (input.type === 'password') {
+                                    input.type = 'text';
+                                    icon.classList.replace('bi-eye', 'bi-eye-slash');
+                                } else {
+                                    input.type = 'password';
+                                    icon.classList.replace('bi-eye-slash', 'bi-eye');
+                                }
+                            });
+                        </script>
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-login w-100">
