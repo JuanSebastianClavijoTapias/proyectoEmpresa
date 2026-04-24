@@ -9,7 +9,7 @@ import sys
 class Cliente(models.Model):
     """Modelo para almacenar información de clientes"""
     nombre = models.CharField(max_length=200, verbose_name='Nombre del Cliente')
-    telefono = models.CharField(max_length=20, verbose_name='Teléfono')
+    telefono = models.CharField(max_length=255, verbose_name='Teléfono')
     email = models.EmailField(blank=True, null=True, verbose_name='Correo Electrónico')
     direccion = models.CharField(max_length=300, blank=True, null=True, verbose_name='Dirección')
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
@@ -42,10 +42,10 @@ class TareaPlanificada(models.Model):
     
     # Información del cliente
     nombre_cliente = models.CharField(max_length=200, verbose_name='Nombre del Cliente')
-    telefono_cliente = models.CharField(max_length=20, verbose_name='Teléfono de Contacto')
+    telefono_cliente = models.CharField(max_length=255, verbose_name='Teléfono de Contacto')
     
     # Información del vehículo (simplificado)
-    placa = models.CharField(max_length=20, blank=True, null=True, verbose_name='Placa del Vehículo')
+    placa = models.CharField(max_length=255, blank=True, null=True, verbose_name='Placa del Vehículo')
     
     # Información del trabajo
     descripcion_trabajo = models.TextField(verbose_name='Qué se le debe hacer')
@@ -55,8 +55,8 @@ class TareaPlanificada(models.Model):
     fecha_entrega = models.DateField(verbose_name='Fecha de Entrega Estimada')
     
     # Estado y prioridad
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente', verbose_name='Estado')
-    prioridad = models.CharField(max_length=20, choices=PRIORIDAD_CHOICES, default='media', verbose_name='Prioridad')
+    estado = models.CharField(max_length=25, choices=ESTADO_CHOICES, default='pendiente', verbose_name='Estado')
+    prioridad = models.CharField(max_length=25, choices=PRIORIDAD_CHOICES, default='media', verbose_name='Prioridad')
     
     # Observaciones
     observaciones = models.TextField(blank=True, null=True, verbose_name='Observaciones')
@@ -135,6 +135,7 @@ class ImagenTarea(models.Model):
         upload_to='tareas/imagenes/%Y/%m/',
         verbose_name='Imagen',
         validators=[validar_imagen],
+        max_length = 255,
     )
     descripcion = models.CharField(max_length=200, blank=True, verbose_name='Descripción')
     fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Subida')
@@ -226,7 +227,7 @@ class ProductoTarea(models.Model):
         verbose_name='Producto'
     )
     nombre_producto = models.CharField(max_length=200, verbose_name='Nombre del Producto')
-    placa = models.CharField(max_length=20, blank=True, default='', verbose_name='Placa del Vehículo')
+    placa = models.CharField(max_length=255, blank=True, default='', verbose_name='Placa del Vehículo')
     cantidad = models.PositiveIntegerField(default=1, verbose_name='Cantidad')
     precio_costo = models.DecimalField(
         max_digits=12, 

@@ -66,7 +66,19 @@
                             </div>
                             {% endif %}
                         </td>
-                        <td><i class="bi bi-telephone text-muted me-1"></i> {{ cliente.telefono }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-telephone-fill text-primary"></i>
+                                <a href="https://wa.me/57{{cliente.telefono}}" target="_blank" class="link-underline link-underline-opacity-0 link-underline-opacity-100-hover" title="Abrir WhatsApp">
+                                    {{ cliente.telefono }}
+                                </a>
+                                {% if not es_trabajador %}
+                                <button type="button" class="btn btn-sm btn-link p-0 text-info" data-bs-toggle="modal" data-bs-target="#modalCliente{{ cliente.pk }}" title="Ver registros del cliente">
+                                    <i class="bi bi-list-ul"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
                         <td>{{ cliente.email|default:"-" }}</td>
                         <td>{{ cliente.direccion|default:"-"|truncatechars:30 }}</td>
                         <td>
@@ -135,6 +147,23 @@
 .cliente-row-clickable:focus {
     outline: 2px solid rgba(41, 128, 185, 0.25);
     outline-offset: -2px;
+}
+
+/* Estilos para la celda de teléfono */
+.table td {
+    vertical-align: middle;
+}
+
+.table a {
+    text-decoration: none;
+}
+
+.table a:hover {
+    text-decoration: underline;
+}
+
+.btn-link:hover {
+    opacity: 0.8;
 }
 </style>
 
