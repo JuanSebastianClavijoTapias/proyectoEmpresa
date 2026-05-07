@@ -197,14 +197,14 @@
                                 </td>
                                 <td class="text-end align-middle">
                                     {% if p_tarea.precio_cobrado %}
-                                    <span class="text-success fw-bold">${{ p_tarea.precio_cobrado|floatformat:0 }}</span>
+                                    <span class="text-success fw-bold">${{ p_tarea.precio_cobrado|formato_dinero }}</span>
                                     {% else %}
                                     <span class="text-white mb-0">-</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-end align-middle">
                                     {% if p_tarea.tarea.monto_abonado %}
-                                    <span class="text-primary fw-bold">${{ p_tarea.tarea.monto_abonado|floatformat:0 }}</span>
+                                    <span class="text-primary fw-bold">${{ p_tarea.tarea.monto_abonado|formato_dinero }}</span>
                                     {% else %}
                                     <span class="text-white mb-0">$0</span>
                                     {% endif %}

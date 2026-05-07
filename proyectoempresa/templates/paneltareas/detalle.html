@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 
 {% block title %}Detalle Tarea - {{ tarea.placa }}{% endblock %}
 
@@ -63,8 +64,10 @@
                 </div>
                 
                 <div class="mt-3">
-                    <small class="text-muted d-block mb-2"><i class="bi bi-pencil-square"></i> Descripción del Trabajo</small>
-                    <div class="p-3" style="background-color: #f8f9fa; border-radius: 0.5rem; line-height: 1.6;">{{ tarea.descripcion_trabajo|linebreaks }}</div>
+                    <small class="text-muted d-block mb-2"><i class="bi bi-pencil-square"></i> Descripción general</small>
+                    <div class="p-3" style="background-color: #f8f9fa; border-radius: 0.5rem; line-height: 1.6;">
+                        {% if tarea.descripcion_trabajo %}{{ tarea.descripcion_trabajo|linebreaks }}{% else %}<span class="text-muted">Ver descripción por producto más abajo.</span>{% endif %}
+                    </div>
                 </div>
                 
                 {% if tarea.observaciones %}
@@ -97,18 +100,23 @@
                         <tbody>
                             {% for pt in productos_tarea %}
                             <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="color: #34495e;"><strong>{{ pt.nombre_producto }}</strong></td>
+                                <td style="color: #34495e;">
+                                    <strong>{{ pt.nombre_producto }}</strong>
+                                    {% if pt.descripcion %}
+                                    <div class="small text-muted mt-1" style="white-space: pre-wrap;">{{ pt.descripcion }}</div>
+                                    {% endif %}
+                                </td>
                                 <td style="color: #7f8c8d;">{{ pt.placa }}</td>
                                 <td class="text-center" style="color: #34495e;"><strong>{{ pt.cantidad }}</strong></td>
-                                <td class="text-end" style="color: #27ae60;">${{ pt.precio_venta|floatformat:0 }}</td>
-                                <td class="text-end"><strong style="color: #3498db;">${{ pt.total_venta|floatformat:0 }}</strong></td>
+                                <td class="text-end" style="color: #27ae60;">${{ pt.precio_venta|formato_dinero }}</td>
+                                <td class="text-end"><strong style="color: #3498db;">${{ pt.total_venta|formato_dinero }}</strong></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                         <tfoot style="background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(41, 128, 185, 0.1));">
                             <tr>
                                 <td colspan="4" class="text-end"><strong style="color: #34495e;">Total:</strong></td>
-                                <td class="text-end"><strong style="color: #2980b9; font-size: 1.1rem;">${{ tarea.precio_total|floatformat:0 }}</strong></td>
+                                <td class="text-end"><strong style="color: #2980b9; font-size: 1.1rem;">${{ tarea.precio_total|formato_dinero }}</strong></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -140,19 +148,19 @@
                     <div class="col-md-4">
                         <div class="text-center p-3" style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-radius: 0.5rem;">
                             <small class="text-white-50 d-block mb-1">Precio Total</small>
-                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.precio_total|floatformat:0 }}</h5>
+                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.precio_total|formato_dinero }}</h5>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center p-3" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border-radius: 0.5rem;">
                             <small class="text-white-50 d-block mb-1">Abonado</small>
-                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.monto_abonado|floatformat:0 }}</h5>
+                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.monto_abonado|formato_dinero }}</h5>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center p-3" style="background: {% if tarea.saldo_pendiente > 0 %}linear-gradient(135deg, #e74c3c, #c0392b){% else %}linear-gradient(135deg, #27ae60, #229954){% endif %}; color: white; border-radius: 0.5rem;">
                             <small class="text-white-50 d-block mb-1">Saldo Pendiente</small>
-                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.saldo_pendiente|floatformat:0 }}</h5>
+                            <h5 class="mb-0" style="font-weight: 700;">${{ tarea.saldo_pendiente|formato_dinero }}</h5>
                         </div>
                     </div>
                 </div>
@@ -176,7 +184,7 @@
                         <i class="bi bi-plus-circle me-1"></i> Abonar Más
                     </button>
                     <!-- Botón Completar Pago -->
-                    <form method="post" action="{% url 'tareas:completar_pago' tarea.pk %}" class="flex-grow-1" onsubmit="return confirm('¿Completar el pago total? Se registrarán ${{ tarea.saldo_pendiente|floatformat:0 }} restantes como pagados.');">
+                    <form method="post" action="{% url 'tareas:completar_pago' tarea.pk %}" class="flex-grow-1" onsubmit="return confirm('\u00bfCompletar el pago total? Se registrar\u00e1n ${{ tarea.saldo_pendiente|formato_dinero }} restantes como pagados.');">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm w-100" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; font-weight: 500;">
                             <i class="bi bi-check-all me-1"></i> Completar Pago
@@ -194,7 +202,7 @@
                                 <span class="input-group-text" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none;">$</span>
                                 {{ form_abonar.monto }}
                             </div>
-                            <small class="text-muted d-block mb-3">Saldo pendiente: <strong>${{ tarea.saldo_pendiente|floatformat:0 }}</strong></small>
+                            <small class="text-muted d-block mb-3">Saldo pendiente: <strong>${{ tarea.saldo_pendiente|formato_dinero }}</strong></small>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-sm flex-grow-1" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
                                     <i class="bi bi-cash me-1"></i> Registrar Abono
@@ -422,6 +430,21 @@
                             <li><a class="dropdown-item text-danger" href="{% url 'tareas:cambiar_estado' tarea.pk 'cancelado' %}"><i class="bi bi-x-circle"></i> Cancelado</a></li>
                         </ul>
                     </div>
+                    {% if cliente_id %}
+                    <a href="{% url 'tareas:reporte_cliente_pdf' cliente_id %}" class="btn btn-sm" style="background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border: none; font-weight: 500;" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-2"></i> Descargar Reporte PDF
+                    </a>
+                    {% if tarea.telefono_cliente %}
+                    <button type="button"
+                        class="btn btn-sm"
+                        style="background: linear-gradient(135deg, #25d366, #128c7e); color: white; border: none; font-weight: 500;"
+                        data-pdf-url="{% url 'tareas:reporte_cliente_pdf' cliente_id %}"
+                        data-wa-url="https://wa.me/57{{ tarea.telefono_cliente|cut:' '|cut:'-'|cut:'+'|cut:'('|cut:')' }}?text=Hola%20{{ tarea.nombre_cliente|urlencode }}%2C%20le%20comparto%20su%20reporte%20de%20tapicería%20(placa%3A%20{{ tarea.placa|urlencode }}).%20Total%3A%20%24{{ tarea.precio_total|formato_dinero }}%20%7C%20Abonado%3A%20%24{{ tarea.monto_abonado|formato_dinero }}%20%7C%20Saldo%3A%20%24{{ tarea.saldo_pendiente|formato_dinero }}%20%E2%80%94%20El%20PDF%20con%20el%20detalle%20completo%20se%20ha%20descargado%20autom%C3%A1ticamente."
+                        onclick="enviarPdfWhatsApp(this)">
+                        <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
+                    </button>
+                    {% endif %}
+                    {% endif %}
                     <a href="{% url 'tareas:eliminar' tarea.pk %}" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash me-2"></i> Eliminar
                     </a>
@@ -495,5 +518,50 @@
     border: 1px solid #d0d0d0;
 }
 </style>
+
+<script>
+async function enviarPdfWhatsApp(btn) {
+    const pdfUrl = btn.getAttribute('data-pdf-url');
+    const waUrl = btn.getAttribute('data-wa-url');
+    const texto = btn.getAttribute('data-wa-url').split('?text=')[1];
+    const msgTexto = texto ? decodeURIComponent(texto) : 'Reporte de tapicería';
+
+    // Intentar Web Share API con archivo (funciona en móvil con WhatsApp instalado)
+    if (navigator.canShare) {
+        try {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Generando...';
+            const resp = await fetch(pdfUrl);
+            const blob = await resp.blob();
+            const file = new File([blob], 'reporte-tapiceria.pdf', { type: 'application/pdf' });
+            if (navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    text: msgTexto,
+                });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp';
+                return;
+            }
+        } catch (e) {
+            // Si el usuario cancela el share dialog, no hacer nada más
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp';
+            if (e.name === 'AbortError') return;
+        }
+    }
+
+    // Fallback escritorio: descargar PDF + abrir WhatsApp
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp';
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = 'reporte-tapiceria.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => window.open(waUrl, '_blank'), 1200);
+}
+</script>
 {% endblock %}
 

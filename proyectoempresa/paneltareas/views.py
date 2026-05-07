@@ -4,11 +4,12 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from datetime import date, timedelta
 from decimal import Decimal
 import calendar
 import json
+import unicodedata
 from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
 from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm
 from panelfinanzas.models import Producto, PerfilUsuario
@@ -740,6 +741,10 @@ def detalle_tarea(request, pk):
     
     form_abonar = AbonarForm()
 
+    # Buscar cliente registrado para PDF/WhatsApp
+    cliente_obj = Cliente.objects.filter(nombre__iexact=tarea.nombre_cliente).first()
+    cliente_id = cliente_obj.pk if cliente_obj else None
+
     return render(request, 'paneltareas/detalle.html', {
         'tarea': tarea,
         'form_imagen': form_imagen,
@@ -747,6 +752,7 @@ def detalle_tarea(request, pk):
         'productos_tarea': productos_tarea,
         'es_jefe': usuario_es_jefe,
         'form_abonar': form_abonar,
+        'cliente_id': cliente_id,
     })
 
 
@@ -874,6 +880,205 @@ def editar_cliente(request, pk):
         form = ClienteForm(instance=cliente)
     
     return render(request, 'paneltareas/clientes/editar.html', {'form': form, 'cliente': cliente})
+
+
+@login_required
+def reporte_cliente_pdf(request, pk):
+    """Genera un PDF con el reporte de todas las tareas de un cliente"""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable, Image as RLImage
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+    from io import BytesIO
+    import os
+
+    cliente = get_object_or_404(Cliente, pk=pk)
+    tareas = TareaPlanificada.objects.filter(
+        nombre_cliente__iexact=cliente.nombre
+    ).prefetch_related('productos_tarea').order_by('-creado_en')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.5 * cm,
+        leftMargin=1.5 * cm,
+        topMargin=2 * cm,
+        bottomMargin=2 * cm,
+    )
+
+    styles = getSampleStyleSheet()
+    style_title = ParagraphStyle('title', parent=styles['Title'], fontSize=18, textColor=colors.HexColor('#2980b9'), spaceAfter=4)
+    style_subtitle = ParagraphStyle('subtitle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#7f8c8d'), spaceAfter=12)
+    style_section = ParagraphStyle('section', parent=styles['Normal'], fontSize=12, textColor=colors.white, fontName='Helvetica-Bold', spaceAfter=4)
+    style_normal = ParagraphStyle('normal', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor('#34495e'))
+    style_small = ParagraphStyle('small', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#7f8c8d'))
+    style_total = ParagraphStyle('total', parent=styles['Normal'], fontSize=10, textColor=colors.HexColor('#27ae60'), fontName='Helvetica-Bold')
+
+    def fmt(value):
+        try:
+            n = int(Decimal(str(value)))
+            return f"${n:,}".replace(',', '.')
+        except Exception:
+            return str(value)
+
+    story = []
+
+    # Encabezado
+    story.append(Paragraph("Cuir Tapicería", style_title))
+    story.append(Paragraph(f"Reporte de tareas — {cliente.nombre}", style_subtitle))
+    story.append(Paragraph(f"Teléfono: {cliente.telefono or '—'}    |    Fecha: {date.today().strftime('%d/%m/%Y')}", style_small))
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#3498db'), spaceAfter=12))
+
+    if not tareas.exists():
+        story.append(Paragraph("Este cliente no tiene tareas registradas.", style_normal))
+    else:
+        total_general = Decimal('0')
+        total_abonado_general = Decimal('0')
+
+        for tarea in tareas:
+            # Encabezado de tarea
+            estado_label = dict(TareaPlanificada.ESTADO_CHOICES).get(tarea.estado, tarea.estado)
+            placa_str = tarea.placa or 'Sin placa'
+            header_data = [[
+                Paragraph(f"<b>{placa_str}</b>  —  {tarea.fecha_ingreso.strftime('%d/%m/%Y')} → {tarea.fecha_entrega.strftime('%d/%m/%Y')}  |  Estado: {estado_label}", style_normal),
+            ]]
+            header_table = Table(header_data, colWidths=[doc.width])
+            header_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#2980b9')),
+                ('TEXTCOLOR', (0, 0), (-1, -1), colors.white),
+                ('TOPPADDING', (0, 0), (-1, -1), 6),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            story.append(header_table)
+
+            productos = tarea.productos_tarea.all()
+            if productos.exists():
+                prod_data = [['Producto', 'Placa', 'Cant.', 'P. Venta', 'Total']]
+                for pt in productos:
+                    desc = pt.descripcion or ''
+                    nombre_cell = Paragraph(f"<b>{pt.nombre_producto}</b><br/><font size='7' color='grey'>{desc}</font>" if desc else f"<b>{pt.nombre_producto}</b>", style_normal)
+                    prod_data.append([
+                        nombre_cell,
+                        pt.placa or '—',
+                        str(pt.cantidad),
+                        fmt(pt.precio_venta),
+                        fmt(pt.total_venta),
+                    ])
+
+                col_widths = [doc.width * 0.38, doc.width * 0.15, doc.width * 0.08, doc.width * 0.18, doc.width * 0.18]
+                prod_table = Table(prod_data, colWidths=col_widths)
+                prod_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ecf0f1')),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
+                    ('ALIGN', (3, 0), (-1, -1), 'RIGHT'),
+                    ('ALIGN', (4, 0), (-1, -1), 'RIGHT'),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+                    ('TOPPADDING', (0, 0), (-1, -1), 4),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ]))
+                story.append(prod_table)
+
+            # Imágenes de proceso por producto
+            MAX_FOTOS = 4
+            IMG_W = doc.width / MAX_FOTOS - 0.3 * cm
+            IMG_H = IMG_W * 0.75
+            for pt in productos:
+                imagenes = pt.imagenes.all()[:MAX_FOTOS * 2]  # máx 8 fotos por producto
+                if imagenes:
+                    story.append(Paragraph(
+                        f"<b>Fotos del proceso — {pt.nombre_producto}</b>",
+                        ParagraphStyle('foto_label', parent=styles['Normal'], fontSize=7,
+                                       textColor=colors.HexColor('#7f8c8d'), spaceBefore=3, spaceAfter=2)
+                    ))
+                    # Agrupar en filas de MAX_FOTOS
+                    batch = []
+                    rows_img = []
+                    for img_obj in imagenes:
+                        img_path = img_obj.imagen.path if hasattr(img_obj.imagen, 'path') else None
+                        if img_path and os.path.exists(img_path):
+                            try:
+                                rl_img = RLImage(img_path, width=IMG_W, height=IMG_H)
+                                batch.append(rl_img)
+                            except Exception:
+                                pass
+                        if len(batch) == MAX_FOTOS:
+                            rows_img.append(batch)
+                            batch = []
+                    if batch:
+                        # Pad row with empty strings to keep columns even
+                        while len(batch) < MAX_FOTOS:
+                            batch.append('')
+                        rows_img.append(batch)
+                    if rows_img:
+                        img_table = Table(rows_img, colWidths=[IMG_W] * MAX_FOTOS)
+                        img_table.setStyle(TableStyle([
+                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                            ('TOPPADDING', (0, 0), (-1, -1), 2),
+                            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+                            ('LEFTPADDING', (0, 0), (-1, -1), 2),
+                            ('RIGHTPADDING', (0, 0), (-1, -1), 2),
+                            ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+                        ]))
+                        story.append(img_table)
+                        story.append(Spacer(1, 4))
+
+            # Fila resumen de pago
+            resumen_data = [[
+                Paragraph(f"Total: <b>{fmt(tarea.precio_total)}</b>   Abonado: <b>{fmt(tarea.monto_abonado)}</b>   Saldo pendiente: <b>{fmt(tarea.saldo_pendiente)}</b>", style_normal),
+            ]]
+            resumen_table = Table(resumen_data, colWidths=[doc.width])
+            bg_color = colors.HexColor('#d5f5e3') if tarea.saldo_pendiente == 0 else colors.HexColor('#fdecea')
+            resumen_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), bg_color),
+                ('TOPPADDING', (0, 0), (-1, -1), 5),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ]))
+            story.append(resumen_table)
+            story.append(Spacer(1, 10))
+
+            total_general += tarea.precio_total
+            total_abonado_general += tarea.monto_abonado
+
+        # Resumen general
+        story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#3498db'), spaceBefore=4, spaceAfter=8))
+        saldo_general = total_general - total_abonado_general
+        resumen_general_data = [
+            ['Total facturado', 'Total abonado', 'Saldo pendiente'],
+            [fmt(total_general), fmt(total_abonado_general), fmt(saldo_general)],
+        ]
+        resumen_general_table = Table(resumen_general_data, colWidths=[doc.width / 3] * 3)
+        resumen_general_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2980b9')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TEXTCOLOR', (2, 1), (2, 1), colors.HexColor('#e74c3c') if saldo_general > 0 else colors.HexColor('#27ae60')),
+        ]))
+        story.append(resumen_general_table)
+
+    doc.build(story)
+    buffer.seek(0)
+
+    nombre_safe = unicodedata.normalize('NFKD', cliente.nombre).encode('ascii', 'ignore').decode('ascii')
+    nombre_safe = ''.join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in nombre_safe).strip().replace(' ', '_')
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_{nombre_safe}.pdf"'
+    return response
 
 
 @login_required

@@ -484,7 +484,7 @@ def dashboard_analisis(request):
         if item['categoria']:
             categoria_labels.append(item['categoria'])
             categoria_data.append(float(item['total']))
-            porcentaje = round((float(item['total']) / total_gastos_mes * 100), 1) if total_gastos_mes > 0 else 0
+            porcentaje = round((float(item['total']) / float(total_gastos_mes) * 100), 1) if total_gastos_mes > 0 else 0
             gastos_con_porcentaje.append({
                 'categoria': item['categoria'],
                 'total': item['total'],

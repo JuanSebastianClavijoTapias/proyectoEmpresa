@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 
 {% block title %}Eliminar Tarea - Planificador{% endblock %}
 
@@ -38,7 +39,7 @@
                             <li><strong>Fecha ingreso:</strong> {{ tarea.fecha_ingreso|date:"d/m/Y" }}</li>
                             <li><strong>Fecha entrega:</strong> {{ tarea.fecha_entrega|date:"d/m/Y" }}</li>
                             <li><strong>Estado:</strong> {{ tarea.get_estado_display }}</li>
-                            <li><strong>Costo estimado:</strong> {% if tarea.costo_estimado %}${{ tarea.costo_estimado|floatformat:0 }}{% else %}-{% endif %}</li>
+                            <li><strong>Costo estimado:</strong> {% if tarea.costo_estimado %}${{ tarea.costo_estimado|formato_dinero }}{% else %}-{% endif %}</li>
                         </ul>
                     </div>
                 </div>

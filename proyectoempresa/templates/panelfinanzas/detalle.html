@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}{{ producto.nombre }} - Catálogo{% endblock %}
 
 {% block content %}
@@ -72,8 +73,8 @@
                                     </a>
                                 </td>
                                 <td class="text-center">{{ entrega.cantidad }}</td>
-                                <td class="text-end">${{ entrega.precio_venta|floatformat:0 }}</td>
-                                <td class="text-end fw-bold">${{ entrega.total_venta|floatformat:0 }}</td>
+                                <td class="text-end">${{ entrega.precio_venta|formato_dinero }}</td>
+                                <td class="text-end fw-bold">${{ entrega.total_venta|formato_dinero }}</td>
                                 <td>{{ entrega.fecha_registro|date:"d/m/Y" }}</td>
                             </tr>
                             {% endfor %}
@@ -99,17 +100,17 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-white mb-0">Precio de Costo:</span>
-                    <span class="fw-bold">${{ producto.precio_costo|floatformat:0 }}</span>
+                    <span class="fw-bold">${{ producto.precio_costo|formato_dinero }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-white mb-0">Precio de Venta:</span>
-                    <span class="fw-bold">${{ producto.precio_venta|floatformat:0 }}</span>
+                    <span class="fw-bold">${{ producto.precio_venta|formato_dinero }}</span>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-white mb-0">Ganancia Unitaria:</span>
                     <span class="fw-bold {% if producto.ganancia_unitaria > 0 %}text-success{% else %}text-danger{% endif %}">
-                        ${{ producto.ganancia_unitaria|floatformat:0 }}
+                        ${{ producto.ganancia_unitaria|formato_dinero }}
                     </span>
                 </div>
                 <div class="d-flex justify-content-between">

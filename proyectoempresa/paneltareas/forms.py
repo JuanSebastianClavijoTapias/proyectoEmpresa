@@ -9,7 +9,6 @@ class TareaPlanificadaForm(forms.ModelForm):
         model = TareaPlanificada
         fields = [
             'nombre_cliente', 'telefono_cliente', 'placa',
-            'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
             'observaciones'
         ]
@@ -17,7 +16,6 @@ class TareaPlanificadaForm(forms.ModelForm):
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
             'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
             'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
-            'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer...'}),
             'fecha_ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
@@ -32,7 +30,6 @@ class TareaPlanificadaFormJefe(TareaPlanificadaForm):
         model = TareaPlanificada
         fields = [
             'nombre_cliente', 'telefono_cliente', 'placa',
-            'descripcion_trabajo',
             'fecha_ingreso', 'fecha_entrega', 'estado', 'prioridad',
             'observaciones', 'monto_abonado'
         ]
@@ -40,17 +37,14 @@ class TareaPlanificadaFormJefe(TareaPlanificadaForm):
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
             'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
             'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
-            'descripcion_trabajo': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Qué se le debe hacer...'}),
             'fecha_ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'estado': forms.Select(attrs={'class': 'form-select'}),
             'prioridad': forms.Select(attrs={'class': 'form-select'}),
             'observaciones': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Observaciones adicionales...'}),
-            'monto_abonado': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01',
-                'min': '0'
+            'monto_abonado': forms.TextInput(attrs={
+                'class': 'form-control precio-formato-co',
+                'placeholder': '0',
             }),
         }
 
@@ -68,10 +62,8 @@ class ProductoTareaForm(forms.ModelForm):
     )
     precio_cobrado = forms.DecimalField(
         required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control precio-cobrado-input',
-            'step': '0.01',
-            'min': '0',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control precio-cobrado-input precio-formato-co',
             'placeholder': 'Precio cobrado',
         }),
         label='Precio',
@@ -79,11 +71,12 @@ class ProductoTareaForm(forms.ModelForm):
 
     class Meta:
         model = ProductoTarea
-        fields = ['producto', 'placa', 'cantidad']
+        fields = ['producto', 'placa', 'cantidad', 'descripcion']
         widgets = {
             'producto': forms.HiddenInput(attrs={'class': 'producto-id-hidden'}),
             'placa': forms.TextInput(attrs={'class': 'form-control placa-input', 'placeholder': 'Placa', 'autocomplete': 'off'}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'value': '1'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Descripción del trabajo para este producto (opcional)...'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -94,6 +87,7 @@ class ProductoTareaForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['nombre_producto_input'].initial = self.instance.nombre_producto
             self.fields['precio_cobrado'].initial = self.instance.precio_venta
+            self.fields['descripcion'].initial = self.instance.descripcion
 
 
 ProductoTareaFormSet = inlineformset_factory(
@@ -102,7 +96,7 @@ ProductoTareaFormSet = inlineformset_factory(
     form=ProductoTareaForm,
     extra=1,
     can_delete=True,
-    fields=['producto', 'placa', 'cantidad'],
+    fields=['producto', 'placa', 'cantidad', 'descripcion'],
 )
 
 # Formset para editar tareas (sin extra)
@@ -112,7 +106,7 @@ ProductoTareaFormSetEdit = inlineformset_factory(
     form=ProductoTareaForm,
     extra=0,
     can_delete=True,
-    fields=['producto', 'placa', 'cantidad'],
+    fields=['producto', 'placa', 'cantidad', 'descripcion'],
 )
 
 
@@ -134,11 +128,9 @@ class AbonarForm(forms.Form):
         max_digits=12,
         decimal_places=2,
         min_value=0.01,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.00',
-            'step': '0.01',
-            'min': '0.01',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control precio-formato-co',
+            'placeholder': '0',
         }),
         label='Monto a abonar',
     )

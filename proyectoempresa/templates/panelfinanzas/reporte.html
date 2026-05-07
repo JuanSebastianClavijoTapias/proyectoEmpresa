@@ -211,14 +211,14 @@
                     <tr>
                         <td>{{ g.categoria_display }}</td>
                         <td class="text-center">{{ g.cantidad }}</td>
-                        <td class="text-end text-danger fw-bold">${{ g.total|floatformat:0 }}</td>
+                        <td class="text-end text-danger fw-bold">${{ g.total|formato_dinero }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="table-warning">
                         <td colspan="2"><strong>Total Gastos</strong></td>
-                        <td class="text-end fw-bold text-danger">${{ total_gastos|floatformat:0 }}</td>
+                        <td class="text-end fw-bold text-danger">${{ total_gastos|formato_dinero }}</td>
                     </tr>
                 </tfoot>
             </table>
@@ -255,7 +255,7 @@
                         <td>{{ gasto.fecha|date:"d/m/Y" }}</td>
                         <td>{{ gasto.descripcion }}</td>
                         <td><span class="badge bg-secondary">{{ gasto.get_categoria_display }}</span></td>
-                        <td class="text-end text-danger">${{ gasto.monto|floatformat:0 }}</td>
+                        <td class="text-end text-danger">${{ gasto.monto|formato_dinero }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -275,25 +275,25 @@
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Total Invertido (Costos)</h6>
-                    <h3 class="text-danger">${{ total_costos|floatformat:0 }}</h3>
+                    <h3 class="text-danger">${{ total_costos|formato_dinero }}</h3>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Total Vendido (Ingresos)</h6>
-                    <h3 class="text-primary">${{ total_ventas|floatformat:0 }}</h3>
+                    <h3 class="text-primary">${{ total_ventas|formato_dinero }}</h3>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Total Gastos Operativos</h6>
-                    <h3 class="text-warning">${{ total_gastos|floatformat:0 }}</h3>
+                    <h3 class="text-warning">${{ total_gastos|formato_dinero }}</h3>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center">
                     <h6 class="text-muted mb-2">Ganancia s/ Productos</h6>
-                    <h3 class="text-info">${{ total_ganancias|floatformat:0 }}</h3>
+                    <h3 class="text-info">${{ total_ganancias|formato_dinero }}</h3>
                     <small class="text-white mb-0">{{ porcentaje_ganancia|floatformat:1 }}% margen</small>
                 </div>
             </div>
@@ -302,7 +302,7 @@
             <div class="col-md-12">
                 <div class="border rounded p-3 text-center bg-success bg-opacity-10">
                     <h6 class="text-muted mb-2">Ganancia Real (Ventas - Costos - Gastos)</h6>
-                    <h2 class="{% if ganancia_real >= 0 %}text-success{% else %}text-danger{% endif %}">${{ ganancia_real|floatformat:0 }}</h2>
+                    <h2 class="{% if ganancia_real >= 0 %}text-success{% else %}text-danger{% endif %}">${{ ganancia_real|formato_dinero }}</h2>
                 </div>
             </div>
         </div>

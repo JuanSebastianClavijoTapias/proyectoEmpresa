@@ -159,7 +159,7 @@
                     <i class="bi bi-wallet2 me-2 fs-4"></i>
                     <div>
                         <strong>Total pendiente por cobrar:</strong>
-                        <span class="fs-5 text-danger fw-bold ms-2">${{ saldo_pendiente|floatformat:0 }}</span>
+                        <span class="fs-5 text-danger fw-bold ms-2">${{ saldo_pendiente|formato_dinero }}</span>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -183,9 +183,9 @@
                                     <br><small class="text-white mb-0"><i class="bi bi-telephone"></i> {{ m.tarea.telefono_cliente }}</small>
                                 </td>
                                 <td>{{ m.tarea.placa }}</td>
-                                <td class="text-end">${{ m.total|floatformat:0 }}</td>
-                                <td class="text-end text-success">${{ m.abonado|floatformat:0 }}</td>
-                                <td class="text-end text-danger fw-bold">${{ m.saldo|floatformat:0 }}</td>
+                                <td class="text-end">${{ m.total|formato_dinero }}</td>
+                                <td class="text-end text-success">${{ m.abonado|formato_dinero }}</td>
+                                <td class="text-end text-danger fw-bold">${{ m.saldo|formato_dinero }}</td>
                                 <td>
                                     <span class="badge badge-estado badge-{{ m.tarea.estado }}">
                                         {{ m.tarea.get_estado_display }}

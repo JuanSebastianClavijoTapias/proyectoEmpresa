@@ -46,19 +46,6 @@
             </div>
         </div>
         
-        <!-- Detalles del Trabajo -->
-        <div class="card mb-4" style="border: none; border-left: 4px solid #2980b9; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-            <div class="card-header" style="background: linear-gradient(135deg, #2980b9, #1f618d); color: white; border: none;">
-                <i class="bi bi-tools"></i> Detalles del Trabajo
-            </div>
-            <div class="card-body" style="padding: 1.5rem;">
-                <div class="mb-3">
-                    <label class="form-label fw-bold" style="color: #34495e;">Descripción del Trabajo *</label>
-                    {{ form.descripcion_trabajo }}
-                </div>
-            </div>
-        </div>
-
         <!-- Productos -->
         <div class="card mb-4" style="border: none; border-left: 4px solid #27ae60; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="card-header" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none;">
@@ -116,6 +103,10 @@
                             <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1" style="border: 1px solid #27ae60; background-color: #f0f8f5;">
                         </div>
                         {% endif %}
+                        <div class="col-12">
+                            <label class="form-label fw-bold mb-1" style="color: #34495e;">Descripción del trabajo para este producto</label>
+                            {{ form_producto.descripcion }}
+                        </div>
                         <div class="col-12">
                             <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
                             <input type="file" name="{{ form_producto.prefix }}-imagenes" id="id_{{ form_producto.prefix }}-imagenes" class="form-control producto-imagenes-input" accept="image/*" multiple>
@@ -578,7 +569,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const cant = parseInt(cantInput?.value) || 1;
-            const precio = parseFloat(precioInput?.value) || 0;
+            const precioRaw = (precioInput?.value || '').replace(/\./g, '');
+            const precio = parseFloat(precioRaw) || 0;
             const subtotal = precio * cant;
             
             if (precioDisplay) {
@@ -592,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Actualizar resumen de pago
         const abonadoInput = document.getElementById('id_monto_abonado');
-        const abonado = parseFloat(abonadoInput?.value) || 0;
+        const abonado = parseFloat((abonadoInput?.value || '').replace(/\./g, '')) || 0;
         const saldo = Math.max(total - abonado, 0);
         const pct = total > 0 ? Math.min(Math.round((abonado / total) * 100), 100) : 0;
 
@@ -652,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (esJefe) {
             precioYTotalCols = `
             <div class="col-md-2">
-                <input type="number" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input" step="1" min="0" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
+                <input type="text" name="${prefix}-${formNum}-precio_cobrado" class="form-control precio-cobrado-input precio-formato-co" placeholder="Precio cobrado" id="id_${prefix}-${formNum}-precio_cobrado">
             </div>
             <div class="col-md-2">
                 <input type="text" class="form-control precio-display" readonly placeholder="$0" tabindex="-1">
@@ -678,6 +670,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <input type="number" name="${prefix}-${formNum}-cantidad" class="form-control" min="1" value="1" id="id_${prefix}-${formNum}-cantidad">
             </div>
             ${precioYTotalCols}
+            <div class="col-12">
+                <label class="form-label fw-bold mb-1" style="color: #34495e;">Descripción del trabajo para este producto</label>
+                <textarea name="${prefix}-${formNum}-descripcion" class="form-control" rows="2" placeholder="Descripción del trabajo para este producto (opcional)..." id="id_${prefix}-${formNum}-descripcion"></textarea>
+            </div>
             <div class="col-12">
                 <label class="form-label fw-bold mb-1" style="color: #34495e;">Registro fotográfico del producto</label>
                 <input type="file" name="${prefix}-${formNum}-imagenes" class="form-control producto-imagenes-input" id="id_${prefix}-${formNum}-imagenes" accept="image/*" multiple>
@@ -761,7 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalForms = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
         const rows = container.querySelectorAll('.producto-row');
         rows.forEach((row, index) => {
-            row.querySelectorAll('input, select').forEach(field => {
+            row.querySelectorAll('input, select, textarea').forEach(field => {
                 if (field.name) {
                     field.name = field.name.replace(/-\d+-/, `-${index}-`);
                 }
@@ -772,7 +768,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         totalForms.value = rows.length;
     }
-    
+
+    // ==========================================
+    // FORMATO DE PRECIOS COLOMBIANO (puntos c/3)
+    // ==========================================
+    function formatearPrecioCO(input) {
+        let raw = input.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+        if (raw === '') { input.value = ''; return; }
+        let num = parseInt(raw, 10);
+        input.value = num.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+
+    function setupPrecioFormat(input) {
+        // Formatear valor inicial si tiene contenido
+        if (input.value) {
+            let raw = input.value.replace(/\./g, '').replace(/,/g, '').replace(/[^0-9]/g, '');
+            if (raw) input.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+        input.addEventListener('input', function() { formatearPrecioCO(this); });
+    }
+
+    // Aplicar a inputs de precio existentes y nuevos
+    function initPrecioFormats() {
+        document.querySelectorAll('.precio-formato-co').forEach(setupPrecioFormat);
+    }
+    initPrecioFormats();
+
+    // Re-aplicar cuando se agregan filas nuevas
+    const _origAppend = appendProductRow;
+    // Observer para detectar nuevos inputs de precio
+    const precioObserver = new MutationObserver(function() {
+        document.querySelectorAll('.precio-formato-co:not([data-fmt-init])').forEach(inp => {
+            inp.setAttribute('data-fmt-init', '1');
+            setupPrecioFormat(inp);
+        });
+    });
+    precioObserver.observe(container, { childList: true, subtree: true });
+
+    // Antes de enviar el form: limpiar puntos de todos los inputs de precio
+    document.querySelector('form').addEventListener('submit', function() {
+        document.querySelectorAll('.precio-formato-co').forEach(function(inp) {
+            inp.value = inp.value.replace(/\./g, '');
+        });
+    });
+
     // Initialize totals
     updateTotal();
 });

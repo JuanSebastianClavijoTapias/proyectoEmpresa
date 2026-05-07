@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}Gastos - Finanzas{% endblock %}
 
 {% block content %}
@@ -56,7 +57,7 @@
 <!-- Total -->
 <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <span><i class="bi bi-exclamation-triangle me-2"></i><strong>Total de Gastos:</strong></span>
-    <strong class="fs-4">${{ total_gastos|floatformat:0 }}</strong>
+    <strong class="fs-4">${{ total_gastos|formato_dinero }}</strong>
 </div>
 
 <!-- Tabla de gastos -->
@@ -85,7 +86,7 @@
                             {% endif %}
                         </td>
                         <td><span class="badge bg-secondary">{{ gasto.get_categoria_display }}</span></td>
-                        <td class="text-end fw-bold text-danger">${{ gasto.monto|floatformat:0 }}</td>
+                        <td class="text-end fw-bold text-danger">${{ gasto.monto|formato_dinero }}</td>
                         <td class="text-center">
                             <a href="{% url 'finanzas:editar_gasto' gasto.pk %}" class="btn btn-outline-primary btn-sm" title="Editar">
                                 <i class="bi bi-pencil"></i>

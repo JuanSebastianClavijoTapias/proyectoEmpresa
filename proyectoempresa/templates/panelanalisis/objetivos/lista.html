@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load money_format %}
 
 {% block title %}Objetivos Mensuales{% endblock %}
 
@@ -44,11 +45,11 @@
                 {% if es_jefe %}
                 <div class="col">
                     <p class="mb-0">Ingresos</p>
-                    <strong>${{ obj.meta_ingresos|floatformat:0 }}</strong>
+                    <strong>${{ obj.meta_ingresos|formato_dinero }}</strong>
                 </div>
                 <div class="col">
                     <p class="mb-0">Ganancia</p>
-                    <strong>${{ obj.meta_ganancia|floatformat:0 }}</strong>
+                    <strong>${{ obj.meta_ganancia|formato_dinero }}</strong>
                 </div>
                 {% endif %}
                 <div class="col">

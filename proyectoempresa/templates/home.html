@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 
 {% block title %}Dashboard - Tapicería{% endblock %}
 
@@ -175,9 +176,9 @@
                             <div>
                                 <strong class="d-block">{{ alerta.cliente }}</strong>
                                 {% if alerta.dias_vencidos > 0 %}
-                                <small>Vencido hace <strong>{{ alerta.dias_vencidos }} días</strong> • <span class="badge bg-secondary">{{ alerta.estado }}</span> • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                                <small>Vencido hace <strong>{{ alerta.dias_vencidos }} días</strong> • <span class="badge bg-secondary">{{ alerta.estado }}</span> • Saldo: <strong>${{ alerta.saldo|formato_dinero }}</strong></small>
                                 {% else %}
-                                <small><span class="badge bg-secondary">{{ alerta.estado }}</span> • Entrega: {{ alerta.fecha_entrega|date:"d/m/Y" }} • Saldo: <strong>${{ alerta.saldo|floatformat:2 }}</strong></small>
+                                <small><span class="badge bg-secondary">{{ alerta.estado }}</span> • Entrega: {{ alerta.fecha_entrega|date:"d/m/Y" }} • Saldo: <strong>${{ alerta.saldo|formato_dinero }}</strong></small>
                                 {% endif %}
                             </div>
                             <a href="{% url 'tareas:detalle' alerta.tarea_id %}" class="btn btn-sm btn-outline-primary">Ver</a>
@@ -249,13 +250,13 @@
                         <div class="col-6">
                             <div style="background: linear-gradient(135deg, #fff0f0, #ffe6e6); border-radius: 0.75rem; padding: 1rem; border: 1px solid #f5d6d6;">
                                 <small class="text-muted d-block fw-600" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Por Cobrar</small>
-                                <strong style="color: #e74c3c; font-size: 1.4rem; display: block;">${{ saldo_total_pendiente|floatformat:0 }}</strong>
+                                <strong style="color: #e74c3c; font-size: 1.4rem; display: block;">${{ saldo_total_pendiente|formato_dinero }}</strong>
                             </div>
                         </div>
                         <div class="col-6">
                             <div style="background: linear-gradient(135deg, #f0fff4, #e6ffe8); border-radius: 0.75rem; padding: 1rem; border: 1px solid #d6f5e6;">
                                 <small class="text-muted d-block fw-600" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Ya Cobrado</small>
-                                <strong style="color: #27ae60; font-size: 1.4rem; display: block;">${{ total_cobrado|floatformat:0 }}</strong>
+                                <strong style="color: #27ae60; font-size: 1.4rem; display: block;">${{ total_cobrado|formato_dinero }}</strong>
                             </div>
                         </div>
                     </div>
@@ -285,7 +286,7 @@
             </div>
             <div class="card-body" style="padding: 1.75rem;">
                 <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <h3 style="color: #fa709a; font-weight: 700; margin: 0 0 0.5rem 0; font-size: 2.2rem;">${{ total_gastos_mes|floatformat:2 }}</h3>
+                    <h3 style="color: #fa709a; font-weight: 700; margin: 0 0 0.5rem 0; font-size: 2.2rem;">${{ total_gastos_mes|formato_dinero }}</h3>
                     <p class="text-muted mb-0" style="font-size: 0.9rem; font-weight: 500;">Total de Gastos</p>
                 </div>
                 {% if gastos_por_categoria %}
@@ -293,7 +294,7 @@
                     {% for gasto in gastos_por_categoria %}
                     <div class="d-flex justify-content-between align-items-center mb-2" style="padding: 0.75rem 0.5rem; border-bottom: 1px solid #f0f0f0;">
                         <small class="text-dark mb-0" style="font-weight: 500;">{{ gasto.categoria }}</small>
-                        <small><strong style="color: #fa709a; font-size: 0.95rem;">${{ gasto.total|floatformat:0 }}</strong></small>
+                        <small><strong style="color: #fa709a; font-size: 0.95rem;">${{ gasto.total|formato_dinero }}</strong></small>
                     </div>
                     {% endfor %}
                 </div>
@@ -373,7 +374,7 @@
                         <div class="card text-center" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 0.5rem;">
                             <div class="card-body py-3">
                                 <small class="d-block" style="opacity: 0.85;">Total Pendiente</small>
-                                <h4 class="mb-0 mt-1 fw-bold">${{ saldo_total_pendiente|floatformat:0 }}</h4>
+                                <h4 class="mb-0 mt-1 fw-bold">${{ saldo_total_pendiente|formato_dinero }}</h4>
                             </div>
                         </div>
                     </div>
@@ -416,19 +417,19 @@
                                     <div class="col-4">
                                         <div style="background: #f8f9fa; border-radius: 0.4rem; padding: 0.4rem;">
                                             <small class="text-muted d-block">Total</small>
-                                            <strong style="color: #34495e;">${{ m.total|floatformat:0 }}</strong>
+                                            <strong style="color: #34495e;">${{ m.total|formato_dinero }}</strong>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div style="background: #f8f9fa; border-radius: 0.4rem; padding: 0.4rem;">
                                             <small class="text-muted d-block">Abonado</small>
-                                            <strong style="color: #27ae60;">${{ m.abonado|floatformat:0 }}</strong>
+                                            <strong style="color: #27ae60;">${{ m.abonado|formato_dinero }}</strong>
                                         </div>
                                     </div>
                                     <div class="col-4">
                                         <div style="background: #fff0f0; border-radius: 0.4rem; padding: 0.4rem;">
                                             <small class="text-muted d-block">Saldo</small>
-                                            <strong style="color: #e74c3c;">${{ m.saldo|floatformat:0 }}</strong>
+                                            <strong style="color: #e74c3c;">${{ m.saldo|formato_dinero }}</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -440,7 +441,7 @@
                                     <a href="{% url 'tareas:abonar' m.tarea_id %}" class="btn btn-sm btn-outline-success">
                                         <i class="bi bi-cash-coin"></i> Abonar
                                     </a>
-                                    <form method="post" action="{% url 'tareas:completar_pago' m.tarea_id %}" class="d-inline" onsubmit="return confirm('¿Confirmar pago completo de ${{ m.saldo|floatformat:0 }}?')">
+                                    <form method="post" action="{% url 'tareas:completar_pago' m.tarea_id %}" class="d-inline" onsubmit="return confirm('¿Confirmar pago completo de ${{ m.saldo|formato_dinero }}?')">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-sm btn-success">
                                             <i class="bi bi-check-circle"></i> Pago completo

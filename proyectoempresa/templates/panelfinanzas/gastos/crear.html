@@ -66,4 +66,26 @@
         </form>
     </div>
 </div>
+
+<script>
+(function () {
+    function formatearPrecioCO(input) {
+        let raw = input.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+        if (raw === '') { input.value = ''; return; }
+        input.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+    document.querySelectorAll('.precio-formato-co').forEach(function (inp) {
+        if (inp.value) {
+            let raw = inp.value.replace(/\./g, '').replace(/,/g, '').replace(/[^0-9]/g, '');
+            if (raw) inp.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+        inp.addEventListener('input', function () { formatearPrecioCO(this); });
+    });
+    document.querySelector('form').addEventListener('submit', function () {
+        document.querySelectorAll('.precio-formato-co').forEach(function (inp) {
+            inp.value = inp.value.replace(/\./g, '');
+        });
+    });
+})();
+</script>
 {% endblock %}

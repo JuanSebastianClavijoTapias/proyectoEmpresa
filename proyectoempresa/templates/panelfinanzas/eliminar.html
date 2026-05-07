@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}Eliminar {{ producto.nombre }} - Finanzas{% endblock %}
 
 {% block content %}
@@ -25,15 +26,15 @@
                 <div class="row text-start mb-4">
                     <div class="col-6">
                         <small class="text-white mb-0">Precio Costo:</small>
-                        <p class="mb-1">${{ producto.precio_costo|floatformat:2 }}</p>
+                        <p class="mb-1">${{ producto.precio_costo|formato_dinero }}</p>
                     </div>
                     <div class="col-6">
                         <small class="text-white mb-0">Precio Venta:</small>
-                        <p class="mb-1">${{ producto.precio_venta|floatformat:2 }}</p>
+                        <p class="mb-1">${{ producto.precio_venta|formato_dinero }}</p>
                     </div>
                     <div class="col-12">
                         <small class="text-white mb-0">Ganancia Total:</small>
-                        <p class="mb-0 fw-bold text-success">${{ producto.ganancia_total|floatformat:2 }}</p>
+                        <p class="mb-0 fw-bold text-success">${{ producto.ganancia_total|formato_dinero }}</p>
                     </div>
                 </div>
                 

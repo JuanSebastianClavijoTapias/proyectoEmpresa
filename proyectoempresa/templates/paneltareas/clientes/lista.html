@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 
 {% block title %}Clientes - Tapicería{% endblock %}
 
@@ -57,7 +58,7 @@
                             {% if not es_trabajador %}
                             <div class="mt-1">
                                 {% if cliente.debe %}
-                                <span class="badge text-bg-danger">Debe ${{ cliente.saldo_pendiente_total|floatformat:0 }}</span>
+                                <span class="badge text-bg-danger">Debe ${{ cliente.saldo_pendiente_total|formato_dinero }}</span>
                                 {% elif cliente.total_compras %}
                                 <span class="badge text-bg-success">Al día</span>
                                 {% else %}
@@ -85,7 +86,7 @@
                             {% if not es_trabajador %}
                             {% if cliente.debe %}
                             <div class="fw-semibold text-danger">Debe</div>
-                            <small class="text-muted">${{ cliente.saldo_pendiente_total|floatformat:0 }} pendientes</small>
+                            <small class="text-muted">${{ cliente.saldo_pendiente_total|formato_dinero }} pendientes</small>
                             {% elif cliente.total_compras %}
                             <div class="fw-semibold text-success">Al día</div>
                             <small class="text-muted">{{ cliente.total_compras }} compra(s)</small>
@@ -104,6 +105,17 @@
                                 <a href="{% url 'tareas:editar_cliente' cliente.pk %}" class="btn btn-outline-primary" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                <a href="{% url 'tareas:reporte_cliente_pdf' cliente.pk %}" class="btn btn-outline-secondary" title="Descargar Reporte PDF" target="_blank">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                <button type="button"
+                                    class="btn btn-outline-success"
+                                    title="Descargar PDF y abrir WhatsApp"
+                                    data-pdf-url="{% url 'tareas:reporte_cliente_pdf' cliente.pk %}"
+                                    data-wa-url="https://wa.me/57{{ cliente.telefono|cut:' '|cut:'-'|cut:'+' }}?text=Hola%20{{ cliente.nombre|urlencode }}%2C%20le%20comparto%20su%20reporte%20de%20tapicería.%20El%20PDF%20con%20el%20detalle%20se%20ha%20descargado%20automáticamente."
+                                    onclick="enviarPdfWhatsApp(this)">
+                                    <i class="bi bi-whatsapp"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -198,6 +210,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function enviarPdfWhatsApp(btn) {
+    const pdfUrl = btn.getAttribute('data-pdf-url');
+    const waUrl = btn.getAttribute('data-wa-url');
+    const texto = waUrl.split('?text=')[1];
+    const msgTexto = texto ? decodeURIComponent(texto) : 'Reporte de tapicería';
+
+    if (navigator.canShare) {
+        btn.disabled = true;
+        fetch(pdfUrl)
+            .then(r => r.blob())
+            .then(async blob => {
+                const file = new File([blob], 'reporte-tapiceria.pdf', { type: 'application/pdf' });
+                if (navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ files: [file], text: msgTexto });
+                    } catch (e) {
+                        if (e.name !== 'AbortError') fallback();
+                    }
+                } else {
+                    fallback();
+                }
+                btn.disabled = false;
+            })
+            .catch(() => { fallback(); btn.disabled = false; });
+        return;
+    }
+    fallback();
+
+    function fallback() {
+        const a = document.createElement('a');
+        a.href = pdfUrl;
+        a.download = 'reporte-tapiceria.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => window.open(waUrl, '_blank'), 1200);
+    }
+}
 </script>
 
 {% if clientes %}
@@ -229,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="card text-center h-100" style="border: none; border-left: 4px solid #2980b9;">
                                 <div class="card-body">
                                     <small class="text-muted d-block">Total comprado</small>
-                                    <h4 class="mb-0 mt-2" style="color: #2980b9; font-weight: 700;">${{ cliente.total_comprado|floatformat:0 }}</h4>
+                                    <h4 class="mb-0 mt-2" style="color: #2980b9; font-weight: 700;">${{ cliente.total_comprado|formato_dinero }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="card text-center h-100" style="border: none; border-left: 4px solid #27ae60;">
                                 <div class="card-body">
                                     <small class="text-muted d-block">Total abonado</small>
-                                    <h4 class="mb-0 mt-2" style="color: #27ae60; font-weight: 700;">${{ cliente.total_abonado|floatformat:0 }}</h4>
+                                    <h4 class="mb-0 mt-2" style="color: #27ae60; font-weight: 700;">${{ cliente.total_abonado|formato_dinero }}</h4>
                                 </div>
                             </div>
                         </div>
@@ -246,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="card-body">
                                     <small class="text-muted d-block">Estado de cuenta</small>
                                     {% if cliente.debe %}
-                                    <h4 class="mb-0 mt-2" style="color: #e74c3c; font-weight: 700;">Debe ${{ cliente.saldo_pendiente_total|floatformat:0 }}</h4>
+                                    <h4 class="mb-0 mt-2" style="color: #e74c3c; font-weight: 700;">Debe ${{ cliente.saldo_pendiente_total|formato_dinero }}</h4>
                                     {% elif cliente.total_compras %}
                                     <h4 class="mb-0 mt-2" style="color: #27ae60; font-weight: 700;">Al día</h4>
                                     {% else %}
@@ -311,10 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                             {{ tarea.get_estado_display }}
                                         </span>
                                     </td>
-                                    <td class="text-end">${{ tarea.precio_total|floatformat:0 }}</td>
-                                    <td class="text-end text-success">${{ tarea.monto_abonado|floatformat:0 }}</td>
+                                    <td class="text-end">${{ tarea.precio_total|formato_dinero }}</td>
+                                    <td class="text-end text-success">${{ tarea.monto_abonado|formato_dinero }}</td>
                                     <td class="text-end {% if tarea.saldo_pendiente > 0 %}text-danger{% else %}text-success{% endif %}">
-                                        <strong>${{ tarea.saldo_pendiente|floatformat:0 }}</strong>
+                                        <strong>${{ tarea.saldo_pendiente|formato_dinero }}</strong>
                                     </td>
                                     <td class="text-end">
                                         <a href="{% url 'tareas:detalle' tarea.pk %}" class="btn btn-sm btn-outline-primary">

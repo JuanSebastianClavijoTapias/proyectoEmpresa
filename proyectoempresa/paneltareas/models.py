@@ -48,7 +48,7 @@ class TareaPlanificada(models.Model):
     placa = models.CharField(max_length=255, blank=True, null=True, verbose_name='Placa del Vehículo')
     
     # Información del trabajo
-    descripcion_trabajo = models.TextField(verbose_name='Qué se le debe hacer')
+    descripcion_trabajo = models.TextField(verbose_name='Qué se le debe hacer', blank=True, default='')
     
     # Fechas
     fecha_ingreso = models.DateField(verbose_name='Fecha de Ingreso')
@@ -246,6 +246,7 @@ class ProductoTarea(models.Model):
         verbose_name='Ajuste de Precio',
         help_text='Valor positivo para cobrar más, negativo para descuento'
     )
+    descripcion = models.TextField(blank=True, default='', verbose_name='Descripción del trabajo para este producto')
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')
     
     class Meta:

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 {% block title %}Eliminar Gasto - Finanzas{% endblock %}
 
 {% block content %}
@@ -21,7 +22,7 @@
         
         <div class="border rounded p-3 mb-4">
             <p><strong>Descripción:</strong> {{ gasto.descripcion }}</p>
-            <p><strong>Monto:</strong> <span class="text-danger fw-bold">${{ gasto.monto|floatformat:0 }}</span></p>
+            <p><strong>Monto:</strong> <span class="text-danger fw-bold">${{ gasto.monto|formato_dinero }}</span></p>
             <p><strong>Categoría:</strong> {{ gasto.get_categoria_display }}</p>
             <p><strong>Fecha:</strong> {{ gasto.fecha|date:"d/m/Y" }}</p>
             {% if gasto.observaciones %}

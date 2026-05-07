@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load money_format %}
 
 {% block title %}Planificador de Tareas - Tapicería{% endblock %}
 
@@ -178,7 +179,7 @@
                         <div class="card text-center" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; border-left: 4px solid #c0392b;">
                             <div class="card-body">
                                 <small class="text-white-50">Total Pendiente</small>
-                                <h4 class="mb-0 mt-2" style="font-weight: 700;">${{ total_saldo_pendiente|floatformat:0 }}</h4>
+                                <h4 class="mb-0 mt-2" style="font-weight: 700;">${{ total_saldo_pendiente|formato_dinero }}</h4>
                             </div>
                         </div>
                     </div>
@@ -204,15 +205,15 @@
                                 <div class="row g-2 text-center" style="font-size: 0.9rem;">
                                     <div class="col-6">
                                         <small class="text-muted d-block">Total</small>
-                                        <strong style="color: #34495e;">${{ m.total|floatformat:0 }}</strong>
+                                        <strong style="color: #34495e;">${{ m.total|formato_dinero }}</strong>
                                     </div>
                                     <div class="col-6">
                                         <small class="text-muted d-block">Abonado</small>
-                                        <strong style="color: #27ae60;">${{ m.abonado|floatformat:0 }}</strong>
+                                        <strong style="color: #27ae60;">${{ m.abonado|formato_dinero }}</strong>
                                     </div>
                                     <div class="col-12">
                                         <small class="text-muted d-block mt-2">Saldo Pendiente</small>
-                                        <h5 class="mb-0" style="color: #e74c3c; font-weight: 700;">${{ m.saldo|floatformat:0 }}</h5>
+                                        <h5 class="mb-0" style="color: #e74c3c; font-weight: 700;">${{ m.saldo|formato_dinero }}</h5>
                                     </div>
                                 </div>
                                 <div class="mt-2 text-center">
