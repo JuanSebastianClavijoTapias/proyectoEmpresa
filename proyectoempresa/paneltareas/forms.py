@@ -62,6 +62,7 @@ class ProductoTareaForm(forms.ModelForm):
     )
     precio_cobrado = forms.DecimalField(
         required=False,
+        localize=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control precio-cobrado-input precio-formato-co',
             'placeholder': 'Precio cobrado',
@@ -128,6 +129,7 @@ class AbonarForm(forms.Form):
         max_digits=12,
         decimal_places=2,
         min_value=0.01,
+        localize=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control precio-formato-co',
             'placeholder': '0',
@@ -165,6 +167,7 @@ class ImagenTareaForm(forms.ModelForm):
             'imagen': forms.FileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',
+                'capture': '',
             }),
             'descripcion': forms.TextInput(attrs={
                 'class': 'form-control',

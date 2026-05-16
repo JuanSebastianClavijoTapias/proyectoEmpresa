@@ -5,6 +5,7 @@ Formato: 1.234.567,89
 """
 
 from django import template
+import re
 from decimal import Decimal
 
 register = template.Library()
@@ -31,7 +32,20 @@ def formato_dinero(value, decimales=0):
     try:
         # Convertir a Decimal para precisión
         if isinstance(value, str):
-            value = Decimal(value.replace('.', '').replace(',', '.'))
+            cleaned = value.replace(' ', '')
+            has_dot = '.' in cleaned
+            has_comma = ',' in cleaned
+            if has_dot and has_comma:
+                if cleaned.rfind(',') > cleaned.rfind('.'):
+                    cleaned = cleaned.replace('.', '').replace(',', '.')
+                else:
+                    cleaned = cleaned.replace(',', '')
+            elif has_dot and not has_comma:
+                if not re.match(r'^\d+\.\d{1,2}$', cleaned):
+                    cleaned = cleaned.replace('.', '')
+            elif has_comma and not has_dot:
+                cleaned = cleaned.replace('.', '').replace(',', '.')
+            value = Decimal(cleaned)
         else:
             value = Decimal(str(value))
         

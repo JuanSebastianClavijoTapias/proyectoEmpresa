@@ -249,8 +249,15 @@
                                 {{ form_imagen.producto_tarea }}
                             </div>
                             <div class="mb-3">
-                                <label for="id_imagen" class="form-label fw-bold" style="color: #34495e;">Seleccionar imagen desde galería o cámara</label>
-                                {{ form_imagen.imagen }}
+                                <label class="form-label fw-bold" style="color: #34495e;">Seleccionar imagen desde galería o cámara</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-file-menu-detalle">
+                                        <i class="bi bi-image"></i> Elegir Archivo
+                                    </button>
+                                </div>
+                                <input type="file" id="id_imagen" name="imagen" accept="image/*" multiple style="display:none;">
+                                <input type="file" id="id_imagen-camera" accept="image/*" capture="environment" multiple style="display:none;">
+                                <input type="file" id="id_imagen-gallery" accept="image/*" multiple style="display:none;">
                                 <div class="form-text">La imagen quedará asociada al producto seleccionado.</div>
                             </div>
                             <div class="mb-3">
@@ -562,6 +569,88 @@ async function enviarPdfWhatsApp(btn) {
     document.body.removeChild(a);
     setTimeout(() => window.open(waUrl, '_blank'), 1200);
 }
+
+// Menú de opciones para archivo de imagen en formulario detalle
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-file-menu-detalle');
+    if (!btn) return;
+    e.preventDefault();
+    
+    const mainInput = document.getElementById('id_imagen');
+    const cameraInput = document.getElementById('id_imagen-camera');
+    const galleryInput = document.getElementById('id_imagen-gallery');
+    
+    if (!mainInput) return;
+
+    // Mostrar menú con opciones
+    const menuHtml = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; z-index: 10000;" class="file-menu-overlay-detalle">
+            <div style="width: 100%; background: white; border-radius: 12px 12px 0 0; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+                <h6 style="margin: 0 0 8px 0; color: #34495e; font-weight: 600;">Seleccionar fuente</h6>
+                <button class="btn btn-light w-100 text-start" style="border: 1px solid #dee2e6; padding: 12px; text-align: left;" data-action="camera">
+                    <i class="bi bi-camera me-2"></i> 📷 Tomar Foto
+                </button>
+                <button class="btn btn-light w-100 text-start" style="border: 1px solid #dee2e6; padding: 12px; text-align: left;" data-action="gallery">
+                    <i class="bi bi-image me-2"></i> 🖼️ Galería
+                </button>
+                <button class="btn btn-light w-100 text-start" style="border: 1px solid #dee2e6; padding: 12px; text-align: left;" data-action="files">
+                    <i class="bi bi-folder me-2"></i> 📁 Archivos
+                </button>
+                <button class="btn btn-outline-secondary w-100" data-action="cancel" style="margin-top: 8px;">Cancelar</button>
+            </div>
+        </div>
+    `;
+
+    // Crear menú
+    const menuDiv = document.createElement('div');
+    menuDiv.innerHTML = menuHtml;
+    document.body.appendChild(menuDiv);
+
+    const overlay = menuDiv.querySelector('.file-menu-overlay-detalle');
+
+    // Cerrar menú
+    const closeMenu = () => menuDiv.remove();
+
+    // Manejar acciones
+    menuDiv.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const action = this.dataset.action;
+
+            if (action === 'cancel') {
+                closeMenu();
+            } else if (action === 'camera') {
+                closeMenu();
+                cameraInput.click();
+            } else if (action === 'gallery') {
+                closeMenu();
+                galleryInput.click();
+            } else if (action === 'files') {
+                closeMenu();
+                mainInput.click();
+            }
+        });
+    });
+
+    // Cerrar al hacer click fuera
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeMenu();
+    });
+
+    // Actualizar input principal cuando se selecciona de cualquier fuente
+    [cameraInput, galleryInput, mainInput].forEach(input => {
+        if (input) {
+            input.addEventListener('change', function() {
+                if (this.files && this.files.length > 0) {
+                    // Transferir archivos al input principal
+                    mainInput.files = this.files;
+                    // Disparar evento de cambio
+                    mainInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
+    });
+});
 </script>
 {% endblock %}
 
