@@ -8,8 +8,8 @@ class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
         fields = [
-            'nombre', 'descripcion', 
-            'precio_costo', 'precio_venta', 'es_precio_variable',
+            'nombre', 'descripcion',
+            'precio_costo', 'precio_venta', 'es_precio_variable', 'es_bus',
         ]
         widgets = {
             'nombre': forms.TextInput(attrs={
@@ -21,19 +21,20 @@ class ProductoForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Descripción del producto (opcional)'
             }),
-            'precio_costo': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01',
-                'min': '0'
+            'precio_costo': forms.TextInput(attrs={
+                'class': 'form-control precio-formato-co',
+                'placeholder': '0',
+                'inputmode': 'numeric',
             }),
-            'precio_venta': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': '0.00',
-                'step': '0.01',
-                'min': '0'
+            'precio_venta': forms.TextInput(attrs={
+                'class': 'form-control precio-formato-co',
+                'placeholder': '0',
+                'inputmode': 'numeric',
             }),
             'es_precio_variable': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'es_bus': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
         }

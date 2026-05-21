@@ -90,6 +90,12 @@ class Producto(models.Model):
         verbose_name='Precio Variable',
         help_text='Si está activo, el trabajador ingresa el precio al crear la tarea'
     )
+
+    es_bus = models.BooleanField(
+        default=False,
+        verbose_name='Producto de Bus',
+        help_text='Si está activo, este producto aparece en el módulo de Bus'
+    )
     
     # Metadatos
     creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Registro')

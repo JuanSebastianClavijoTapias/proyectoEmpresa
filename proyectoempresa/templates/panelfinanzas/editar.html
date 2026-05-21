@@ -56,12 +56,19 @@
                     </div>
                     
                     <div class="mb-3">
-                        <div class="form-check">
+                        <div class="form-check mb-2">
                             {{ form.es_precio_variable }}
                             <label class="form-check-label" for="id_es_precio_variable">
                                 <strong>Precio Variable</strong>
                             </label>
                             <div class="form-text">Si está activo, el trabajador podrá ingresar el precio cobrado al crear la tarea.</div>
+                        </div>
+                        <div class="form-check">
+                            {{ form.es_bus }}
+                            <label class="form-check-label" for="id_es_bus">
+                                <strong><i class="bi bi-bus-front me-1" style="color: #e67e22;"></i>Producto de Bus</strong>
+                            </label>
+                            <div class="form-text">Si está activo, este producto aparecerá en el módulo de Bus.</div>
                         </div>
                     </div>
                     
@@ -114,19 +121,44 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Formateo peso colombiano ---
+    function normalizeNumberString(str) {
+        return String(str || '').trim().replace(/\./g, '').replace(',', '.');
+    }
+    function formatearPrecioCO(val) {
+        const n = parseFloat(normalizeNumberString(val));
+        if (isNaN(n)) return '';
+        return n.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+    function setupPrecioFormat(input) {
+        input.addEventListener('input', function() {
+            const raw = this.value.replace(/[^\d]/g, '');
+            if (raw === '') {
+                this.value = '';
+            } else {
+                this.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+            }
+        });
+        if (input.value.trim() !== '') {
+            const raw = input.value.replace(/[^\d]/g, '');
+            if (raw) input.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+    }
+    document.querySelectorAll('.precio-formato-co').forEach(setupPrecioFormat);
+
     const precioCosto = document.querySelector('[name="precio_costo"]');
     const precioVenta = document.querySelector('[name="precio_venta"]');
-    
+
     function calcularGanancia() {
-        const costo = parseFloat(precioCosto.value) || 0;
-        const venta = parseFloat(precioVenta.value) || 0;
-        
+        const costo = parseFloat(normalizeNumberString(precioCosto.value)) || 0;
+        const venta = parseFloat(normalizeNumberString(precioVenta.value)) || 0;
+
         const gananciaUnitaria = venta - costo;
         const porcentaje = costo > 0 ? ((venta - costo) / costo * 100) : 0;
-        
-        document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toFixed(0);
+
+        document.getElementById('ganancia-unitaria').textContent = '$' + gananciaUnitaria.toLocaleString('es-CO', { maximumFractionDigits: 0 });
         document.getElementById('porcentaje-ganancia').textContent = porcentaje.toFixed(1) + '%';
-        
+
         const previewDiv = document.getElementById('preview-ganancia');
         if (gananciaUnitaria > 0) {
             previewDiv.className = 'alert alert-success';
@@ -136,11 +168,16 @@ document.addEventListener('DOMContentLoaded', function() {
             previewDiv.className = 'alert alert-info';
         }
     }
-    
+
     precioCosto.addEventListener('input', calcularGanancia);
     precioVenta.addEventListener('input', calcularGanancia);
-    
     calcularGanancia();
+
+    // Normalizar antes de enviar
+    document.querySelector('form').addEventListener('submit', function() {
+        precioCosto.value = normalizeNumberString(precioCosto.value);
+        precioVenta.value = normalizeNumberString(precioVenta.value);
+    });
 });
 </script>
 {% endblock %}

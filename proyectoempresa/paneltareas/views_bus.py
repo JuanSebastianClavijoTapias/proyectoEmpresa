@@ -28,6 +28,44 @@ from .views import (
 )
 from panelfinanzas.models import Producto
 
+# Clientes permitidos en el módulo de Bus
+NOMBRES_CLIENTES_BUS = ['solobus', 'namired']
+
+
+def construir_clientes_bus(mostrar_saldos=False):
+    """Devuelve solo los clientes de bus (Solobus y Namired)."""
+    todos = construir_clientes_formulario(mostrar_saldos=mostrar_saldos)
+    filtrados = [c for c in todos if c['nombre'].lower() in NOMBRES_CLIENTES_BUS]
+
+    # Asegurar que ambos clientes aparezcan aunque no existan en DB aún
+    nombres_presentes = {c['nombre'].lower() for c in filtrados}
+    for nombre in NOMBRES_CLIENTES_BUS:
+        if nombre not in nombres_presentes:
+            filtrados.append({
+                'selector_value': f'nombre:{nombre.capitalize()}',
+                'id': None,
+                'nombre': nombre.capitalize(),
+                'telefono': '',
+                'saldo_pendiente': 0.0,
+                'tiene_saldo': False,
+            })
+
+    filtrados.sort(key=lambda c: c['nombre'].lower())
+    return filtrados
+
+
+def productos_bus_json():
+    """Devuelve JSON solo con los productos marcados como de Bus."""
+    return json.dumps([
+        {
+            'id': p.id,
+            'nombre': p.nombre,
+            'precio_venta': float(p.precio_venta),
+            'precio_fijo': not p.es_precio_variable,
+        }
+        for p in Producto.objects.filter(es_bus=True)
+    ])
+
 
 # ---------------------------------------------------------------------------
 # Lista de tareas de Bus
@@ -117,16 +155,8 @@ def crear_tarea_bus(request):
         form = FormClass(initial={'fecha_ingreso': date.today()})
         formset = ProductoTareaFormSet(prefix='productos')
 
-    productos_json = json.dumps([
-        {
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio_venta': float(p.precio_venta),
-            'precio_fijo': not p.es_precio_variable,
-        }
-        for p in Producto.objects.all()
-    ])
-    clientes_json = json.dumps(construir_clientes_formulario(mostrar_saldos=usuario_es_jefe))
+    productos_json = productos_bus_json()
+    clientes_json = json.dumps(construir_clientes_bus(mostrar_saldos=usuario_es_jefe))
     placas_json = json.dumps(list(
         ProductoTarea.objects.exclude(placa='').values_list('placa', flat=True).distinct()
     ))
@@ -180,16 +210,8 @@ def editar_tarea_bus(request, pk):
         form = FormClass(instance=tarea)
         formset = ProductoTareaFormSetEdit(instance=tarea, prefix='productos')
 
-    productos_json = json.dumps([
-        {
-            'id': p.id,
-            'nombre': p.nombre,
-            'precio_venta': float(p.precio_venta),
-            'precio_fijo': not p.es_precio_variable,
-        }
-        for p in Producto.objects.all()
-    ])
-    clientes_json = json.dumps(construir_clientes_formulario(mostrar_saldos=usuario_es_jefe))
+    productos_json = productos_bus_json()
+    clientes_json = json.dumps(construir_clientes_bus(mostrar_saldos=usuario_es_jefe))
     placas_json = json.dumps(list(
         ProductoTarea.objects.exclude(placa='').values_list('placa', flat=True).distinct()
     ))

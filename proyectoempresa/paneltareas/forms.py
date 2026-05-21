@@ -14,7 +14,7 @@ class TareaPlanificadaForm(forms.ModelForm):
         ]
         widgets = {
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
-            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
+            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto (opcional)'}),
             'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
             'fecha_ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
@@ -35,7 +35,7 @@ class TareaPlanificadaFormJefe(TareaPlanificadaForm):
         ]
         widgets = {
             'nombre_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del cliente'}),
-            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto'}),
+            'telefono_cliente': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono de contacto (opcional)'}),
             'placa': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Placa del vehículo (opcional)', 'autocomplete': 'off'}),
             'fecha_ingreso': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'fecha_entrega': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),

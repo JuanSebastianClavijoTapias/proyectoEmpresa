@@ -68,17 +68,22 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ['nombre', 'precio_costo', 'precio_venta', 
-                    'ganancia_unitaria', 'creado_por']
+    list_display = ['nombre', 'precio_costo', 'precio_venta',
+                    'es_precio_variable', 'es_bus', 'ganancia_unitaria', 'creado_por']
     search_fields = ['nombre', 'descripcion']
+    list_filter = ['es_bus', 'es_precio_variable']
     readonly_fields = ['ganancia_unitaria', 'porcentaje_ganancia']
-    
+
     fieldsets = (
         ('Información del Producto', {
             'fields': ('nombre', 'descripcion')
         }),
         ('Precios', {
-            'fields': ('precio_costo', 'precio_venta')
+            'fields': ('precio_costo', 'precio_venta', 'es_precio_variable')
+        }),
+        ('Módulo', {
+            'fields': ('es_bus',),
+            'description': 'Marcar si este producto debe aparecer en el módulo de Bus'
         }),
         ('Información de Ganancia (calculado)', {
             'fields': ('ganancia_unitaria', 'porcentaje_ganancia'),
