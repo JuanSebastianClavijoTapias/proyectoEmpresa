@@ -651,6 +651,73 @@ document.addEventListener('click', function(e) {
         }
     });
 });
+
+// ==========================================
+// FORMATEO PRECIO COLOMBIANO - FORMULARIO ABONAR
+// ==========================================
+(function() {
+    function normalizeNumberString(str) {
+        str = (str || '').trim().replace(/\s/g, '').replace(/[$]/g, '');
+        const hasDot = str.includes('.');
+        const hasComma = str.includes(',');
+        if (hasDot && hasComma) {
+            if (/^\d{1,3}(\.\d{3})+(,\d{1,2})?$/.test(str)) {
+                str = str.replace(/\./g, '').replace(',', '.');
+            } else {
+                str = str.replace(/,/g, '');
+            }
+        } else if (hasDot && !hasComma) {
+            if (/^\d+\.\d{1,2}$/.test(str)) {
+                str = str;
+            } else {
+                str = str.replace(/\./g, '');
+            }
+        } else if (hasComma && !hasDot) {
+            str = str.replace(/\./g, '').replace(/,/g, '.');
+        } else {
+            str = str.replace(/,/g, '');
+        }
+        str = str.replace(/[^0-9.]/g, '');
+        return str;
+    }
+
+    function formatearPrecioCO(input) {
+        const normalized = normalizeNumberString(input.value);
+        if (normalized === '') { input.value = ''; return; }
+        const num = Math.round(parseFloat(normalized) || 0);
+        input.value = num.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+    }
+
+    function setupPrecioFormat(input) {
+        if (input.dataset.fmtInit) return;
+        input.dataset.fmtInit = '1';
+        if (input.value) {
+            const normalized = normalizeNumberString(input.value);
+            if (normalized !== '') input.value = Math.round(parseFloat(normalized)).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+        }
+        input.addEventListener('input', function() { formatearPrecioCO(this); });
+    }
+
+    document.querySelectorAll('.precio-formato-co').forEach(setupPrecioFormat);
+
+    // Normalizar antes de enviar el formulario de abonar
+    var formAbonar = document.querySelector('#formAbonar form');
+    if (formAbonar) {
+        formAbonar.addEventListener('submit', function() {
+            this.querySelectorAll('.precio-formato-co').forEach(function(inp) {
+                inp.value = normalizeNumberString(inp.value);
+            });
+        });
+    }
+
+    // Inicializar cuando el collapse se abre (por si el input no estaba visible)
+    var collapseAbonar = document.getElementById('formAbonar');
+    if (collapseAbonar) {
+        collapseAbonar.addEventListener('show.bs.collapse', function() {
+            this.querySelectorAll('.precio-formato-co').forEach(setupPrecioFormat);
+        });
+    }
+})();
 </script>
 {% endblock %}
 
