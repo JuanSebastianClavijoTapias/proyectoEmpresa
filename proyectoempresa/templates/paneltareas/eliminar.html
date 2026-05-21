@@ -7,7 +7,11 @@
 <div class="page-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            {% if tarea.categoria == 'bus' or modulo_bus %}
+            <li class="breadcrumb-item"><a href="{% url 'bus:lista' %}"><i class="bi bi-bus-front me-1"></i>Planificador Bus</a></li>
+            {% else %}
             <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
+            {% endif %}
             <li class="breadcrumb-item active">Eliminar Tarea</li>
         </ol>
     </nav>
@@ -52,7 +56,7 @@
                 <button type="submit" class="btn btn-danger">
                     <i class="bi bi-trash me-2"></i> Sí, Eliminar
                 </button>
-                <a href="{% url 'tareas:lista' %}" class="btn btn-outline-secondary">
+                <a href="{% if tarea.categoria == 'bus' or modulo_bus %}{% url 'bus:lista' %}{% else %}{% url 'tareas:lista' %}{% endif %}" class="btn btn-outline-secondary">
                     <i class="bi bi-x-circle me-2"></i> Cancelar
                 </a>
             </div>

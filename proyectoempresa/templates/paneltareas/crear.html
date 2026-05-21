@@ -2,11 +2,16 @@
 <div class="page-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            {% if modulo_bus %}
+            <li class="breadcrumb-item"><a href="{% url 'bus:lista' %}"><i class="bi bi-bus-front me-1"></i>Planificador Bus</a></li>
+            <li class="breadcrumb-item active">Nueva Tarea Bus</li>
+            {% else %}
             <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
             <li class="breadcrumb-item active">Nueva Tarea</li>
+            {% endif %}
         </ol>
     </nav>
-    <h1><i class="bi bi-plus-circle"></i> Nueva Tarea Planificada</h1>
+    <h1><i class="bi bi-plus-circle"></i> {% if modulo_bus %}Nueva Tarea Bus{% else %}Nueva Tarea Planificada{% endif %}</h1>
 </div>
 
 <div style="max-width: 100%">
@@ -347,7 +352,7 @@
                 <i class="bi bi-check-circle me-2"></i> Guardar Tarea
             </button>
             <a
-                href="{% url 'tareas:lista' %}"
+                href="{% if modulo_bus %}{% url 'bus:lista' %}{% else %}{% url 'tareas:lista' %}{% endif %}"
                 class="btn btn-outline-secondary"
                 style="font-weight: 600; padding: 0.6rem 1.5rem"
             >

@@ -369,6 +369,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {% if 'bus' in request.path %}active{% endif %}" href="{% url 'bus:lista' %}">
+                    <i class="bi bi-bus-front"></i> <span class="nav-link-text">Bus</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {% if 'calendario' in request.path %}active{% endif %}" href="{% url 'tareas:calendario' %}">
                     <i class="bi bi-calendar3"></i> <span class="nav-link-text">Calendario</span>
                 </a>
@@ -519,6 +524,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'productividad:lista_trabajadores' %}"><i class="bi bi-person-badge"></i> Trabajadores</a></li>
                     {% endif %}
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista' %}"><i class="bi bi-clipboard-check"></i> Planificador</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'bus:lista' %}"><i class="bi bi-bus-front"></i> Bus</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'tareas:lista_clientes' %}"><i class="bi bi-people"></i> Clientes</a></li>
                     {% if user.is_authenticated %}
                         {% if user.is_superuser or user.perfil.es_administrador %}

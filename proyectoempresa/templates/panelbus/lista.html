@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load money_format %}
+
+{% block title %}Planificador Bus{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <div>
+        <h1><i class="bi bi-bus-front"></i> Planificador Bus</h1>
+        <p class="text-white mb-0">Gestión de trabajos de bus pendientes y en proceso</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if morosos and es_jefe %}
+        <button type="button" class="btn position-relative" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; font-weight: 500;" data-bs-toggle="modal" data-bs-target="#modalMorosos">
+            <i class="bi bi-exclamation-triangle me-1"></i> Saldos Pendientes
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" style="background: linear-gradient(135deg, #f39c12, #e67e22); animation: pulse 2s infinite;">
+                {{ morosos|length }}
+            </span>
+        </button>
+        {% endif %}
+        <a href="{% url 'bus:crear' %}" class="btn" style="background: linear-gradient(135deg, #27ae60, #229954); color: white; border: none; font-weight: 500;">
+            <i class="bi bi-plus-circle me-2"></i> Nueva Tarea Bus
+        </a>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4" style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.05), rgba(211, 84, 0, 0.05)); border: 1px solid #fde8d4; border-left: 4px solid #e67e22;">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label fw-bold" style="color: #34495e;">Estado</label>
+                <select name="estado" class="form-select" style="border: 1px solid #e67e22; border-radius: 0.5rem;">
+                    <option value="">Todos</option>
+                    {% for value, label in estados %}
+                        <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold" style="color: #34495e;">Prioridad</label>
+                <select name="prioridad" class="form-select" style="border: 1px solid #e67e22; border-radius: 0.5rem;">
+                    <option value="">Todas</option>
+                    {% for value, label in prioridades %}
+                        <option value="{{ value }}" {% if request.GET.prioridad == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold" style="color: #34495e;">Placa / Nro Bus</label>
+                <input type="text" name="placa" class="form-control" placeholder="Buscar placa..." value="{{ request.GET.placa }}" style="border: 1px solid #e67e22; border-radius: 0.5rem;">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-bold" style="color: #34495e;"><i class="bi bi-search"></i> Buscar Cliente</label>
+                <input type="text" name="cliente" class="form-control" placeholder="Nombre del cliente..." value="{{ request.GET.cliente }}" style="border: 1px solid #e67e22; border-radius: 0.5rem;">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn flex-grow-1" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none; font-weight: 500;">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{% url 'bus:lista' %}" class="btn btn-outline-secondary" style="border-width: 2px;">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tareas -->
+{% if tareas %}
+<div class="row">
+    {% for tarea in tareas %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100" style="border: none; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;">
+            <div class="card-header" style="background: {% if tarea.estado == 'completado' %}linear-gradient(135deg, #27ae60, #229954){% elif tarea.estado == 'en_proceso' %}linear-gradient(135deg, #e67e22, #d35400){% elif tarea.estado == 'cancelado' %}linear-gradient(135deg, #95a5a6, #7f8c8d){% elif tarea.dias_restantes < 0 %}linear-gradient(135deg, #e74c3c, #c0392b){% elif tarea.dias_restantes <= 3 %}linear-gradient(135deg, #f39c12, #e67e22){% else %}linear-gradient(135deg, #2c3e50, #1a252f){% endif %}; color: white; border: none; padding: 1rem;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title mb-1 fw-bold" style="font-size: 1.1rem;">
+                            <i class="bi bi-bus-front me-1" style="opacity:0.8;"></i>{{ tarea.placa|default:"Sin identificar" }}
+                        </h6>
+                        <small style="opacity: 0.9;"><i class="bi bi-person"></i> {{ tarea.nombre_cliente }}</small>
+                    </div>
+                    <span class="badge bg-white" style="color: {% if tarea.estado == 'completado' %}#27ae60{% elif tarea.estado == 'en_proceso' %}#e67e22{% elif tarea.estado == 'cancelado' %}#95a5a6{% elif tarea.dias_restantes < 0 %}#e74c3c{% elif tarea.dias_restantes <= 3 %}#f39c12{% else %}#34495e{% endif %}; font-size: 0.9rem; font-weight: 600;">
+                        {{ tarea.get_estado_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body" style="padding: 1.2rem;">
+                <p class="card-text small text-muted mb-2" style="line-height: 1.5;">{{ tarea.descripcion_trabajo|truncatewords:15 }}</p>
+
+                <div class="row g-2 mb-3" style="font-size: 0.9rem;">
+                    <div class="col-6">
+                        <div class="p-2" style="background-color: #f8f9fa; border-radius: 0.4rem;">
+                            <small class="text-muted d-block">Ingreso</small>
+                            <strong style="color: #34495e;">{{ tarea.fecha_ingreso|date:"d/m/Y" }}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2" style="background-color: #f8f9fa; border-radius: 0.4rem;">
+                            <small class="text-muted d-block">Entrega</small>
+                            <strong style="color: #34495e;">{{ tarea.fecha_entrega|date:"d/m/Y" }}</strong>
+                            {% if tarea.dias_restantes < 0 and tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+                                <small class="d-block text-danger fw-bold"><i class="bi bi-exclamation-circle"></i> Vencido hace {{ tarea.dias_vencidos }} días</small>
+                            {% elif tarea.dias_restantes == 0 and tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+                                <small class="d-block text-warning fw-bold"><i class="bi bi-clock"></i> Hoy</small>
+                            {% elif tarea.dias_restantes > 0 and tarea.dias_restantes <= 3 and tarea.estado != 'completado' and tarea.estado != 'cancelado' %}
+                                <small class="d-block text-info fw-bold">En {{ tarea.dias_restantes }} días</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge" style="background: {% if tarea.prioridad == 'urgente' %}linear-gradient(135deg, #e74c3c, #c0392b){% elif tarea.prioridad == 'alta' %}linear-gradient(135deg, #f39c12, #e67e22){% elif tarea.prioridad == 'media' %}linear-gradient(135deg, #3498db, #2980b9){% else %}linear-gradient(135deg, #95a5a6, #7f8c8d){% endif %}; font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                        {% if tarea.prioridad == 'urgente' %}<i class="bi bi-exclamation-triangle"></i>{% elif tarea.prioridad == 'alta' %}<i class="bi bi-arrow-up"></i>{% elif tarea.prioridad == 'media' %}<i class="bi bi-dash"></i>{% else %}<i class="bi bi-arrow-down"></i>{% endif %}
+                        {{ tarea.get_prioridad_display }}
+                    </span>
+                    {% if tarea.telefono_cliente %}
+                    <a href="tel:{{ tarea.telefono_cliente }}" class="badge bg-info text-decoration-none" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                        <i class="bi bi-telephone"></i> {{ tarea.telefono_cliente }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top-0" style="padding: 0.8rem 1.2rem;">
+                <div class="d-flex gap-2" style="font-size: 0.9rem;">
+                    <a href="{% url 'bus:detalle' tarea.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                        <i class="bi bi-eye"></i> Ver
+                    </a>
+                    <a href="{% url 'bus:editar' tarea.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" title="Cambiar estado">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'bus:cambiar_estado' tarea.pk 'pendiente' %}"><i class="bi bi-hourglass text-warning"></i> Pendiente</a></li>
+                            <li><a class="dropdown-item" href="{% url 'bus:cambiar_estado' tarea.pk 'en_proceso' %}"><i class="bi bi-gear text-info"></i> En Proceso</a></li>
+                            <li><a class="dropdown-item" href="{% url 'bus:cambiar_estado' tarea.pk 'completado' %}"><i class="bi bi-check-circle text-success"></i> Completado</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'bus:cambiar_estado' tarea.pk 'cancelado' %}"><i class="bi bi-x-circle"></i> Cancelado</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center py-5" style="background: linear-gradient(135deg, rgba(230, 126, 34, 0.05), rgba(211, 84, 0, 0.05)); border: 1px dashed #e67e22; border-left: 4px solid #e67e22;">
+    <div class="card-body">
+        <i class="bi bi-bus-front" style="font-size: 4rem; color: #e67e22;"></i>
+        <h4 class="mt-3" style="color: #34495e;">No hay tareas de bus</h4>
+        <p class="text-muted mb-3">Comienza agregando la primera tarea de bus</p>
+        <a href="{% url 'bus:crear' %}" class="btn" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none;">
+            <i class="bi bi-plus-circle me-2"></i> Crear Tarea Bus
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Saldos Pendientes Bus -->
+{% if morosos and es_jefe %}
+<div class="modal fade" id="modalMorosos" tabindex="-1" aria-labelledby="modalMorososLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content" style="border: none; border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; border-radius: 0.75rem 0.75rem 0 0;">
+                <h5 class="modal-title" id="modalMorososLabel">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Saldos Pendientes — Bus
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card text-center" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none;">
+                            <div class="card-body">
+                                <small class="text-white-50">Total Pendiente</small>
+                                <h4 class="mb-0 mt-2" style="font-weight: 700;">${{ total_saldo_pendiente|formato_dinero }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card text-center" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none;">
+                            <div class="card-body">
+                                <small class="text-white-50">Clientes con Saldo</small>
+                                <h4 class="mb-0 mt-2" style="font-weight: 700;">{{ morosos|length }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    {% for m in morosos %}
+                    <div class="col-md-6">
+                        <div class="card h-100" style="border: none; border-left: 4px solid #e74c3c; border-radius: 0.5rem;">
+                            <div class="card-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none;">
+                                <h6 class="card-title mb-1">{{ m.tarea.nombre_cliente }}</h6>
+                                <small><i class="bi bi-bus-front"></i> {{ m.tarea.placa }}</small>
+                            </div>
+                            <div class="card-body" style="padding: 1rem;">
+                                <div class="row g-2 text-center" style="font-size: 0.9rem;">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Total</small>
+                                        <strong style="color: #34495e;">${{ m.total|formato_dinero }}</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Abonado</small>
+                                        <strong style="color: #27ae60;">${{ m.abonado|formato_dinero }}</strong>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted d-block mt-2">Saldo Pendiente</small>
+                                        <h5 class="mb-0" style="color: #e74c3c; font-weight: 700;">${{ m.saldo|formato_dinero }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white border-top" style="padding: 0.6rem;">
+                                <a href="{% url 'bus:detalle' m.tarea.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="bi bi-eye"></i> Ver Detalle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

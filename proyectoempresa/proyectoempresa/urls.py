@@ -32,6 +32,7 @@ urlpatterns = [
     path('trabajador/', include('panelproductividad.urls_trabajador')),
     path('productividad/', include('panelproductividad.urls')),
     path('tareas/', include('paneltareas.urls')),
+    path('bus/', include('paneltareas.urls_bus')),
     path('finanzas/', include('panelfinanzas.urls')),
     path('analisis/', include('panelanalisis.urls')),
     path('estandares/', include('panelestandares.urls')),

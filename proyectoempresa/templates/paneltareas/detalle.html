@@ -7,7 +7,11 @@
 <div class="page-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            {% if tarea.categoria == 'bus' %}
+            <li class="breadcrumb-item"><a href="{% url 'bus:lista' %}"><i class="bi bi-bus-front me-1"></i>Planificador Bus</a></li>
+            {% else %}
             <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
+            {% endif %}
             <li class="breadcrumb-item active">{{ tarea.placa }}</li>
         </ol>
     </nav>
@@ -455,7 +459,7 @@
                     <a href="{% url 'tareas:eliminar' tarea.pk %}" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash me-2"></i> Eliminar
                     </a>
-                    <a href="{% url 'tareas:lista' %}" class="btn btn-sm btn-outline-secondary">
+                    <a href="{% if tarea.categoria == 'bus' %}{% url 'bus:lista' %}{% else %}{% url 'tareas:lista' %}{% endif %}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i> Volver
                     </a>
                 </div>

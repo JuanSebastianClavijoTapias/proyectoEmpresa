@@ -39,6 +39,11 @@ class TareaPlanificada(models.Model):
         ('alta', 'Alta'),
         ('urgente', 'Urgente'),
     ]
+
+    CATEGORIA_CHOICES = [
+        ('taller', 'Taller'),
+        ('bus', 'Bus'),
+    ]
     
     # Información del cliente
     nombre_cliente = models.CharField(max_length=200, verbose_name='Nombre del Cliente')
@@ -57,6 +62,7 @@ class TareaPlanificada(models.Model):
     # Estado y prioridad
     estado = models.CharField(max_length=25, choices=ESTADO_CHOICES, default='pendiente', verbose_name='Estado')
     prioridad = models.CharField(max_length=25, choices=PRIORIDAD_CHOICES, default='media', verbose_name='Prioridad')
+    categoria = models.CharField(max_length=20, choices=CATEGORIA_CHOICES, default='taller', verbose_name='Categoría')
     
     # Observaciones
     observaciones = models.TextField(blank=True, null=True, verbose_name='Observaciones')
