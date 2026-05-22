@@ -13,6 +13,7 @@ import unicodedata
 from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
 from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm
 from panelfinanzas.models import Producto, PerfilUsuario
+from core.permissions import require_not_trabajador
 
 
 def es_jefe(user):
@@ -882,7 +883,7 @@ def editar_cliente(request, pk):
     return render(request, 'paneltareas/clientes/editar.html', {'form': form, 'cliente': cliente})
 
 
-@login_required
+@require_not_trabajador
 def reporte_cliente_pdf(request, pk):
     """Genera un PDF con el reporte de todas las tareas de un cliente"""
     from reportlab.lib.pagesizes import A4

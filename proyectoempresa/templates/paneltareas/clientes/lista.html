@@ -105,6 +105,7 @@
                                 <a href="{% url 'tareas:editar_cliente' cliente.pk %}" class="btn btn-outline-primary" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                {% if not es_trabajador %}
                                 <a href="{% url 'tareas:reporte_cliente_pdf' cliente.pk %}" class="btn btn-outline-secondary" title="Descargar Reporte PDF" target="_blank">
                                     <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
@@ -116,6 +117,7 @@
                                     onclick="enviarPdfWhatsApp(this)">
                                     <i class="bi bi-whatsapp"></i>
                                 </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

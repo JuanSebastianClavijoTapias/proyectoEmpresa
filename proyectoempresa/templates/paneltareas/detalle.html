@@ -441,7 +441,7 @@
                             <li><a class="dropdown-item text-danger" href="{% url 'tareas:cambiar_estado' tarea.pk 'cancelado' %}"><i class="bi bi-x-circle"></i> Cancelado</a></li>
                         </ul>
                     </div>
-                    {% if cliente_id %}
+                    {% if cliente_id and es_jefe %}
                     <a href="{% url 'tareas:reporte_cliente_pdf' cliente_id %}" class="btn btn-sm" style="background: linear-gradient(135deg, #8e44ad, #6c3483); color: white; border: none; font-weight: 500;" target="_blank">
                         <i class="bi bi-file-earmark-pdf me-2"></i> Descargar Reporte PDF
                     </a>
