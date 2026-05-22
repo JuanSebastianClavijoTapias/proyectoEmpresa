@@ -6,7 +6,7 @@ Formato: 1.234.567,89
 
 from django import template
 import re
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 register = template.Library()
 
@@ -74,7 +74,7 @@ def formato_dinero(value, decimales=0):
         else:
             return parte_entera_formateada
     
-    except (ValueError, TypeError, Decimal.InvalidOperation):
+    except (ValueError, TypeError, InvalidOperation):
         return str(value)
 
 
