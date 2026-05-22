@@ -140,8 +140,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         if (input.value.trim() !== '') {
-            const raw = input.value.replace(/[^\d]/g, '');
-            if (raw) input.value = parseInt(raw, 10).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+            const n = parseFloat(input.value);
+            if (!isNaN(n)) input.value = Math.round(n).toLocaleString('es-CO', { maximumFractionDigits: 0 });
         }
     }
     document.querySelectorAll('.precio-formato-co').forEach(setupPrecioFormat);

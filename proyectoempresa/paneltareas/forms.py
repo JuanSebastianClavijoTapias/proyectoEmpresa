@@ -157,7 +157,7 @@ class ImagenTareaForm(forms.ModelForm):
             queryset = tarea.productos_tarea.all()
         self.fields['producto_tarea'].queryset = queryset
         self.fields['producto_tarea'].label_from_instance = lambda producto_tarea: (
-            f"{producto_tarea.nombre_producto} x{producto_tarea.cantidad}"
+            f"{producto_tarea.placa or producto_tarea.tarea.placa or 'Sin placa'} - {producto_tarea.nombre_producto} x{producto_tarea.cantidad}"
         )
 
     class Meta:
