@@ -134,25 +134,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static'] if DEBUG else []
 
-# Static files configuration
+# Media files - SEPARADO fuera del proyecto
 if DEBUG:
-    # Development: Django serves static files from STATICFILES_DIRS
-    STATICFILES_DIRS = [BASE_DIR / 'static']
-else:
-    # Production: Django collects static files to STATIC_ROOT via collectstatic
-    STATIC_ROOT = '/var/www/proyectoempresa/static'
-    STATICFILES_DIRS = []
-
-# Media files (Archivos subidos por usuarios)
-# PRODUCCIÓN: Carpeta separada en /var/www/media (FUERA del código)
-# DESARROLLO: Carpeta local ./media dentro del proyecto
-if not DEBUG:
-    # VPS Production paths (FUERA del proyecto para evitar llenar disco)
-    MEDIA_ROOT = '/var/www/media'
-else:
-    # Local development paths
+    # Desarrollo: dentro del proyecto
     MEDIA_ROOT = BASE_DIR / 'media'
+else:
+    # Producción VPS: FUERA del proyecto
+    MEDIA_ROOT = '/home/ubuntu/apps/media'
 
 MEDIA_URL = '/media/'
 
