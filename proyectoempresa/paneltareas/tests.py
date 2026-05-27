@@ -1,3 +1,4 @@
+import os
 import shutil
 import tempfile
 from datetime import date
@@ -15,6 +16,7 @@ from panelfinanzas.models import Producto
 from .models import Cliente, ImagenTarea, ProductoTarea, TareaPlanificada
 
 
+@override_settings(PANELTAREAS_PROCESAR_IMAGENES_ASYNC=False)
 class ImagenesProductoTareaTests(TestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -47,6 +49,13 @@ class ImagenesProductoTareaTests(TestCase):
 		salida = BytesIO()
 		imagen = Image.new('RGB', (40, 40), color=color)
 		imagen.save(salida, format='PNG')
+		salida.seek(0)
+		return SimpleUploadedFile(nombre, salida.getvalue(), content_type='image/png')
+
+	def crear_imagen_grande(self, nombre='camara.png'):
+		salida = BytesIO()
+		imagen = Image.effect_noise((2200, 1800), 120).convert('RGB')
+		imagen.save(salida, format='PNG', optimize=True)
 		salida.seek(0)
 		return SimpleUploadedFile(nombre, salida.getvalue(), content_type='image/png')
 
@@ -132,6 +141,47 @@ class ImagenesProductoTareaTests(TestCase):
 
 		self.assertEqual(imagen.tarea_id, tarea.id)
 		self.assertEqual(imagen.descripcion, 'Antes de entregar')
+
+	def test_imagen_grande_se_optimiza_sin_exceder_el_tope_final(self):
+		tarea = TareaPlanificada.objects.create(
+			nombre_cliente='Cliente Demo',
+			telefono_cliente='3001234567',
+			placa='XYZ987',
+			descripcion_trabajo='Trabajo existente',
+			fecha_ingreso=date(2026, 4, 15),
+			fecha_entrega=date(2026, 4, 20),
+			estado='pendiente',
+			prioridad='media',
+		)
+		producto_tarea = ProductoTarea.objects.create(
+			tarea=tarea,
+			producto=self.producto_catalogo,
+			nombre_producto=self.producto_catalogo.nombre,
+			placa='XYZ987',
+			cantidad=1,
+			precio_costo=self.producto_catalogo.precio_costo,
+			precio_venta=self.producto_catalogo.precio_venta,
+			ajuste_precio=0,
+		)
+
+		respuesta = self.client.post(
+			reverse('tareas:detalle', args=[tarea.pk]),
+			{
+				'producto_tarea': str(producto_tarea.pk),
+				'descripcion': 'Foto de cámara',
+				'imagen': self.crear_imagen_grande('camara.png'),
+			},
+		)
+
+		self.assertRedirects(respuesta, reverse('tareas:detalle', args=[tarea.pk]))
+		imagen = ImagenTarea.objects.get(producto_tarea=producto_tarea)
+
+		with Image.open(imagen.imagen.path) as procesada:
+			self.assertEqual(procesada.format, 'JPEG')
+			self.assertLessEqual(max(procesada.size), 1280)
+
+		self.assertLessEqual(os.path.getsize(imagen.imagen.path), 2 * 1024 * 1024)
+		self.assertTrue(imagen.imagen.name.endswith('.jpg'))
 
 
 class ClientesHistorialTests(TestCase):

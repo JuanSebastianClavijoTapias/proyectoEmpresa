@@ -1,10 +1,29 @@
-from django.db import models
+import atexit
+import logging
+from concurrent.futures import ThreadPoolExecutor
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from io import BytesIO
-from PIL import Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import sys
+from pathlib import Path
+
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.db import close_old_connections, models, transaction
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+
+logger = logging.getLogger(__name__)
+
+MAX_FINAL_IMAGE_BYTES = 2 * 1024 * 1024
+MAX_IMAGE_DIMENSION = 1280
+MIN_IMAGE_QUALITY = 70
+MAX_IMAGE_QUALITY = 80
+MAX_RAW_UPLOAD_BYTES = getattr(settings, 'PANELTAREAS_MAX_IMAGE_UPLOAD_BYTES', 8 * 1024 * 1024)
+ASYNC_IMAGE_PROCESSING = getattr(settings, 'PANELTAREAS_PROCESAR_IMAGENES_ASYNC', True)
+IMAGE_PROCESSOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix='paneltareas-imagenes')
+
+
+atexit.register(IMAGE_PROCESSOR.shutdown, wait=False, cancel_futures=True)
 
 class Cliente(models.Model):
     """Modelo para almacenar información de clientes"""
@@ -120,10 +139,98 @@ class TareaPlanificada(models.Model):
 
 
 def validar_imagen(fieldfile_obj):
-    """Valida que el archivo sea una imagen y no exceda 10MB"""
-    max_size = 10 * 1024 * 1024  # 10MB
-    if fieldfile_obj.size > max_size:
-        raise ValidationError('La imagen no puede superar los 10MB.')
+    """Valida el tamaño bruto de subida para proteger el request y el worker."""
+    if fieldfile_obj.size > MAX_RAW_UPLOAD_BYTES:
+        raise ValidationError('La imagen no puede superar los 8MB al subirse.')
+
+
+def _nombre_optimizado(nombre_original):
+    ruta = Path(nombre_original)
+    carpeta = str(ruta.parent)
+    nuevo_nombre = f'{ruta.stem or "imagen"}.jpg'
+    if carpeta and carpeta != '.':
+        return str(Path(carpeta) / nuevo_nombre)
+    return nuevo_nombre
+
+
+def _convertir_a_jpeg_base(imagen):
+    imagen = ImageOps.exif_transpose(imagen)
+
+    if imagen.mode in ('RGBA', 'LA') or (imagen.mode == 'P' and 'transparency' in imagen.info):
+        rgba = imagen.convert('RGBA')
+        fondo = Image.new('RGB', rgba.size, (255, 255, 255))
+        fondo.paste(rgba, mask=rgba.getchannel('A'))
+        return fondo
+
+    if imagen.mode != 'RGB':
+        return imagen.convert('RGB')
+
+    return imagen
+
+
+def _optimizar_imagen_bytes(archivo_imagen, nombre_original):
+    """Redimensiona y comprime la imagen sin bloquear el request principal."""
+    try:
+        with Image.open(archivo_imagen) as imagen_abierta:
+            imagen_base = _convertir_a_jpeg_base(imagen_abierta)
+            resampling = getattr(Image, 'Resampling', Image).LANCZOS
+
+            if imagen_base.width > MAX_IMAGE_DIMENSION or imagen_base.height > MAX_IMAGE_DIMENSION:
+                imagen_base.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), resampling)
+
+            for calidad in range(MAX_IMAGE_QUALITY, MIN_IMAGE_QUALITY - 1, -5):
+                salida = BytesIO()
+                imagen_base.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
+                if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
+                    salida.seek(0)
+                    return salida.read(), _nombre_optimizado(nombre_original)
+
+            for dimension in (1120, 1024, 900, 768):
+                imagen_redimensionada = imagen_base.copy()
+                imagen_redimensionada.thumbnail((dimension, dimension), resampling)
+                for calidad in range(MAX_IMAGE_QUALITY, MIN_IMAGE_QUALITY - 1, -5):
+                    salida = BytesIO()
+                    imagen_redimensionada.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
+                    if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
+                        salida.seek(0)
+                        return salida.read(), _nombre_optimizado(nombre_original)
+
+            salida = BytesIO()
+            imagen_base.save(salida, format='JPEG', quality=MIN_IMAGE_QUALITY, optimize=True, progressive=True)
+            salida.seek(0)
+            return salida.read(), _nombre_optimizado(nombre_original)
+    except UnidentifiedImageError as exc:
+        raise ValidationError('El archivo subido no es una imagen válida.') from exc
+
+
+def _procesar_imagen_tarea_en_segundo_plano(imagen_pk):
+    close_old_connections()
+    try:
+        imagen_obj = ImagenTarea.objects.select_related('producto_tarea', 'tarea').get(pk=imagen_pk)
+        if not imagen_obj.imagen:
+            return
+
+        nombre_anterior = imagen_obj.imagen.name
+        with imagen_obj.imagen.open('rb') as archivo_imagen:
+            contenido, nuevo_nombre = _optimizar_imagen_bytes(archivo_imagen, nombre_anterior)
+
+        imagen_obj.imagen.save(nuevo_nombre, ContentFile(contenido), save=False)
+        ImagenTarea.objects.filter(pk=imagen_pk).update(imagen=imagen_obj.imagen.name)
+
+        if nombre_anterior and nombre_anterior != imagen_obj.imagen.name and imagen_obj.imagen.storage.exists(nombre_anterior):
+            imagen_obj.imagen.storage.delete(nombre_anterior)
+    except Exception:
+        logger.exception('No se pudo optimizar la imagen %s', imagen_pk)
+    finally:
+        close_old_connections()
+
+
+def programar_optimizacion_imagen(imagen_pk):
+    if ASYNC_IMAGE_PROCESSING:
+        IMAGE_PROCESSOR.submit(_procesar_imagen_tarea_en_segundo_plano, imagen_pk)
+        return
+
+    _procesar_imagen_tarea_en_segundo_plano(imagen_pk)
 
 
 class ImagenTarea(models.Model):
@@ -167,53 +274,15 @@ class ImagenTarea(models.Model):
     def save(self, *args, **kwargs):
         if self.producto_tarea_id:
             self.tarea = self.producto_tarea.tarea
-        if self.imagen:
-            self.imagen = self._comprimir_imagen(self.imagen)
         super().save(*args, **kwargs)
 
-    def _comprimir_imagen(self, imagen):
-        """Comprime y redimensiona la imagen para reducir almacenamiento"""
-        img = Image.open(imagen)
-        
-        # Mantener orientación EXIF
-        try:
-            from PIL import ExifTags
-            for orientation in ExifTags.TAGS.keys():
-                if ExifTags.TAGS[orientation] == 'Orientation':
-                    break
-            exif = img._getexif()
-            if exif is not None:
-                orient = exif.get(orientation)
-                if orient == 3:
-                    img = img.rotate(180, expand=True)
-                elif orient == 6:
-                    img = img.rotate(270, expand=True)
-                elif orient == 8:
-                    img = img.rotate(90, expand=True)
-        except (AttributeError, KeyError, IndexError):
-            pass
+        debe_optimizar = bool(self.imagen) and not getattr(self, '_omitir_optimizacion_imagen', False)
+        if debe_optimizar and self.pk:
+            imagen_actual = type(self).objects.filter(pk=self.pk).values_list('imagen', flat=True).first()
+            debe_optimizar = imagen_actual != self.imagen.name
 
-        # Redimensionar si excede 1920px en cualquier lado
-        max_dimension = 1920
-        if img.width > max_dimension or img.height > max_dimension:
-            img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
-
-        # Convertir a RGB si es necesario (para guardar como JPEG)
-        if img.mode in ('RGBA', 'P'):
-            img = img.convert('RGB')
-
-        # Comprimir como JPEG con calidad 75
-        output = BytesIO()
-        img.save(output, format='JPEG', quality=75, optimize=True)
-        output.seek(0)
-
-        # Generar nombre con extensión .jpg
-        nombre = imagen.name.rsplit('.', 1)[0] + '.jpg'
-
-        return InMemoryUploadedFile(
-            output, 'ImageField', nombre, 'image/jpeg',
-            sys.getsizeof(output), None
-        )
+        if debe_optimizar:
+            transaction.on_commit(lambda pk=self.pk: programar_optimizacion_imagen(pk))
 
 
 class ProductoTarea(models.Model):

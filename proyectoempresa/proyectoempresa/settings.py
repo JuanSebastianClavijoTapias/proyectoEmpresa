@@ -134,11 +134,27 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Static files configuration
+if DEBUG:
+    # Development: Django serves static files from STATICFILES_DIRS
+    STATICFILES_DIRS = [BASE_DIR / 'static']
+else:
+    # Production: Django collects static files to STATIC_ROOT via collectstatic
+    STATIC_ROOT = '/var/www/proyectoempresa/static'
+    STATICFILES_DIRS = []
 
 # Media files (Archivos subidos por usuarios)
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# PRODUCCIÓN: Carpeta separada en /var/www/media (FUERA del código)
+# DESARROLLO: Carpeta local ./media dentro del proyecto
+if not DEBUG:
+    # VPS Production paths (FUERA del proyecto para evitar llenar disco)
+    MEDIA_ROOT = '/var/www/media'
+else:
+    # Local development paths
+    MEDIA_ROOT = BASE_DIR / 'media'
+
+MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
