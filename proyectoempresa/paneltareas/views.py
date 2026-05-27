@@ -727,7 +727,10 @@ def detalle_tarea(request, pk):
             imagen = form_imagen.save(commit=False)
             imagen.tarea = tarea
             imagen.save()
-            messages.success(request, f'Imagen subida exitosamente para {imagen.producto_tarea.nombre_producto}.')
+            # FIX: producto_tarea puede ser None en imágenes generales de tarea;
+            # acceder directamente causaba AttributeError en la segunda subida.
+            nombre_pt = imagen.producto_tarea.nombre_producto if imagen.producto_tarea_id else 'la tarea'
+            messages.success(request, f'Imagen subida exitosamente para {nombre_pt}.')
             return redirect('tareas:detalle', pk=pk)
         else:
             mensajes = []

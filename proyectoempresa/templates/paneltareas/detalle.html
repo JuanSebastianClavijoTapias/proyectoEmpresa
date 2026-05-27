@@ -641,18 +641,23 @@ document.addEventListener('click', function(e) {
         if (e.target === overlay) closeMenu();
     });
 
-    // Actualizar input principal cuando se selecciona de cualquier fuente
-    [cameraInput, galleryInput, mainInput].forEach(input => {
-        if (input) {
-            input.addEventListener('change', function() {
-                if (this.files && this.files.length > 0) {
-                    // Transferir archivos al input principal
-                    mainInput.files = this.files;
-                    // Disparar evento de cambio
-                    mainInput.dispatchEvent(new Event('change', { bubbles: true }));
+    // FIX: solo escuchar camera/gallery (NO mainInput) para evitar bucle recursivo
+    // FIX: { once: true } para evitar que los listeners se acumulen entre aperturas del menú
+    [cameraInput, galleryInput].forEach(function(input) {
+        if (!input) return;
+        input.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                // FIX: usar DataTransfer para asignar FileList correctamente en todos los browsers
+                try {
+                    const dt = new DataTransfer();
+                    for (const file of this.files) { dt.items.add(file); }
+                    mainInput.files = dt.files;
+                } catch (_e) {
+                    mainInput.files = this.files; // fallback
                 }
-            });
-        }
+                // FIX: NO llamar mainInput.dispatchEvent() — causaba recursión infinita
+            }
+        }, { once: true });
     });
 });
 

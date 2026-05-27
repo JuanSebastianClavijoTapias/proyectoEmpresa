@@ -15,10 +15,10 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 logger = logging.getLogger(__name__)
 
 MAX_FINAL_IMAGE_BYTES = 2 * 1024 * 1024
-MAX_IMAGE_DIMENSION = 1280
-MIN_IMAGE_QUALITY = 70
-MAX_IMAGE_QUALITY = 80
-MAX_RAW_UPLOAD_BYTES = getattr(settings, 'PANELTAREAS_MAX_IMAGE_UPLOAD_BYTES', 8 * 1024 * 1024)
+MAX_IMAGE_DIMENSION = 1920  # FIX: máx 1920 px preservando proporción
+MIN_IMAGE_QUALITY = 65
+MAX_IMAGE_QUALITY = 75  # FIX: calidad objetivo JPEG 75
+MAX_RAW_UPLOAD_BYTES = getattr(settings, 'PANELTAREAS_MAX_IMAGE_UPLOAD_BYTES', 10 * 1024 * 1024)  # FIX: límite 10 MB
 ASYNC_IMAGE_PROCESSING = getattr(settings, 'PANELTAREAS_PROCESAR_IMAGENES_ASYNC', True)
 IMAGE_PROCESSOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix='paneltareas-imagenes')
 
@@ -153,52 +153,96 @@ def _nombre_optimizado(nombre_original):
     return nuevo_nombre
 
 
-def _convertir_a_jpeg_base(imagen):
-    imagen = ImageOps.exif_transpose(imagen)
+def _convertir_a_jpeg_base(imagen_entrada):
+    # FIX: exif_transpose() puede devolver una imagen NUEVA distinta del argumento;
+    # si es copia nueva y no es el valor retornado, esta función la cierra.
+    imagen = ImageOps.exif_transpose(imagen_entrada)
+    _cerrar_transpuesta = imagen is not imagen_entrada
 
-    if imagen.mode in ('RGBA', 'LA') or (imagen.mode == 'P' and 'transparency' in imagen.info):
-        rgba = imagen.convert('RGBA')
-        fondo = Image.new('RGB', rgba.size, (255, 255, 255))
-        fondo.paste(rgba, mask=rgba.getchannel('A'))
-        return fondo
+    try:
+        if imagen.mode in ('RGBA', 'LA') or (imagen.mode == 'P' and 'transparency' in imagen.info):
+            # FIX: cerrar rgba en finally para liberar memoria siempre, incluso ante error
+            rgba = imagen.convert('RGBA')
+            try:
+                fondo = Image.new('RGB', rgba.size, (255, 255, 255))
+                fondo.paste(rgba, mask=rgba.getchannel('A'))
+            finally:
+                rgba.close()  # FIX: cierre garantizado de imagen intermedia RGBA
+            return fondo  # caller es responsable de cerrar fondo
 
-    if imagen.mode != 'RGB':
-        return imagen.convert('RGB')
+        if imagen.mode != 'RGB':
+            resultado = imagen.convert('RGB')
+            return resultado  # caller es responsable de cerrar resultado
 
-    return imagen
+        # imagen ya es RGB y es el valor retornado: el caller la cierra
+        _cerrar_transpuesta = False
+        return imagen
+
+    finally:
+        # FIX: cerrar la copia de exif_transpose si no es el valor retornado
+        if _cerrar_transpuesta:
+            try:
+                imagen.close()
+            except Exception:
+                pass
 
 
 def _optimizar_imagen_bytes(archivo_imagen, nombre_original):
     """Redimensiona y comprime la imagen sin bloquear el request principal."""
     try:
         with Image.open(archivo_imagen) as imagen_abierta:
+            # FIX: _convertir_a_jpeg_base puede retornar una imagen NUEVA;
+            # cerrarla en finally para liberar memoria siempre, incluso ante error
             imagen_base = _convertir_a_jpeg_base(imagen_abierta)
-            resampling = getattr(Image, 'Resampling', Image).LANCZOS
+            try:
+                resampling = getattr(Image, 'Resampling', Image).LANCZOS
 
-            if imagen_base.width > MAX_IMAGE_DIMENSION or imagen_base.height > MAX_IMAGE_DIMENSION:
-                imagen_base.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), resampling)
+                if imagen_base.width > MAX_IMAGE_DIMENSION or imagen_base.height > MAX_IMAGE_DIMENSION:
+                    imagen_base.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), resampling)
 
-            for calidad in range(MAX_IMAGE_QUALITY, MIN_IMAGE_QUALITY - 1, -5):
-                salida = BytesIO()
-                imagen_base.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
-                if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
-                    salida.seek(0)
-                    return salida.read(), _nombre_optimizado(nombre_original)
-
-            for dimension in (1120, 1024, 900, 768):
-                imagen_redimensionada = imagen_base.copy()
-                imagen_redimensionada.thumbnail((dimension, dimension), resampling)
                 for calidad in range(MAX_IMAGE_QUALITY, MIN_IMAGE_QUALITY - 1, -5):
                     salida = BytesIO()
-                    imagen_redimensionada.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
-                    if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
-                        salida.seek(0)
-                        return salida.read(), _nombre_optimizado(nombre_original)
+                    try:
+                        imagen_base.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
+                        if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
+                            salida.seek(0)
+                            return salida.read(), _nombre_optimizado(nombre_original)
+                    finally:
+                        salida.close()  # FIX: liberar BytesIO siempre, incluso en return anticipado
 
-            salida = BytesIO()
-            imagen_base.save(salida, format='JPEG', quality=MIN_IMAGE_QUALITY, optimize=True, progressive=True)
-            salida.seek(0)
-            return salida.read(), _nombre_optimizado(nombre_original)
+                for dimension in (1120, 1024, 900, 768):
+                    # FIX: cerrar cada copia redimensionada en su propio bloque finally
+                    imagen_redimensionada = imagen_base.copy()
+                    try:
+                        imagen_redimensionada.thumbnail((dimension, dimension), resampling)
+                        for calidad in range(MAX_IMAGE_QUALITY, MIN_IMAGE_QUALITY - 1, -5):
+                            salida = BytesIO()
+                            try:
+                                imagen_redimensionada.save(salida, format='JPEG', quality=calidad, optimize=True, progressive=True)
+                                if salida.tell() <= MAX_FINAL_IMAGE_BYTES:
+                                    salida.seek(0)
+                                    return salida.read(), _nombre_optimizado(nombre_original)
+                            finally:
+                                salida.close()  # FIX: liberar BytesIO siempre
+                    finally:
+                        imagen_redimensionada.close()  # FIX: liberar copia siempre
+
+                # Último recurso: calidad mínima
+                salida = BytesIO()
+                try:
+                    imagen_base.save(salida, format='JPEG', quality=MIN_IMAGE_QUALITY, optimize=True, progressive=True)
+                    salida.seek(0)
+                    return salida.read(), _nombre_optimizado(nombre_original)
+                finally:
+                    salida.close()  # FIX: liberar BytesIO siempre
+            finally:
+                # FIX: cerrar imagen_base si es distinta de imagen_abierta
+                # (significa que _convertir_a_jpeg_base creó una copia nueva)
+                if imagen_base is not imagen_abierta:
+                    try:
+                        imagen_base.close()
+                    except Exception:
+                        pass
     except UnidentifiedImageError as exc:
         raise ValidationError('El archivo subido no es una imagen válida.') from exc
 
@@ -274,12 +318,31 @@ class ImagenTarea(models.Model):
     def save(self, *args, **kwargs):
         if self.producto_tarea_id:
             self.tarea = self.producto_tarea.tarea
+
+        # FIX: CAUSA RAÍZ DEL CRASH EN SEGUNDA SUBIDA.
+        # La comprobación anterior se hacía DESPUÉS de super().save(), momento en que
+        # imagen_actual (DB) e self.imagen.name ya son idénticos → debe_optimizar
+        # era siempre False → las imágenes crudas de móvil (8-15 MB) se guardaban
+        # sin comprimir, agotando storage y causando errores en la segunda subida.
+        # FIX: capturar el nombre anterior ANTES del save para comparación correcta.
+        _es_nuevo = self._state.adding  # True solo en la primera inserción
+        _nombre_imagen_antes = None
+        if not _es_nuevo:
+            # Solo consultar DB en actualizaciones; en inserciones siempre optimizar
+            _nombre_imagen_antes = (
+                type(self).objects
+                .filter(pk=self.pk)
+                .values_list('imagen', flat=True)
+                .first()
+            )
+
         super().save(*args, **kwargs)
 
         debe_optimizar = bool(self.imagen) and not getattr(self, '_omitir_optimizacion_imagen', False)
-        if debe_optimizar and self.pk:
-            imagen_actual = type(self).objects.filter(pk=self.pk).values_list('imagen', flat=True).first()
-            debe_optimizar = imagen_actual != self.imagen.name
+        if debe_optimizar and not _es_nuevo:
+            # Actualización: solo optimizar si la imagen realmente cambió
+            debe_optimizar = _nombre_imagen_antes != self.imagen.name
+        # Para registros nuevos (_es_nuevo=True): debe_optimizar queda True si hay imagen
 
         if debe_optimizar:
             transaction.on_commit(lambda pk=self.pk: programar_optimizacion_imagen(pk))
