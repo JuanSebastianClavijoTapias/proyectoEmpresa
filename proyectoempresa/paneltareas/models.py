@@ -293,7 +293,8 @@ class ImagenTarea(models.Model):
         blank=True,
     )
     imagen = models.ImageField(
-        upload_to='tareas/imagenes/%Y/%m/',
+        # En models.py, donde está el campo ImageField
+        upload_to='tareas/%Y/%m/',
         verbose_name='Imagen',
         validators=[validar_imagen],
         max_length = 255,
