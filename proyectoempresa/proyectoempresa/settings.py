@@ -149,6 +149,12 @@ else:
 
 MEDIA_URL = '/media/'
 
+# Límites de carga de archivos
+# Por defecto Django es 2.5 MB, aumentamos para permitir múltiples imágenes sin comprimir
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # Permitir muchos campos (múltiples imágenes)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
