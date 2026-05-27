@@ -25,7 +25,10 @@ SECRET_KEY = 'ROTADO'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = ['cuirtapiceria.gamorasystems.dev', 'www.cuirtapiceria.gamorasystems.dev']
 
 
 # Application definition
