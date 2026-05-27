@@ -574,6 +574,36 @@ async function enviarPdfWhatsApp(btn) {
     setTimeout(() => window.open(waUrl, '_blank'), 1200);
 }
 
+// =====================================================================
+// TRANSFERENCIA DE ARCHIVOS: listeners registrados UNA SOLA VEZ al cargar
+// la página, fuera del click handler del menú para evitar acumulación.
+// Esto también resuelve el fallo en Android donde 'change' puede dispararse
+// con files.length === 0 antes del evento final con el archivo real.
+// =====================================================================
+(function() {
+    var _mainInput    = document.getElementById('id_imagen');
+    var _cameraInput  = document.getElementById('id_imagen-camera');
+    var _galleryInput = document.getElementById('id_imagen-gallery');
+    if (!_mainInput) return;
+
+    [_cameraInput, _galleryInput].forEach(function(input) {
+        if (!input) return;
+        input.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                try {
+                    var dt = new DataTransfer();
+                    for (var i = 0; i < this.files.length; i++) {
+                        dt.items.add(this.files[i]);
+                    }
+                    _mainInput.files = dt.files;
+                } catch (_e) {
+                    _mainInput.files = this.files; // fallback para browsers sin DataTransfer
+                }
+            }
+        });
+    });
+})();
+
 // Menú de opciones para archivo de imagen en formulario detalle
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('.btn-file-menu-detalle');
@@ -640,25 +670,7 @@ document.addEventListener('click', function(e) {
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeMenu();
     });
-
-    // FIX: solo escuchar camera/gallery (NO mainInput) para evitar bucle recursivo
-    // FIX: { once: true } para evitar que los listeners se acumulen entre aperturas del menú
-    [cameraInput, galleryInput].forEach(function(input) {
-        if (!input) return;
-        input.addEventListener('change', function() {
-            if (this.files && this.files.length > 0) {
-                // FIX: usar DataTransfer para asignar FileList correctamente en todos los browsers
-                try {
-                    const dt = new DataTransfer();
-                    for (const file of this.files) { dt.items.add(file); }
-                    mainInput.files = dt.files;
-                } catch (_e) {
-                    mainInput.files = this.files; // fallback
-                }
-                // FIX: NO llamar mainInput.dispatchEvent() — causaba recursión infinita
-            }
-        }, { once: true });
-    });
+    // NOTA: los listeners de transferencia de archivos están arriba (IIFE), no aquí.
 });
 
 // ==========================================

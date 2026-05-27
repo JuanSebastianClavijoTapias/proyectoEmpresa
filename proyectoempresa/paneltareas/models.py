@@ -258,7 +258,11 @@ def _procesar_imagen_tarea_en_segundo_plano(imagen_pk):
         with imagen_obj.imagen.open('rb') as archivo_imagen:
             contenido, nuevo_nombre = _optimizar_imagen_bytes(archivo_imagen, nombre_anterior)
 
-        imagen_obj.imagen.save(nuevo_nombre, ContentFile(contenido), save=False)
+        # FIX: usar solo el nombre base (sin directorio) para que FieldFile.save()
+        # no duplique el prefijo de upload_to al preponer el directorio de nuevo.
+        # P.ej. 'tareas/imagenes/2026/05/foto.jpg' → save('foto.jpg') → genera
+        # correctamente 'tareas/imagenes/2026/05/foto.jpg' con upload_to aplicado.
+        imagen_obj.imagen.save(Path(nuevo_nombre).name, ContentFile(contenido), save=False)
         ImagenTarea.objects.filter(pk=imagen_pk).update(imagen=imagen_obj.imagen.name)
 
         if nombre_anterior and nombre_anterior != imagen_obj.imagen.name and imagen_obj.imagen.storage.exists(nombre_anterior):

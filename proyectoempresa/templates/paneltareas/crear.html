@@ -153,9 +153,7 @@
                                     <i class="bi bi-image"></i> Elegir Archivos
                                 </button>
                             </div>
-                            <input type="file" name="{{ form_producto.prefix }}-imagenes" id="id_{{ form_producto.prefix }}-imagenes" class="form-control producto-imagenes-input" accept="image/*" multiple style="display:none;" />
-                            <input type="file" id="id_{{ form_producto.prefix }}-imagenes-camera" class="producto-imagenes-camera" accept="image/*" capture="environment" style="display:none;" />
-                            <input type="file" id="id_{{ form_producto.prefix }}-imagenes-gallery" class="producto-imagenes-gallery" accept="image/*" multiple style="display:none;" />
+                            <div class="producto-imagenes-sources" style="display:none;"></div>
                             <div class="form-text producto-imagenes-feedback">
                                 Adjunta una o varias imágenes para este producto. Se guardarán con este producto, no con
                                 la tarea completa.
@@ -608,27 +606,100 @@
             });
         }
 
-        function setupProductoImagenes(row) {
-            const input = row.querySelector('.producto-imagenes-input');
-            const feedback = row.querySelector('.producto-imagenes-feedback');
-            if (!input || !feedback) return;
-
-            input.addEventListener('change', function() {
-                const total = this.files ? this.files.length : 0;
-                if (!total) {
-                    feedback.textContent = 'Adjunta una o varias imágenes para este producto. Se guardarán con este producto, no con la tarea completa.';
-                    return;
+        function getProductoImagenFiles(row) {
+            return Array.from(row.querySelectorAll('.producto-imagenes-source')).reduce(function(files, input) {
+                if (input.files && input.files.length > 0) {
+                    return files.concat(Array.from(input.files));
                 }
+                return files;
+            }, []);
+        }
 
-                const nombres = Array.from(this.files)
-                    .slice(0, 2)
-                    .map((file) => file.name)
-                    .join(', ');
+        function updateProductoImagenFeedback(row) {
+            const feedback = row.querySelector('.producto-imagenes-feedback');
+            if (!feedback) return;
 
-                feedback.textContent = total === 1
-                    ? `1 imagen lista para este producto: ${nombres}`
-                    : `${total} imágenes listas para este producto. Primeras: ${nombres}`;
+            if (!feedback.dataset.defaultText) {
+                feedback.dataset.defaultText = feedback.textContent.trim();
+            }
+
+            const files = getProductoImagenFiles(row);
+            if (!files.length) {
+                feedback.textContent = feedback.dataset.defaultText;
+                return;
+            }
+
+            const nombres = files
+                .slice(0, 2)
+                .map((file) => file.name)
+                .join(', ');
+
+            feedback.textContent = files.length === 1
+                ? `1 imagen lista para este producto: ${nombres}`
+                : `${files.length} imágenes listas para este producto. Primeras: ${nombres}`;
+        }
+
+        function bindProductoImagenInput(row, input) {
+            if (!input) return;
+
+            const handlerKey = '_imgFeedbackHandler';
+            if (input[handlerKey]) {
+                input.removeEventListener('change', input[handlerKey]);
+            }
+
+            input[handlerKey] = function() {
+                if (!this.files || this.files.length === 0) {
+                    this.remove();
+                }
+                updateProductoImagenFeedback(row);
+            };
+
+            input.addEventListener('change', input[handlerKey]);
+        }
+
+        function crearProductoImagenInput(prefix, mode) {
+            const input = document.createElement('input');
+            const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+            input.type = 'file';
+            input.name = `${prefix}-imagenes`;
+            input.id = `id_${prefix}-imagenes-${mode}-${uniqueId}`;
+            input.className = 'producto-imagenes-source';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+
+            if (mode === 'camera') {
+                input.setAttribute('capture', 'environment');
+            } else {
+                input.multiple = true;
+            }
+
+            return input;
+        }
+
+        function abrirSelectorImagenProducto(row, prefix, mode) {
+            const inputsContainer = row.querySelector('.producto-imagenes-sources');
+            if (!inputsContainer) return;
+
+            const input = crearProductoImagenInput(prefix, mode);
+            bindProductoImagenInput(row, input);
+            inputsContainer.appendChild(input);
+            input.click();
+        }
+
+        function setupProductoImagenes(row) {
+            const feedback = row.querySelector('.producto-imagenes-feedback');
+            const inputsContainer = row.querySelector('.producto-imagenes-sources');
+            if (!feedback || !inputsContainer) return;
+
+            if (!feedback.dataset.defaultText) {
+                feedback.dataset.defaultText = feedback.textContent.trim();
+            }
+
+            inputsContainer.querySelectorAll('.producto-imagenes-source').forEach(function(input) {
+                bindProductoImagenInput(row, input);
             });
+            updateProductoImagenFeedback(row);
         }
 
         // Inicializar autocomplete para filas existentes
@@ -798,9 +869,7 @@
                             <i class="bi bi-image"></i> Elegir Archivos
                         </button>
                     </div>
-                    <input type="file" name="${prefix}-${formNum}-imagenes" class="form-control producto-imagenes-input" id="id_${prefix}-${formNum}-imagenes" accept="image/*" multiple style="display:none;">
-                    <input type="file" id="id_${prefix}-${formNum}-imagenes-camera" class="producto-imagenes-camera" accept="image/*" capture="environment" style="display:none;">
-                    <input type="file" id="id_${prefix}-${formNum}-imagenes-gallery" class="producto-imagenes-gallery" accept="image/*" multiple style="display:none;">
+                    <div class="producto-imagenes-sources" style="display:none;"></div>
                     <div class="form-text producto-imagenes-feedback">Adjunta una o varias imágenes para este producto. Se guardarán con este producto, no con la tarea completa.</div>
                 </div>
                 <div class="col-12 d-flex justify-content-end">
@@ -962,7 +1031,9 @@
         try { updateTotal(); } catch (e) { /* noop */ }
 
         // ==========================================
-        // MENÚ DE OPCIONES PARA ARCHIVO DE IMAGEN (Android)
+        // MENÚ DE OPCIONES PARA ARCHIVO DE IMAGEN
+        // Safari/iOS es inestable al copiar FileList entre inputs, por eso
+        // cada selección crea su propio input oculto con el name real.
         // ==========================================
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.btn-file-menu');
@@ -970,11 +1041,9 @@
             e.preventDefault();
             
             const prefix = btn.dataset.prefix;
-            const mainInput = document.getElementById(`id_${prefix}-imagenes`);
-            const cameraInput = document.getElementById(`id_${prefix}-imagenes-camera`);
-            const galleryInput = document.getElementById(`id_${prefix}-imagenes-gallery`);
+            const row = btn.closest('.producto-row');
             
-            if (!mainInput) return;
+            if (!row) return;
 
             // Mostrar menú con opciones
             const menuHtml = `
@@ -1015,13 +1084,13 @@
                         closeMenu();
                     } else if (action === 'camera') {
                         closeMenu();
-                        cameraInput.click();
+                        abrirSelectorImagenProducto(row, prefix, 'camera');
                     } else if (action === 'gallery') {
                         closeMenu();
-                        galleryInput.click();
+                        abrirSelectorImagenProducto(row, prefix, 'gallery');
                     } else if (action === 'files') {
                         closeMenu();
-                        mainInput.click();
+                        abrirSelectorImagenProducto(row, prefix, 'files');
                     }
                 });
             });
@@ -1029,25 +1098,6 @@
             // Cerrar al hacer click fuera
             overlay.addEventListener('click', function(e) {
                 if (e.target === overlay) closeMenu();
-            });
-
-            // FIX: solo escuchar camera/gallery (NO mainInput) para evitar bucle recursivo
-            // FIX: { once: true } para evitar que los listeners se acumulen entre aperturas del menú
-            [cameraInput, galleryInput].forEach(function(input) {
-                if (!input) return;
-                input.addEventListener('change', function() {
-                    if (this.files && this.files.length > 0) {
-                        // FIX: usar DataTransfer para asignar FileList correctamente en todos los browsers
-                        try {
-                            const dt = new DataTransfer();
-                            for (const file of this.files) { dt.items.add(file); }
-                            mainInput.files = dt.files;
-                        } catch (_e) {
-                            mainInput.files = this.files; // fallback
-                        }
-                        // FIX: NO llamar mainInput.dispatchEvent() — causaba recursión infinita
-                    }
-                }, { once: true });
             });
         });
     });

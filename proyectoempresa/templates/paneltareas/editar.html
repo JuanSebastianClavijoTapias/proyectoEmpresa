@@ -1066,18 +1066,28 @@
                 if (e.target === overlay) closeMenu();
             });
 
-            // Actualizar input principal cuando se selecciona de cualquier fuente
-            [cameraInput, galleryInput, mainInput].forEach(input => {
-                if (input) {
-                    input.addEventListener('change', function() {
-                        if (this.files && this.files.length > 0) {
-                            // Copiar archivos al input principal
-                            mainInput.files = this.files;
-                            // Disparar evento change en el input principal
-                            mainInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    });
+            // Registrar el listener de transferencia una sola vez por input para
+            // evitar recursion y acumulacion entre aperturas del menu.
+            [cameraInput, galleryInput].forEach(function(input) {
+                if (!input) return;
+                const handlerKey = '_imgTransfer_' + input.id;
+                if (input[handlerKey]) {
+                    input.removeEventListener('change', input[handlerKey]);
                 }
+                input[handlerKey] = function() {
+                    if (this.files && this.files.length > 0) {
+                        try {
+                            var dt = new DataTransfer();
+                            for (var i = 0; i < this.files.length; i++) {
+                                dt.items.add(this.files[i]);
+                            }
+                            mainInput.files = dt.files;
+                        } catch (_e) {
+                            mainInput.files = this.files;
+                        }
+                    }
+                };
+                input.addEventListener('change', input[handlerKey]);
             });
         });
     });
