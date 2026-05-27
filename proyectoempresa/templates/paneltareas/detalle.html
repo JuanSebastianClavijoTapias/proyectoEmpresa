@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% load money_format %} {% block title %}Detalle Tarea - {{ tarea.placa }}{% endblock %} 
-{% block content %}
+{% extends 'base.html' %} {% load money_format %} {% block title %}Detalle Tarea - {{ tarea.placa }}{% endblock %} {%
+block content %}
 <div class="page-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -27,7 +27,8 @@
             <span
                 class="badge"
                 style="background: {% if tarea.prioridad == 'urgente' %}linear-gradient(135deg, #e74c3c, #c0392b){% elif tarea.prioridad == 'alta' %}linear-gradient(135deg, #f39c12, #e67e22){% elif tarea.prioridad == 'media' %}linear-gradient(135deg, #3498db, #2980b9){% else %}linear-gradient(135deg, #95a5a6, #7f8c8d){% endif %}; font-size: 1rem; padding: 0.5rem 1rem;"
-            >{% if tarea.prioridad == 'urgente' %}<i class="bi bi-exclamation-triangle me-1"></i>{% elif tarea.prioridad == 'alta' %}<i class="bi bi-arrow-up me-1"></i>{% elif tarea.prioridad == 'media' %}<i
+                >{% if tarea.prioridad == 'urgente' %}<i class="bi bi-exclamation-triangle me-1"></i>{% elif
+                tarea.prioridad == 'alta' %}<i class="bi bi-arrow-up me-1"></i>{% elif tarea.prioridad == 'media' %}<i
                     class="bi bi-dash me-1"
                 ></i
                 >{% else %}<i class="bi bi-arrow-down me-1"></i>{% endif %} {{ tarea.get_prioridad_display }}
@@ -529,7 +530,9 @@
                                 </div>
                                 <span class="badge text-bg-light" style="border: 1px solid #dfe6e9; color: #34495e">
                                     {% if pt.imagenes.all %}
-                                    <i class="bi bi-image"></i> {{ pt.imagenes.count }} imagen{{pt.imagenes.count|pluralize:"es" }} {% else %} <i class="bi bi-image"></i> Sinimágenes {% endif %}
+                                    <i class="bi bi-image"></i> {{ pt.imagenes.count }}
+                                    imagen{{pt.imagenes.count|pluralize:"es" }} {% else %}
+                                    <i class="bi bi-image"></i> Sinimágenes {% endif %}
                                 </span>
                             </div>
                             <div class="card-body">
@@ -1334,10 +1337,11 @@
                     // Actualizar mensaje
                     btn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Subiendo...';
 
-                    // Enviar con fetch
+                    // Enviar con fetch (incluir cookies para que Django pueda validar CSRF)
                     const response = await fetch(this.action || window.location.href, {
                         method: "POST",
                         body: formData,
+                        credentials: "same-origin",
                         headers: {
                             "X-CSRFToken": csrfToken ? csrfToken.value : "",
                         },
