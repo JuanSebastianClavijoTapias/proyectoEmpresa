@@ -234,7 +234,12 @@
         <!-- Sección de Imágenes del Progreso -->
         <div class="card mb-4" style="border: none; border-left: 4px solid #9b59b6; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; border: none;">
-                <span><i class="bi bi-images"></i> Registro Fotográfico por Producto</span>
+                <span><i class="bi bi-images"></i> Registro Fotográfico</span>
+                {% if productos_tarea %}
+                <small class="d-block" style="opacity: 0.9; margin-top: 0.25rem;">
+                    Total: <strong>{{ contador_imagenes }}</strong> imagen{{ contador_imagenes|pluralize:"es" }}
+                </small>
+                {% endif %}
                 {% if productos_tarea %}
                 <button class="btn btn-sm" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.5);" type="button" data-bs-toggle="collapse" data-bs-target="#formSubirImagen">
                     <i class="bi bi-images me-1"></i> Subir Imagen
@@ -247,7 +252,7 @@
                 <div class="collapse mb-4" id="formSubirImagen">
                     <div class="card card-body" style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.05), rgba(142, 68, 173, 0.05)); border: 1px solid #e9ecef;">
                         <h6 class="mb-3" style="color: #34495e;"><i class="bi bi-upload me-2"></i>Subir Nueva Imagen</h6>
-                        <form method="post" enctype="multipart/form-data">
+                        <form method="post" enctype="multipart/form-data" id="formSubirImagenes" action="{% url 'tareas:detalle' tarea.pk %}">
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="id_producto_tarea" class="form-label fw-bold" style="color: #34495e;">Producto</label>

@@ -139,12 +139,12 @@ class AbonarForm(forms.Form):
 
 
 class ImagenTareaForm(forms.ModelForm):
-    """Formulario para subir imágenes a las tareas"""
+    """Formulario para subir múltiples imágenes a las tareas"""
     producto_tarea = forms.ModelChoiceField(
         queryset=ProductoTarea.objects.none(),
-        required=True,
+        required=False,
         label='Producto',
-        empty_label='Seleccione el producto',
+        empty_label='-- Imagen general de tarea --',
         widget=forms.Select(attrs={
             'class': 'form-select',
         }),
@@ -171,7 +171,7 @@ class ImagenTareaForm(forms.ModelForm):
             }),
             'descripcion': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Descripción de la imagen (opcional)',
+                'placeholder': 'Descripción de las imágenes (opcional)',
                 'maxlength': '200'
             }),
         }

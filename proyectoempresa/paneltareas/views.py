@@ -3,14 +3,16 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from datetime import date, timedelta
 from decimal import Decimal
+from pathlib import Path
 import calendar
 import json
 import unicodedata
-from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea, NotaTrabajo
+from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea, NotaTrabajo, _optimizar_imagen_bytes
 from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm, NotaTrabajoForm
 from panelfinanzas.models import Producto, PerfilUsuario
 from core.permissions import require_not_trabajador
@@ -717,7 +719,7 @@ def eliminar_tarea(request, pk):
 
 @login_required
 def detalle_tarea(request, pk):
-    """Vista para ver el detalle de una tarea y subir imágenes"""
+    """Vista para ver el detalle de una tarea y subir múltiples imágenes"""
     tarea = get_object_or_404(
         TareaPlanificada.objects.prefetch_related('productos_tarea__imagenes', 'imagenes'),
         pk=pk,
@@ -725,26 +727,56 @@ def detalle_tarea(request, pk):
     usuario_es_jefe = es_jefe(request.user)
     
     if request.method == 'POST':
-        form_imagen = ImagenTareaForm(request.POST, request.FILES, tarea=tarea)
-        if form_imagen.is_valid():
-            imagen = form_imagen.save(commit=False)
-            imagen.tarea = tarea
-            imagen.save()
-            # FIX: producto_tarea puede ser None en imágenes generales de tarea;
-            # acceder directamente causaba AttributeError en la segunda subida.
-            nombre_pt = imagen.producto_tarea.nombre_producto if imagen.producto_tarea_id else 'la tarea'
-            messages.success(request, f'Imagen subida exitosamente para {nombre_pt}.')
+        # Procesar múltiples imágenes
+        archivos = request.FILES.getlist('imagen')
+        producto_tarea_id = request.POST.get('producto_tarea')
+        descripcion = request.POST.get('descripcion', '')
+        
+        if archivos:
+            contador = 0
+            errores_procesar = []
+            
+            for archivo in archivos:
+                try:
+                    # 1. Comprimir la imagen INMEDIATAMENTE
+                    contenido_comprimido, nombre_optimizado = _optimizar_imagen_bytes(archivo, archivo.name)
+                    
+                    # 2. Crear la imagen con el contenido comprimido
+                    imagen = ImagenTarea(
+                        tarea=tarea,
+                        producto_tarea_id=producto_tarea_id if producto_tarea_id else None,
+                        descripcion=descripcion
+                    )
+                    
+                    # 3. Guardar el contenido comprimido directamente
+                    nombre_base = Path(nombre_optimizado).name
+                    imagen.imagen.save(nombre_base, ContentFile(contenido_comprimido), save=False)
+                    imagen.full_clean()
+                    imagen.save()
+                    contador += 1
+                except ValidationError as e:
+                    errores_procesar.append(f"{archivo.name}: {', '.join(e.messages)}")
+                except Exception as e:
+                    errores_procesar.append(f"{archivo.name}: Error al comprimir/guardar")
+            
+            if contador > 0:
+                plural = 'imagen' if contador == 1 else 'imágenes'
+                messages.success(request, f'{contador} {plural} subida(s) y comprimida(s) exitosamente.')
+            
+            if errores_procesar:
+                for error in errores_procesar[:3]:  # Mostrar máximo 3 errores
+                    messages.error(request, error)
+            
             return redirect('tareas:detalle', pk=pk)
         else:
-            mensajes = []
-            for errores in form_imagen.errors.values():
-                mensajes.extend(errores)
-            messages.error(request, ' '.join(mensajes) or 'Error al subir la imagen. Verifica que sea un archivo de imagen válido.')
-    else:
-        form_imagen = ImagenTareaForm(tarea=tarea)
+            messages.error(request, 'Por favor selecciona al menos una imagen.')
     
+    form_imagen = ImagenTareaForm(tarea=tarea)
     productos_tarea = tarea.productos_tarea.all()
     imagenes_generales = tarea.imagenes.activas().filter(producto_tarea__isnull=True)
+    
+    # Contar todas las imágenes de la tarea
+    contador_imagenes = tarea.imagenes.count()
     
     form_abonar = AbonarForm()
 
@@ -760,6 +792,7 @@ def detalle_tarea(request, pk):
         'es_jefe': usuario_es_jefe,
         'form_abonar': form_abonar,
         'cliente_id': cliente_id,
+        'contador_imagenes': contador_imagenes,
     })
 
 

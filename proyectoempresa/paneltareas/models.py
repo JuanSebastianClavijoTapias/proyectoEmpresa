@@ -18,7 +18,7 @@ MAX_FINAL_IMAGE_BYTES = 2 * 1024 * 1024
 MAX_IMAGE_DIMENSION = 1920  # FIX: máx 1920 px preservando proporción
 MIN_IMAGE_QUALITY = 65
 MAX_IMAGE_QUALITY = 75  # FIX: calidad objetivo JPEG 75
-MAX_RAW_UPLOAD_BYTES = getattr(settings, 'PANELTAREAS_MAX_IMAGE_UPLOAD_BYTES', 10 * 1024 * 1024)  # FIX: límite 10 MB
+MAX_RAW_UPLOAD_BYTES = getattr(settings, 'PANELTAREAS_MAX_IMAGE_UPLOAD_BYTES', 50 * 1024 * 1024)  # FIX: límite 50 MB (después de compresión cliente)
 ASYNC_IMAGE_PROCESSING = getattr(settings, 'PANELTAREAS_PROCESAR_IMAGENES_ASYNC', True)
 IMAGE_PROCESSOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix='paneltareas-imagenes')
 
@@ -301,7 +301,8 @@ class ImagenTarea(models.Model):
         blank=True,
     )
     imagen = models.ImageField(
-        upload_to='tareas/imagenes/%Y/%m/',
+        # En models.py, donde está el campo ImageField
+        upload_to='tareas/%Y/%m/',
         verbose_name='Imagen',
         validators=[validar_imagen],
         max_length = 255,
