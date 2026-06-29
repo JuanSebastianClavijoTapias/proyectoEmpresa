@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load money_format %}
+
+{% block title %}Papelera de Imágenes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tareas:lista' %}">Planificador</a></li>
+            <li class="breadcrumb-item active">Papelera</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1><i class="bi bi-trash"></i> Papelera de Imágenes</h1>
+            <p class="text-white mb-0">Imágenes eliminadas — se vacía automáticamente a los 30 días</p>
+        </div>
+        <div class="d-flex gap-2">
+            {% if imagenes %}
+            <form method="post" action="{% url 'tareas:vaciar_papelera' %}" onsubmit="return confirm('¿Eliminar definitivamente todas las imágenes de la papelera? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <button type="submit" class="btn" style="background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; border: none; font-weight: 500;">
+                    <i class="bi bi-trash-fill me-2"></i> Vaciar Papelera
+                </button>
+            </form>
+            {% endif %}
+            <a href="{% url 'tareas:lista' %}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-2"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if imagenes %}
+<div class="row g-3">
+    {% for img in imagenes %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card h-100" style="border: 1px solid #e9ecef; opacity: 0.85; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+            <img src="{{ img.imagen.url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="Imagen en papelera">
+            <div class="card-body p-2" style="font-size: 0.85rem;">
+                <p class="card-text mb-1 text-truncate" style="color: #34495e;" title="{{ img.descripcion|default:'Sin descripción' }}">
+                    {{ img.descripcion|default:'Sin descripción' }}
+                </p>
+                <small class="text-muted d-block">
+                    <i class="bi bi-calendar-x"></i> Eliminada: {{ img.eliminada_en|date:"d/m/Y" }}
+                </small>
+                {% if img.tarea %}
+                <small class="text-muted d-block text-truncate">
+                    <i class="bi bi-clipboard"></i> {{ img.tarea.placa|default:"Sin placa" }} — {{ img.tarea.nombre_cliente }}
+                </small>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-0 p-1 d-flex gap-1">
+                <form method="post" action="{% url 'tareas:restaurar_imagen' img.pk %}" class="flex-grow-1">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                    </button>
+                </form>
+                <form method="post" action="{% url 'tareas:eliminar_permanente_imagen' img.pk %}" onsubmit="return confirm('¿Eliminar esta imagen definitivamente? No se podrá recuperar.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card text-center py-5" style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.05), rgba(34, 153, 84, 0.05)); border: 1px dashed #27ae60; border-left: 4px solid #27ae60;">
+    <div class="card-body">
+        <i class="bi bi-recycle" style="font-size: 4rem; color: #27ae60;"></i>
+        <h4 class="mt-3" style="color: #34495e;">Papelera vacía</h4>
+        <p class="text-muted">No hay imágenes eliminadas. Las imágenes borradas aparecerán aquí por hasta 30 días.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

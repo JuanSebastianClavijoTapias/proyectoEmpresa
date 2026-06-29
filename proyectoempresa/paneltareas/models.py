@@ -281,6 +281,14 @@ def programar_optimizacion_imagen(imagen_pk):
     _procesar_imagen_tarea_en_segundo_plano(imagen_pk)
 
 
+class ImagenTareaQuerySet(models.QuerySet):
+    def activas(self):
+        return self.filter(eliminada=False)
+
+    def papelera(self):
+        return self.filter(eliminada=True)
+
+
 class ImagenTarea(models.Model):
     """Modelo para almacenar imágenes del progreso de las tareas"""
     tarea = models.ForeignKey(TareaPlanificada, on_delete=models.CASCADE, related_name='imagenes', verbose_name='Tarea')
@@ -300,6 +308,10 @@ class ImagenTarea(models.Model):
     )
     descripcion = models.CharField(max_length=200, blank=True, verbose_name='Descripción')
     fecha_subida = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de Subida')
+    eliminada = models.BooleanField(default=False, db_index=True, verbose_name='En papelera')
+    eliminada_en = models.DateTimeField(null=True, blank=True, verbose_name='Fecha de eliminación')
+
+    objects = ImagenTareaQuerySet.as_manager()
     
     class Meta:
         verbose_name = 'Imagen de Tarea'
@@ -420,8 +432,33 @@ class ProductoTarea(models.Model):
         return self.precio_costo * self.cantidad
     
     @property
+    def imagenes_activas(self):
+        return self.imagenes.filter(eliminada=False)
+
+    @property
     def porcentaje_ganancia(self):
         """Porcentaje de ganancia"""
         if self.precio_costo > 0:
             return ((self.precio_venta - self.precio_costo) / self.precio_costo) * 100
         return 0
+
+
+class NotaTrabajo(models.Model):
+    contenido = models.TextField(verbose_name='Contenido de la nota')
+    creado_por = models.ForeignKey(
+        'auth.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Creado por',
+    )
+    creado_en = models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')
+    tomada = models.BooleanField(default=False, verbose_name='Nota tomada')
+    tomada_en = models.DateTimeField(null=True, blank=True, verbose_name='Fecha en que se tomó')
+
+    class Meta:
+        verbose_name = 'Nota de Trabajo'
+        verbose_name_plural = 'Notas de Trabajo'
+        ordering = ['-creado_en']
+
+    def __str__(self):
+        return self.contenido[:80]

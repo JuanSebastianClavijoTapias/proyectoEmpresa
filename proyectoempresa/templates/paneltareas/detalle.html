@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load money_format %}
 
 {% block title %}Detalle Tarea - {{ tarea.placa }}{% endblock %}
@@ -290,13 +291,13 @@
                                     <div class="small text-muted">Cantidad: {{ pt.cantidad }}{% if pt.placa %} | Placa: {{ pt.placa }}{% endif %}</div>
                                 </div>
                                 <span class="badge text-bg-light" style="border: 1px solid #dfe6e9; color: #34495e;">
-                                    {% if pt.imagenes.all %}Con imágenes{% else %}Sin imágenes{% endif %}
+                                    {% if pt.imagenes_activas %}Con imágenes{% else %}Sin imágenes{% endif %}
                                 </span>
                             </div>
                             <div class="card-body">
-                                {% if pt.imagenes.all %}
+                                {% if pt.imagenes_activas %}
                                 <div class="row g-3">
-                                    {% for img in pt.imagenes.all %}
+                                    {% for img in pt.imagenes_activas %}
                                     <div class="col-6 col-md-4 col-lg-3">
                                         <div class="card h-100 imagen-card" style="border: 1px solid #e9ecef; transition: all 0.3s ease;">
                                             <a href="{{ img.imagen.url }}" target="_blank" class="imagen-link">
@@ -308,11 +309,14 @@
                                                 {% endif %}
                                                 <small class="text-muted d-block">{{ img.fecha_subida|date:"d/m/Y H:i" }}</small>
                                             </div>
-                                            <div class="card-footer p-1 bg-transparent border-0">
-                                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                            <div class="card-footer p-1 bg-transparent border-0 d-flex gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-warning flex-grow-1" onclick="EditorImagen.abrirEditor('{{ img.imagen.url }}', function(blob, filename, hasDrawed) { guardarImagenAnotada(blob, filename, {{ img.pk }}); })">
+                                                    <i class="bi bi-pencil"></i> Anotar
+                                                </button>
+                                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Mover esta imagen a la papelera?');">
                                                     {% csrf_token %}
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                                        <i class="bi bi-trash"></i> Eliminar
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
                                             </div>
@@ -362,11 +366,14 @@
                                 {% endif %}
                                 <small class="text-muted d-block">{{ img.fecha_subida|date:"d/m/Y H:i" }}</small>
                             </div>
-                            <div class="card-footer p-1 bg-transparent border-0">
-                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                            <div class="card-footer p-1 bg-transparent border-0 d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-outline-warning flex-grow-1" onclick="EditorImagen.abrirEditor('{{ img.imagen.url }}', function(blob, filename, hasDrawed) { guardarImagenAnotada(blob, filename, {{ img.pk }}); })">
+                                    <i class="bi bi-pencil"></i> Anotar
+                                </button>
+                                <form method="post" action="{% url 'tareas:eliminar_imagen' tarea.pk img.pk %}" class="d-inline" onsubmit="return confirm('¿Mover esta imagen a la papelera?');">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                                        <i class="bi bi-trash"></i> Eliminar
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -459,6 +466,11 @@
                     <a href="{% url 'tareas:eliminar' tarea.pk %}" class="btn btn-sm btn-outline-danger">
                         <i class="bi bi-trash me-2"></i> Eliminar
                     </a>
+                    {% if es_jefe %}
+                    <a href="{% url 'tareas:papelera' %}" class="btn btn-sm" style="background: linear-gradient(135deg, #e67e22, #d35400); color: white; border: none; font-weight: 500;">
+                        <i class="bi bi-archive me-2"></i> Papelera de Imágenes
+                    </a>
+                    {% endif %}
                     <a href="{% if tarea.categoria == 'bus' %}{% url 'bus:lista' %}{% else %}{% url 'tareas:lista' %}{% endif %}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i> Volver
                     </a>
@@ -530,7 +542,45 @@
 }
 </style>
 
+<script src="{% static 'js/editor-imagen.js' %}"></script>
 <script>
+// Flag to track if the image should be opened in the annotation editor
+var _shouldEditInCanvas = false;
+
+// After the IIFE above transfers files from cameraInput to _mainInput,
+// intercept the _mainInput change to open the canvas editor when triggered from camera
+document.addEventListener('DOMContentLoaded', function() {
+    var _mainInput = document.getElementById('id_imagen');
+    if (_mainInput) {
+        _mainInput.addEventListener('change', function() {
+            if (_shouldEditInCanvas && this.files && this.files.length > 0) {
+                _shouldEditInCanvas = false;
+                var file = this.files[0];
+                EditorImagen.abrirEditor(file, function(blob, filename, hasDrawed) {
+                    var dt = new DataTransfer();
+                    dt.items.add(new File([blob], filename, { type: 'image/jpeg' }));
+                    _mainInput.files = dt.files;
+                });
+            }
+        });
+    }
+});
+
+function guardarImagenAnotada(blob, filename, imagenPk) {
+    var formData = new FormData();
+    formData.append('imagen_anotada', blob, filename);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    fetch('{% url "tareas:anotar_imagen" 0 %}'.replace('0', imagenPk), {
+        method: 'POST',
+        body: formData,
+    }).then(function(resp) {
+        if (resp.ok) window.location.reload();
+        else alert('Error al guardar la anotación.');
+    }).catch(function() {
+        alert('Error de conexión al guardar la anotación.');
+    });
+}
+
 async function enviarPdfWhatsApp(btn) {
     const pdfUrl = btn.getAttribute('data-pdf-url');
     const waUrl = btn.getAttribute('data-wa-url');
@@ -655,12 +705,15 @@ document.addEventListener('click', function(e) {
                 closeMenu();
             } else if (action === 'camera') {
                 closeMenu();
+                _shouldEditInCanvas = true;
                 cameraInput.click();
             } else if (action === 'gallery') {
                 closeMenu();
+                _shouldEditInCanvas = false;
                 galleryInput.click();
             } else if (action === 'files') {
                 closeMenu();
+                _shouldEditInCanvas = false;
                 mainInput.click();
             }
         });

@@ -17,4 +17,22 @@ urlpatterns = [
     path('<int:pk>/abonar/', views.abonar_tarea, name='abonar'),
     path('<int:pk>/completar-pago/', views.completar_pago_tarea, name='completar_pago'),
     path('<int:pk>/imagen/<int:imagen_pk>/eliminar/', views.eliminar_imagen, name='eliminar_imagen'),
+
+    # Papelera de imágenes
+    path('papelera/', views.papelera_imagenes, name='papelera'),
+    path('papelera/<int:imagen_pk>/restaurar/', views.restaurar_imagen, name='restaurar_imagen'),
+    path('papelera/<int:imagen_pk>/eliminar/', views.eliminar_permanente_imagen, name='eliminar_permanente_imagen'),
+    path('papelera/vaciar/', views.vaciar_papelera, name='vaciar_papelera'),
+
+    # Anotación de imágenes
+    path('imagen/<int:imagen_pk>/anotar/', views.anotar_imagen, name='anotar_imagen'),
+
+    # Notas de trabajo
+    path('notas/crear/', views.crear_nota_trabajo, name='crear_nota'),
+    path('notas/<int:nota_pk>/tomada/', views.toggle_tomada_nota, name='toggle_tomada_nota'),
+    path('notas/<int:nota_pk>/eliminar/', views.eliminar_nota_trabajo, name='eliminar_nota'),
+
+    # Exportar y borrar masivo
+    path('exportar-csv/', views.exportar_tareas_csv, name='exportar_csv'),
+    path('borrar-seleccionadas/', views.borrar_seleccionadas, name='borrar_seleccionadas'),
 ]

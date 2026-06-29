@@ -10,8 +10,8 @@ from decimal import Decimal
 import calendar
 import json
 import unicodedata
-from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea
-from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm
+from .models import Cliente, TareaPlanificada, ImagenTarea, ProductoTarea, NotaTrabajo
+from .forms import TareaPlanificadaForm, TareaPlanificadaFormJefe, ClienteForm, ImagenTareaForm, ProductoTareaFormSet, ProductoTareaFormSetEdit, AbonarForm, NotaTrabajoForm
 from panelfinanzas.models import Producto, PerfilUsuario
 from core.permissions import require_not_trabajador
 
@@ -570,6 +570,9 @@ def lista_tareas(request):
         'morosos': morosos,
         'total_saldo_pendiente': total_saldo_pendiente,
         'es_jefe': usuario_es_jefe,
+        'notas_activas': NotaTrabajo.objects.filter(tomada=False),
+        'notas_tomadas': NotaTrabajo.objects.filter(tomada=True),
+        'form_nota': NotaTrabajoForm(),
     })
 
 
@@ -741,7 +744,7 @@ def detalle_tarea(request, pk):
         form_imagen = ImagenTareaForm(tarea=tarea)
     
     productos_tarea = tarea.productos_tarea.all()
-    imagenes_generales = tarea.imagenes.filter(producto_tarea__isnull=True)
+    imagenes_generales = tarea.imagenes.activas().filter(producto_tarea__isnull=True)
     
     form_abonar = AbonarForm()
 
@@ -798,16 +801,16 @@ def completar_pago_tarea(request, pk):
 
 @login_required
 def eliminar_imagen(request, pk, imagen_pk):
-    """Vista para eliminar una imagen de una tarea"""
+    """Mueve una imagen a la papelera (soft-delete)"""
     tarea = get_object_or_404(TareaPlanificada, pk=pk)
     imagen = get_object_or_404(ImagenTarea, pk=imagen_pk, tarea=tarea)
     
     if request.method == 'POST':
-        # Eliminar el archivo físico
-        if imagen.imagen:
-            imagen.imagen.delete(save=False)
-        imagen.delete()
-        messages.success(request, 'Imagen eliminada exitosamente.')
+        from django.utils import timezone
+        imagen.eliminada = True
+        imagen.eliminada_en = timezone.now()
+        imagen.save(update_fields=['eliminada', 'eliminada_en'])
+        messages.success(request, 'Imagen movida a la papelera. Puede restaurarse desde allí.')
         return redirect('tareas:detalle', pk=pk)
     
     return redirect('tareas:detalle', pk=pk)
@@ -994,7 +997,7 @@ def reporte_cliente_pdf(request, pk):
             IMG_W = doc.width / MAX_FOTOS - 0.3 * cm
             IMG_H = IMG_W * 0.75
             for pt in productos:
-                imagenes = pt.imagenes.all()[:MAX_FOTOS * 2]  # máx 8 fotos por producto
+                imagenes = pt.imagenes.activas()[:MAX_FOTOS * 2]  # máx 8 fotos por producto, solo activas
                 if imagenes:
                     story.append(Paragraph(
                         f"<b>Fotos del proceso — {pt.nombre_producto}</b>",
@@ -1175,3 +1178,212 @@ def calendario_tareas(request):
     }
     
     return render(request, 'paneltareas/calendario.html', context)
+
+
+# =============================================
+# VISTAS DE PAPELERA DE IMAGENES
+# =============================================
+
+@require_not_trabajador
+def papelera_imagenes(request):
+    imagenes = ImagenTarea.objects.papelera().select_related('tarea', 'producto_tarea').order_by('-eliminada_en')
+    return render(request, 'paneltareas/papelera.html', {
+        'imagenes': imagenes,
+    })
+
+
+@require_not_trabajador
+def restaurar_imagen(request, imagen_pk):
+    imagen = get_object_or_404(ImagenTarea, pk=imagen_pk)
+    if request.method == 'POST':
+        imagen.eliminada = False
+        imagen.eliminada_en = None
+        imagen.save(update_fields=['eliminada', 'eliminada_en'])
+        messages.success(request, 'Imagen restaurada exitosamente.')
+    return redirect('tareas:papelera')
+
+
+@require_not_trabajador
+def eliminar_permanente_imagen(request, imagen_pk):
+    imagen = get_object_or_404(ImagenTarea, pk=imagen_pk)
+    if request.method == 'POST':
+        if imagen.imagen:
+            imagen.imagen.delete(save=False)
+        imagen.delete()
+        messages.success(request, 'Imagen eliminada definitivamente.')
+    return redirect('tareas:papelera')
+
+
+@require_not_trabajador
+def vaciar_papelera(request):
+    if request.method == 'POST':
+        eliminadas = ImagenTarea.objects.papelera()
+        count = eliminadas.count()
+        for img in eliminadas:
+            if img.imagen:
+                img.imagen.delete(save=False)
+            img.delete()
+        messages.success(request, f'Se eliminaron {count} imagen(es) definitivamente.')
+    return redirect('tareas:papelera')
+
+
+# =============================================
+# VISTA DE ANOTACION DE IMAGEN
+# =============================================
+
+@login_required
+def anotar_imagen(request, imagen_pk):
+    imagen = get_object_or_404(ImagenTarea, pk=imagen_pk)
+
+    if request.method == 'POST':
+        archivo = request.FILES.get('imagen_anotada')
+        if archivo:
+            if imagen.imagen:
+                imagen.imagen.delete(save=False)
+            from pathlib import Path
+            import os
+            nombre_archivo = Path(archivo.name).name
+            imagen._omitir_optimizacion_imagen = False
+            imagen.imagen.save(nombre_archivo, archivo, save=False)
+            from .models import programar_optimizacion_imagen
+            from django.db import transaction
+            imagen.save()
+            transaction.on_commit(lambda: programar_optimizacion_imagen(imagen.pk))
+            messages.success(request, 'Anotación guardada.')
+        else:
+            messages.error(request, 'No se recibió la imagen anotada.')
+        return redirect('tareas:detalle', pk=imagen.tarea_id)
+
+    return redirect('tareas:detalle', pk=imagen.tarea_id)
+
+
+# =============================================
+# VISTAS DE NOTAS DE TRABAJO
+# =============================================
+
+@login_required
+def crear_nota_trabajo(request):
+    if request.method == 'POST':
+        form = NotaTrabajoForm(request.POST)
+        if form.is_valid():
+            nota = form.save(commit=False)
+            nota.creado_por = request.user
+            nota.save()
+            messages.success(request, 'Nota guardada.')
+        else:
+            messages.error(request, 'Error al guardar la nota.')
+    return redirect('tareas:lista')
+
+
+@login_required
+def toggle_tomada_nota(request, nota_pk):
+    nota = get_object_or_404(NotaTrabajo, pk=nota_pk)
+    if request.method == 'POST':
+        from django.utils import timezone
+        nota.tomada = not nota.tomada
+        nota.tomada_en = timezone.now() if nota.tomada else None
+        nota.save(update_fields=['tomada', 'tomada_en'])
+        if nota.tomada:
+            messages.success(request, 'Nota marcada como tomada.')
+        else:
+            messages.success(request, 'Nota reabierta.')
+    return redirect('tareas:lista')
+
+
+@login_required
+def eliminar_nota_trabajo(request, nota_pk):
+    nota = get_object_or_404(NotaTrabajo, pk=nota_pk)
+    if request.method == 'POST':
+        nota.delete()
+        messages.success(request, 'Nota eliminada.')
+    return redirect('tareas:lista')
+
+
+# =============================================
+# VISTAS DE EXPORTACION Y BORRADO MASIVO DE TAREAS
+# =============================================
+
+@require_not_trabajador
+def exportar_tareas_csv(request):
+    import csv
+    ids_str = request.GET.get('tarea_ids', '')
+    if not ids_str:
+        messages.warning(request, 'No se seleccionó ninguna tarea.')
+        return redirect('tareas:lista')
+
+    try:
+        ids = [int(x) for x in ids_str.split(',') if x.strip().isdigit()]
+    except (ValueError, TypeError):
+        messages.error(request, 'Selección inválida.')
+        return redirect('tareas:lista')
+
+    tareas = TareaPlanificada.objects.filter(pk__in=ids).prefetch_related('productos_tarea').order_by('-creado_en')
+    if not tareas.exists():
+        messages.warning(request, 'No se encontraron tareas con esos IDs.')
+        return redirect('tareas:lista')
+
+    fecha_str = date.today().strftime('%Y%m%d')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="tareas_export_{fecha_str}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'tarea_id', 'cliente', 'telefono', 'fecha_ingreso', 'fecha_entrega',
+        'estado', 'prioridad', 'categoria', 'placa',
+        'producto', 'cantidad', 'precio_costo', 'precio_venta',
+        'total_producto', 'precio_total_tarea', 'monto_abonado', 'saldo_pendiente',
+    ])
+
+    for tarea in tareas:
+        productos = tarea.productos_tarea.all()
+        if productos:
+            for pt in productos:
+                writer.writerow([
+                    tarea.id, tarea.nombre_cliente, tarea.telefono_cliente,
+                    tarea.fecha_ingreso.isoformat(), tarea.fecha_entrega.isoformat(),
+                    tarea.estado, tarea.prioridad, tarea.categoria, tarea.placa or '',
+                    pt.nombre_producto, pt.cantidad,
+                    float(pt.precio_costo), float(pt.precio_venta),
+                    float(pt.total_venta), float(tarea.precio_total),
+                    float(tarea.monto_abonado), float(tarea.saldo_pendiente),
+                ])
+        else:
+            writer.writerow([
+                tarea.id, tarea.nombre_cliente, tarea.telefono_cliente,
+                tarea.fecha_ingreso.isoformat(), tarea.fecha_entrega.isoformat(),
+                tarea.estado, tarea.prioridad, tarea.categoria, tarea.placa or '',
+                '', 0, 0, 0, 0,
+                float(tarea.precio_total), float(tarea.monto_abonado), float(tarea.saldo_pendiente),
+            ])
+
+    messages.success(request, f'Se exportaron {tareas.count()} tarea(s) a CSV.')
+    return response
+
+
+@require_not_trabajador
+def borrar_seleccionadas(request):
+    if request.method != 'POST':
+        return redirect('tareas:lista')
+
+    ids_str = request.POST.get('tarea_ids', '')
+    if not ids_str:
+        messages.warning(request, 'No se seleccionó ninguna tarea.')
+        return redirect('tareas:lista')
+
+    try:
+        ids = [int(x) for x in ids_str.split(',') if x.strip().isdigit()]
+    except (ValueError, TypeError):
+        messages.error(request, 'Selección inválida.')
+        return redirect('tareas:lista')
+
+    tareas = TareaPlanificada.objects.filter(pk__in=ids)
+    count = tareas.count()
+    with transaction.atomic():
+        for tarea in tareas:
+            for img in tarea.imagenes.all():
+                if img.imagen:
+                    img.imagen.delete(save=False)
+            tarea.delete()
+
+    messages.success(request, f'Se eliminaron {count} tarea(s) y sus imágenes.')
+    return redirect('tareas:lista')

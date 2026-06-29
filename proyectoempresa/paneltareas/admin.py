@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cliente, TareaPlanificada, ProductoTarea, ImagenTarea
+from .models import Cliente, TareaPlanificada, ProductoTarea, ImagenTarea, NotaTrabajo
 
 @admin.register(Cliente)
 class ClienteAdmin(admin.ModelAdmin):
@@ -59,7 +59,18 @@ class ProductoTareaAdmin(admin.ModelAdmin):
 
 @admin.register(ImagenTarea)
 class ImagenTareaAdmin(admin.ModelAdmin):
-    list_display = ['id', 'tarea', 'producto_tarea', 'descripcion', 'fecha_subida']
-    list_filter = ['fecha_subida']
+    list_display = ['id', 'tarea', 'producto_tarea', 'descripcion', 'fecha_subida', 'eliminada']
+    list_filter = ['fecha_subida', 'eliminada']
     search_fields = ['tarea__nombre_cliente', 'tarea__placa', 'producto_tarea__nombre_producto', 'descripcion']
     autocomplete_fields = ['tarea', 'producto_tarea']
+
+
+@admin.register(NotaTrabajo)
+class NotaTrabajoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'contenido_corto', 'creado_por', 'creado_en', 'tomada']
+    list_filter = ['tomada', 'creado_en']
+    search_fields = ['contenido']
+
+    def contenido_corto(self, obj):
+        return obj.contenido[:80]
+    contenido_corto.short_description = 'Contenido'

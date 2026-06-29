@@ -1,6 +1,6 @@
 from django import forms
 from django.forms import inlineformset_factory
-from .models import TareaPlanificada, Cliente, ImagenTarea, ProductoTarea
+from .models import TareaPlanificada, Cliente, ImagenTarea, ProductoTarea, NotaTrabajo
 from panelfinanzas.models import Producto
 
 
@@ -173,5 +173,18 @@ class ImagenTareaForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Descripción de la imagen (opcional)',
                 'maxlength': '200'
+            }),
+        }
+
+
+class NotaTrabajoForm(forms.ModelForm):
+    class Meta:
+        model = NotaTrabajo
+        fields = ['contenido']
+        widgets = {
+            'contenido': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Escribe una nota de trabajo...',
             }),
         }
